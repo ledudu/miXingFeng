@@ -4,14 +4,15 @@
 可签到,上传下载打开文件,上传下载收藏播放音乐,可搜索上传的文件,也可搜索收藏和播放网易云,qq音乐和酷狗音乐,同时上传文件和音乐具备秒传系统  
 
 # 安装
+如果没有baidumaplocation和jpush的key,请删除package.json和config.xml里相应的配置
 <code>
 	git clone https://github.com/zhoushoujian/miXingFeng.git  
 	npm install -g cordova@8.0.0  
 	cordova platform add android
 	cordova platform add ios //如果不是mac,请不要运行这条命令
-	npm i 
 	cd view
 	npm i
+	npm run dev
 </code>
 
 
