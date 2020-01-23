@@ -7,15 +7,14 @@
 # 安装
 如果没有baidumaplocation和jpush的key,请删除package.json和config.xml里相应的配置  
   
-<code>
-  git clone https://github.com/zhoushoujian/miXingFeng.git  
-  npm install -g cordova@8.0.0  
-  cordova platform add android  
-  cordova platform add ios //如果不是mac,请不要运行这条命令  
-  cd view  
-  npm i  
-  npm run dev  
-</code>
+```shell
+$ git clone https://github.com/zhoushoujian/miXingFeng.git  
+$ npm install -g cordova@8.0.0  
+$ cordova platform add android  
+$ cordova platform add ios //如果不是mac,请不要运行这条命令  
+$ cd view  
+$ npm i  
+```
 
 # 技术栈
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
