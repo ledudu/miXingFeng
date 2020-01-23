@@ -1,28 +1,27 @@
 # 觅星峰
 
 # 简介
-可签到,上传下载打开文件,上传下载收藏播放音乐,可搜索上传的文件,也可搜索收藏和播放网易云,qq音乐和酷狗音乐,同时上传文件和音乐具备秒传系统  
+可签到,上传下载打开文件,上传下载收藏播放音乐,可搜索上传的文件,也可搜索收藏和播放网易云,qq音乐和酷狗音乐.
+上传文件和音乐具备秒传系统.可运行在h5和安卓,限于一些条件,没办法在ios真机上调试,理论上可适配ios安装包.
 
 # 安装
-如果没有baidumaplocation和jpush的key,请删除package.json和config.xml里相应的配置
+如果没有baidumaplocation和jpush的key,请删除package.json和config.xml里相应的配置  
+  
 <code>
-	git clone https://github.com/zhoushoujian/miXingFeng.git  
-	npm install -g cordova@8.0.0  
-	cordova platform add android
-	cordova platform add ios //如果不是mac,请不要运行这条命令
-	cd view
-	npm i
-	npm run dev
+  git clone https://github.com/zhoushoujian/miXingFeng.git  
+  npm install -g cordova@8.0.0  
+  cordova platform add android  
+  cordova platform add ios //如果不是mac,请不要运行这条命令  
+  cd view  
+  npm i  
+  npm run dev  
 </code>
-
 
 # 技术栈
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
 
-# Attention
+# 注意
 推荐使用cordova8.0.0,cordova-android7.1.4,cordova-plugin-jcore1.3.1,jpush-phonegap-plugin3.7.3,否则cordova-plugin-android-permissions, cordova-plugin-background-mode和JPush可能不工作,甚至会影响整个app稳定性  
-
-cordova plugin add cordova-plugin-fastrde-md5 --force
 
 ````AndroidStudio打包出现"xxx" is not translated in "zh" (Chinese):````
 To ignore this in a gradle build add this to the android section of your build file:
@@ -295,20 +294,20 @@ android {
 
 # 测试
 ````文件：````  
-入口： 分享列表，正在下载，已下载，搜索文件，综合搜索
-场景：正常上传，秒传，正在下载，已下载，删除，打开，查看更多，push通知
-````音乐````
-入口：分享列表，正在下载，已下载，搜索分享音乐，搜索在线音乐（网易云，qq音乐，酷狗音乐），综合搜索，收藏
-场景： 正常上传，秒传，正在下载，已下载，删除，收藏，播放，暂停，播放上一首，播放下一首，单曲播放，单曲循环，顺序播放，随机播放，查看更多，push通知
-其他：切出音乐页面可以自动播放下一首
-
+入口： 分享列表，正在下载，已下载，搜索文件，综合搜索  
+场景：正常上传，秒传，正在下载，已下载，删除，打开，查看更多，push通知  
+````音乐````  
+入口：分享列表，正在下载，已下载，搜索分享音乐，搜索在线音乐（网易云，qq音乐，酷狗音乐），综合搜索，收藏  
+场景： 正常上传，秒传，正在下载，已下载，删除，收藏，播放，暂停，播放上一首，播放下一首，单曲播放，单曲循环，顺序播放，随机播放，查看更多，push通知  
+其他：切出音乐页面可以自动播放下一首  
+  
 # 关于音乐
-音乐页面的入口有：分享列表，收藏页面，正在下载，已下载，搜索共享音乐，搜索在线音乐(包含网易云，qq音乐和酷狗音乐)，综合搜索(包含共享文件，共享音乐，网易云，qq音乐和酷狗音乐)
-为了标识每一首音乐，每一首音乐的filenameOriginal都不相同，共享音乐的filenameOriginal最初由上传文件时服务端生成（这里分为普通上传和秒传），字段格式为上传者名称加文件名加时间戳
-在线音乐filenameOriginal由客户端生成，字段格式为音乐名称加md5，因为存在秒传，所以共享音乐不能使用md5来生成filenameOriginal。
-不管是搜索，收藏还是下载，实质上还是同一首音乐，为了区分被搜索(或收藏或下载的音乐)，需要给filenameOriginal添加前缀。
-先说一下如果不加前缀会怎样，不加前缀则会存在两个相同的filenameOriginal，比如从共享列表下载了一首音乐，那么在共享列表点击播放这首音乐，在下载列表会显示这首音乐的播放进度
-共享列表的filenameOriginal不需要添加前缀，收藏列表添加saved_，下载列表正在下载添加downloading_,已下载添加downloaded_，搜索共享音乐添加searchMusic_，
-搜索在线音乐onlineMusic_，综合搜索searchAll_，这些带前缀的filenameOriginal可能存在耦合，比如下载收藏的音乐，前缀则变为downloaded_saved_。
-虽然这些音乐的filenameOriginal都不一样，但是在下载同一首歌的时候需要给出提示，比如在共享列表下载了一首歌，然后把这首歌添加收藏，然后在收藏列表又点击了下载，这时候应提示该文件正在下载，而不是再次下载这首歌。
-下载完成后会在indexedDB添加一条记录，indexedDB的filenameOriginal是带前缀的，但是保存到音乐文件的filenameOriginal是不带前缀的，删除音乐的时候要同时删除indexedDB的记录和本地保存的音乐文件，这里要注意filenameOriginal的转换
+音乐页面的入口有：分享列表，收藏页面，正在下载，已下载，搜索共享音乐，搜索在线音乐(包含网易云，qq音乐和酷狗音乐)，综合搜索(包含共享文件，共享音乐，网易云，qq音乐和酷狗音乐)  
+为了标识每一首音乐，每一首音乐的filenameOriginal都不相同，共享音乐的filenameOriginal最初由上传文件时服务端生成（这里分为普通上传和秒传），字段格式为上传者名称加文件名加时间戳  
+在线音乐filenameOriginal由客户端生成，字段格式为音乐名称加md5，因为存在秒传，所以共享音乐不能使用md5来生成filenameOriginal。  
+不管是搜索，收藏还是下载，实质上还是同一首音乐，为了区分被搜索(或收藏或下载的音乐)，需要给filenameOriginal添加前缀。  
+先说一下如果不加前缀会怎样，不加前缀则会存在两个相同的filenameOriginal，比如从共享列表下载了一首音乐，那么在共享列表点击播放这首音乐，在下载列表会显示这首音乐的播放进度  
+共享列表的filenameOriginal不需要添加前缀，收藏列表添加saved_，下载列表正在下载添加downloading_,已下载添加downloaded_，搜索共享音乐添加searchMusic_，  
+搜索在线音乐onlineMusic_，综合搜索searchAll_，这些带前缀的filenameOriginal可能存在耦合，比如下载收藏的音乐，前缀则变为downloaded_saved_。  
+虽然这些音乐的filenameOriginal都不一样，但是在下载同一首歌的时候需要给出提示，比如在共享列表下载了一首歌，然后把这首歌添加收藏，然后在收藏列表又点击了下载，这时候应提示该文件正在下载，而不是再次下载这首歌。  
+下载完成后会在indexedDB添加一条记录，indexedDB的filenameOriginal是带前缀的，但是保存到音乐文件的filenameOriginal是不带前缀的，删除音乐的时候要同时删除indexedDB的记录和本地保存的音乐文件，这里要注意filenameOriginal的转换  
