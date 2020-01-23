@@ -1,7 +1,7 @@
 # 觅星峰
 
 # 简介
-可签到,上传下载打开文件,上传下载收藏播放音乐  
+可签到,上传下载和打开文件,上传下载收藏和播放音乐  
 可搜索上传的文件,也可搜索收藏和播放网易云,qq音乐和酷狗音乐  
 上传文件和音乐具备秒传系统
 可运行在h5和安卓,限于一些条件,没办法在ios真机上调试,理论上可适配ios安装包  
@@ -87,13 +87,13 @@ android {
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
 
 # 更新:  
- [changelog](https://github.com/zhoushoujian/miXingFeng/blob/master/CHANGELOG.MD)
+[changelog](https://github.com/zhoushoujian/miXingFeng/blob/master/CHANGELOG.MD)
 
- # 前端架构师和nodejs后端架构师需要具备的能力
- ![文档](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/constructor)
+# 前端架构师和nodejs后端架构师需要具备的能力
+[文档](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/constructor)
 
- # 在Iphone模拟器上测试的部分功能
-  ![视频](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/iphone.mp4)
+# 在Iphone模拟器上测试的部分功能
+[视频](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/iphone.mp4)
 
 # 秒传系统的设计(群组方向)：
 
