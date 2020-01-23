@@ -10,7 +10,7 @@
 ```shell
 $ git clone https://github.com/zhoushoujian/miXingFeng.git  
 $ npm install -g cordova@8.0.0  
-$ cordova platform add android  
+$ cordova platform add android@7.1.4  
 $ cordova platform add ios //如果不是mac,请不要运行这条命令  
 $ cd view  
 $ npm i  
@@ -72,6 +72,11 @@ android {
 34. 支持搜索共享文件和共享音乐  
 35. 支持综合搜索  
 36. 从服务端下载广告  
+
+# 缩略图预览  
+```` 大图参考 release-V1.png ````
+![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)  
+![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
 
 # 更新:  
 "118. 优化性能，减少react刷新次数",  
@@ -192,12 +197,6 @@ android {
 "3. 优化升级界面",  
 "2. 加快程序打开速度",  
 "1. 添加app日志系统"  
-
-# 缩略图预览  
-```` 大图参考 release-V1.png ````
-![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)
-![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)
-
 
 # 秒传系统的设计(群组方向)：
 
