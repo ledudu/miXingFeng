@@ -81,8 +81,7 @@ android {
 35. 支持综合搜索  
 36. 从服务端下载广告  
 
-# 缩略图预览  
-```` 大图参考 release-V1.png ````
+# 效果图预览  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
 
