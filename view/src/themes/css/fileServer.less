@@ -1,0 +1,489 @@
+.file-server{
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 55px);
+    flex-direction: column;
+    .head{
+        text-align: center;
+        background-color: #81AFED;
+        padding-bottom: 20px;
+        padding-right: 10%;
+        color: #fff;
+        font-size: 18px;
+        font-weight: normal;
+        line-height: 24px;
+        height: 24px;
+    }
+    .upload-area{
+        display: flex;
+        justify-content: space-between;
+		padding: 5px 20px;
+		width: 100%;
+		box-sizing: border-box;
+		overflow: hidden;
+		height: 40px;
+		align-items: center;
+		flex-shrink: 0;
+		.file-to-upload{
+			width: 80%;
+		}
+		.upload{
+			width: 80px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			.file-progress{
+				width: 40px;
+			}
+		}
+    }
+    .file-container{
+        display: block;
+        overflow-y: auto;
+    }
+}
+
+.music-container{
+	display: flex;
+    width: 100%;
+    height: calc(100vh - 55px);
+    flex-direction: column;
+	.music-header{
+		text-align: center;
+		background-color: #81AFED;
+		padding-bottom: 20px;
+		padding-right: 10%;
+		color: #fff;
+		font-size: 18px;
+		font-weight: normal;
+		line-height: 24px;
+		height: 24px;
+	}
+	.upload-area{
+        display: flex;
+        justify-content: space-between;
+		padding: 5px 20px;
+		width: 100%;
+		box-sizing: border-box;
+		overflow: hidden;
+		height: 40px;
+		align-items: center;
+		flex-shrink: 0;
+		#fileToUpload {
+			width: 80%;
+		}
+		.upload{
+			width: 80px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			.progress-number{
+				width: 40px;
+			}
+		}
+	}
+}
+
+.music-list-container{
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 100%;
+	.music-list{
+		display: flex;
+		position: relative;
+		width: 100%;
+		&:active{
+			background-color: rgba(0, 0, 0, 0.2);
+		}
+		.music-content{
+			display: flex;
+			height: 50px;
+			color: #333;
+			position: relative;
+			z-index: 1;
+			border-radius: 5px;
+			padding: 8px 0 8px 10px;
+			position: relative;
+			width: calc(~"100% - 60px");
+			.num{
+				width: 30px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-shrink: 0;
+			}
+			.music-info{
+				padding: 3px 0;
+				width: 100%;
+				cursor: pointer;
+				overflow: hidden;
+				flex-grow: 0;
+				display:flex;
+				flex-direction: column;
+				.info{
+					font-size: 16px;
+					padding-bottom: 5px;
+					width: 100%;
+
+					transition: color 1s;
+					display: flex;
+					.filename{
+						overflow: hidden;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+					}
+					.saved-song-flag{
+						margin-left: 6px;
+					}
+					.net-ease-source-flag{
+						font-size: 12px;
+						border: 1px solid #C10D0C;
+						padding: 1.5px;
+						border-radius: 3px;
+						margin-left: 6px;
+						color: #C10D0C;
+						white-space: nowrap;
+						border-radius: 3px;
+						padding: 2px;
+					}
+					.qq-music-source-flag{
+						font-size: 12px;
+						border: 1px solid #006400;
+						margin-left: 6px;
+						color: green;
+						white-space: nowrap;
+						border-radius: 3px;
+						padding: 2px;
+					}
+					.ku-gou-music-source-flag{
+						font-size: 12px;
+						border: 1px solid #0C8ED9;
+						margin-left: 6px;
+						color: #1E84E4;
+						white-space: nowrap;
+						border-radius: 3px;
+						padding: 2px;
+					}
+				}
+				.song-saved{
+					color: #CD2626;
+					transition: color 1s;
+				}
+				.upload-duration{
+					display: flex;
+					width: 100%;
+					.upload-user{
+						color: #ccc;
+						font-size: 12px;
+						width: 100%;
+						overflow: hidden;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+						display: flex;
+						align-items: center;
+					}
+					.song-duration-time{
+						background-color: rgba(0, 0, 0, 0.2);
+						padding: 4px;
+						border-radius: 5px;
+						font-size: 12px;
+						color: #fff;
+						white-space: nowrap;
+					}
+				}
+				.audio-player{
+					position: relative;
+					bottom: 0;
+					font-size: 12px;
+					color: #ccc;
+					.audio-selector{
+						width: 0px;
+						height: 0px;
+						visibility: hidden;
+					}
+					.audio-player-time{
+						top: 0;
+					}
+					.audio-player-bar{
+						-webkit-box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
+						-moz-box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
+						box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
+						border-radius: 4px;
+						height: 5px;
+						bottom: -9px;
+						right: 50px;
+						left: 40px;
+						.audio-player-bar-loaded, .audio-player-bar-played{
+							border-radius: 4px;
+							width: 0;
+							height: 100%;
+							position: absolute;
+							left: 0;
+							top: 0;
+							z-index: 1;
+						}
+						.audio-player-bar-played{
+							box-shadow: inset 0 0 5px rgba( 255, 255, 255, .5);
+							background: #007fd1;
+							background: -webkit-gradient( linear, left top, right top, from( #007fd1 ), to( #c600ff ) );
+							background: -webkit-linear-gradient( to right,hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							background: -moz-linear-gradient( to right, hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							background: -ms-radial-gradient( to right, hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							background: -o-linear-gradient( to right,hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							background: linear-gradient(to right,hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							background: linear-gradient(to right, hsl(4, 100%, 41%), #d18800, hsl(61, 100%, 50%), rgb(123, 255, 0), hsl(241, 100%, 50%), #850fd3);
+							z-index: 2;
+						}
+					}
+					.audio-player-time-duration{
+						right: 10px;
+					}
+					> div {
+						position: absolute;
+					}
+				}
+			}
+			.pause-button-overlay{
+				position: absolute;
+				width: calc(100% - 10px);
+				height: 50px;
+				background-color: rgba(0, 0, 0, 0.2);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 10;
+				cursor: pointer;
+				.pause-button{
+					width: 35px;
+					height:35px;
+					border-radius: 50%;
+					// filter: blur(5px);
+					background-color: #ccc;
+					// background-image: -webkit-gradient(linear, 0 0, 0 bottom, from(white), to(#D7D7D9));
+					background-color: #F9F9F9;
+					background: linear-gradient(to bottom,#ffffff 50%,#f3f3f3 50%);
+					box-shadow: 0 0 5px #f3f3f3;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					.triangle{
+						width: 0;
+						height:0;
+						border-top: 10px solid transparent;
+						border-bottom: 10px solid transparent;
+						border-left: 10px solid #81AFED;
+						margin-left: 5px;
+					}
+				}
+			}
+		}
+		.menu, .move-downloading-item{
+			display:flex;
+			flex-direction: column;
+			width: 40px;
+			justify-content: center;
+			align-items: center;
+			flex-shrink: 0;
+			right: 10px;
+			align-self: center;
+			height: 66px;
+			cursor: pointer;
+			.dot{
+				width: 2px;
+				height: 2px;
+				background-color: #878787;
+				border-radius: 2px;
+				margin: 2px 0;
+			}
+		}
+		.move-downloading-item{
+			color: rgb(128,128,128)
+		}
+	}
+}
+
+.saved-song-container{
+	height: 100vh;
+	overflow: hidden;
+	.saved-song-content{
+		height: calc(100% - 50px);
+    	overflow-y: scroll;
+	}
+}
+
+.audio-player *,
+.audio-player *:before,
+.audio-player *:after
+{
+	-webkit-transition: color .25s ease, background-color .25s ease, opacity .5s ease;
+	-moz-transition: color .25s ease, background-color .25s ease, opacity .5s ease;
+	-ms-transition: color .25s ease, background-color .25s ease, opacity .5s ease;
+	-o-transition: color .25s ease, background-color .25s ease, opacity .5s ease;
+	transition: color .25s ease, background-color .25s ease, opacity .5s ease;
+}
+
+.file-manage-container{
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 100%;
+	.file-list{
+		display: flex;
+		position: relative;
+		width: 100%;
+		&:active{
+			background-color: rgba(0, 0, 0, 0.2);
+		}
+		.file-content{
+			display: flex;
+			height: 50px;
+			color: #333;
+			position: relative;
+			z-index: 1;
+			border-radius: 5px;
+			padding: 8px 0 8px 10px;
+			position: relative;
+			width: calc(~"100% - 60px");
+			.num{
+				width: 30px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-shrink: 0;
+			}
+			.file-info{
+				padding: 3px 0;
+				width: 100%;
+				cursor: pointer;
+				overflow: hidden;
+				flex-grow: 0;
+				display:flex;
+				flex-direction: column;
+				.info{
+					font-size: 16px;
+					padding-bottom: 5px;
+					width: 100%;
+					display: flex;
+					.filename{
+						overflow: hidden;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+					}
+					.downloaded-text{
+						font-size: 12px;
+    					border: 1px solid #4876FF;
+    					padding: 1.5px;
+    					border-radius: 3px;
+						margin-left: 6px;
+						white-space: nowrap;
+					}
+				}
+				.downloaded{
+					color: #4876FF;
+					transition: color 1s;
+				}
+				.center{
+					height: 100%;
+    				display: flex;
+    				align-items: center;
+    				padding-bottom: 0;
+				}
+				.upload-info{
+					display: flex;
+					width: 100%;
+					.upload-user{
+						color: #ccc;
+						font-size: 12px;
+						width: 100%;
+						overflow: hidden;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+						display: flex;
+						align-items: center;
+					}
+					.file-size{
+						background-color: rgba(0, 0, 0, 0.2);
+						padding: 4px;
+						border-radius: 5px;
+						font-size: 12px;
+						color: #fff;
+						white-space: nowrap;
+					}
+				}
+			}
+		}
+		.downloading{
+			width: calc(~"100% - 35px");
+		}
+		.menu, .move-downloading-item{
+			display:flex;
+			flex-direction: column;
+			width: 40px;
+			justify-content: center;
+			align-items: center;
+			flex-shrink: 0;
+			right: 10px;
+			align-self: center;
+			height: 66px;
+			cursor: pointer;
+			.dot{
+				width: 2px;
+				height: 2px;
+				background-color: #878787;
+				border-radius: 2px;
+				margin: 2px 0;
+			}
+		}
+		.move-downloading-item{
+			color: rgb(128,128,128)
+		}
+	}
+}
+
+.my-download-content{
+	height: calc(100vh - 50px);
+    display: flex;
+	flex-direction: column;
+	overflow: scroll;
+    .downloading-file-title, .downloaded-file-title{
+		height: 28px;
+		line-height: 28px;
+		padding: 10px 0 10px 20px;
+		color: rgb(128,128,128);
+		font-size: 12px;
+	}
+	.interval-line{
+		width:100%;
+		height: 10px;
+		background-color: #eaeaea;
+		display: flex;
+        flex-shrink: 0;
+	}
+}
+
+.my-download-outside-container{
+    .my-download-outside-content{
+		display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+		.file-download-page-btn, .music-download-page-btn{
+			width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            background-color: #B82712;
+            border-radius: 30px;
+            color: white;
+            margin-top: 30px;
+            box-shadow: 5px 5px 5px #C8C8C8;
+            text-shadow: 5px 5px 5px #151515;
+		}
+		.music-download-page-btn{
+			background-color: #0C77C5;
+			margin-bottom: 30px;
+		}
+	}
+}

@@ -1,0 +1,53 @@
+合格的前端架构师需要具备：
+1. html5(语义化标签和新增的tag标签等)
+2. css3(transition, filter, text-shadow, flex-shrink等)
+3. 原型，作用域，this，异步 => 进阶 =>  数组哪些方法可以改变原数组，数组哪些方法属于浅拷贝，this有哪些调用场景，手写实现一个reduce等
+4. ES6语法 => 进阶 => 扩展运算符可应用的数据类型有哪些，解构的应用场景有哪些，迭代函数和递归函数的区别是什么，async函数调用不加await会怎么运行等
+5. 前端框架(react, vue, angular) => 进阶 => react diff算法原理和运行流程，不加key和使用随机key有什么区别，使用react hooks实现类组件声明周期等
+6. 前端状态管理(redux, vuex) => 进阶 => redux的reducer为什么要设计成纯函数，reducer如果不使用伪深拷贝返回结果会有什么影响
+7. 自动化构建系统(webpack, grunt, gulp)
+8. 热更新重载模块原理
+9. 前端性能优化(自动化构架配合cdn缓存静态资源，externals外链第三方依赖，fast-sass-loader, commonsChunkPlugin, cacheDirectory, js语法优化等)
+10. chrome调试技巧(debug, network, performance, memory等)
+11. 程序算法(其他语言的算法同样可以拿到js里设计一下)
+12. 前端事件循环(微任务，宏任务，同步代码)
+13. 前端懒／预加载技术
+14. websocket双工通信
+15. 小程序方向(小程序语法，登录原理， websocket原理等)
+16. app方向(react native, flutter, cordova等)
+17. 前端日志系统(app方向)
+18. 前端错误监控系统
+19. 服务端渲染(nextjs, react原生服务端渲染)
+20. 前端微服务架构设计
+21. 前端缓存方案(强缓存和协商缓存)
+22. ngix负载均衡
+23. 设计模式(单例模式，工厂模式，观察者模式，订阅模式等)
+24. 自动化测试(单元测试，UI测试 => TDD, BDD)
+
+合格的nodejs后端架构师(mongodb方向)需要具备：
+1. express/koa/egg(rest)
+2. nodejs事件循环
+3. mongodb数据库设计
+4. 服务端缓存解决方案(redis, memoryCache)
+5. 服务端日志系统
+6. 服务端严重错误报警系统
+7. token令牌设计
+8. 服务端进程守护
+9. 内存泄漏兜底
+10. 消息中间件
+11. 服务端多进程通信
+12. websocket双工通讯
+13. 远程过程调用(rpc)
+14. 服务端微服务设计
+15. 服务端分布式架构系统设计
+16. tcp编程
+17. elasticsearch大数据检索
+18. 服务端性能监控和异常排查技巧
+19. api网关设计
+20. 单元测试(TDD)
+21. 设计模式
+22. 防爬虫系统
+23. 集群管理技术
+24. docker容器技术
+
+合格的js全栈需要具备以上所有技能

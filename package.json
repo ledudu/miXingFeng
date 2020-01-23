@@ -1,0 +1,74 @@
+{
+	"name": "miXingFeng",
+	"version": "3.0.0",
+	"homepage": "./",
+	"license": "MIT",
+	"scripts": {
+		"start": "cd view/server && node server.js ",
+		"react": "cd view && npm run dev",
+		"build": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build && cd view && npm run build",
+		"buildD": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build & cd view && npm run buildDebug",
+		"runAndroid": "cordova prepare && cordova run android",
+		"buildRelease": "yarn build && del /f /s /q D:\\my_site\\miXingFeng\\www\\* && xcopy /e /i /y  D:\\my_site\\miXingFeng\\view\\build\\* D:\\my_site\\miXingFeng\\www && cordova prepare && cordova build android --release --prod --keystore='myapp.keystore' --alias=myapp --storePassword=zhoushoujian --password=zhoushoujian",
+		"buildDebug": "yarn buildD &&  del /f /s /q D:\\my_site\\miXingFeng\\www\\* && xcopy /e /i /y  D:\\my_site\\miXingFeng\\view\\build\\* D:\\my_site\\miXingFeng\\www && cordova prepare && cordova build android --debug",
+		"hcp:build": "cordova-hcp build "
+	},
+	"dependencies": {
+		"cordova-android": "^7.1.4",
+		"cordova-hot-code-push-plugin": "^1.5.3",
+		"cordova-plugin-android-permissions": "^1.0.2",
+		"cordova-plugin-app-version": "^0.1.9",
+		"cordova-plugin-backbutton": "^0.3.0",
+		"cordova-plugin-background-mode": "^0.7.3",
+		"cordova-plugin-badge": "^0.8.8",
+		"cordova-plugin-device": "^2.0.3",
+		"cordova-plugin-fastrde-md5": "^0.2.0",
+		"cordova-plugin-file": "^6.0.1",
+		"cordova-plugin-file-opener2": "^2.2.1",
+		"cordova-plugin-file-transfer": "^1.7.1",
+		"cordova-plugin-geolocation": "^4.0.1",
+		"cordova-plugin-headsetdetection": "^3.0.0",
+		"cordova-plugin-inappbrowser": "^3.1.0",
+		"cordova-plugin-local-notifications-appstr": "^0.9.3",
+		"cordova-plugin-network-information": "^2.0.1",
+		"cordova-plugin-whitelist": "1",
+		"cordova-plugin-x-toast": "^2.7.2",
+		"jpush-phonegap-plugin": "^3.7.3"
+	},
+	"devDependencies": {
+		"cordova-plugin-camera": "^4.1.0",
+		"cordova-plugin-image-resizer": "^1.0.0",
+		"cordova-plugin-splashscreen": "^5.0.3",
+		"cordova-plugin-statusbar": "^2.4.3"
+	},
+	"cordova": {
+		"platforms": [],
+		"plugins": {
+			"cordova-plugin-whitelist": {},
+			"cordova-plugin-network-information": {},
+			"cordova-plugin-file": {},
+			"cordova-plugin-file-transfer": {},
+			"cordova-plugin-splashscreen": {},
+			"cordova-plugin-statusbar": {},
+			"cordova-plugin-camera": {
+				"ANDROID_SUPPORT_V4_VERSION": "27.+"
+			},
+			"cordova-plugin-image-resizer": {},
+			"cordova-hot-code-push-plugin": {},
+			"cordova-plugin-backbutton": {},
+			"cordova-plugin-x-toast": {},
+			"cordova-plugin-app-version": {},
+			"cordova-plugin-device": {},
+			"cordova-plugin-background-mode": {},
+			"cordova-plugin-android-permissions": {},
+			"cordova-plugin-file-opener2": {
+				"ANDROID_SUPPORT_V4_VERSION": "27.+"
+			},
+			"cordova-plugin-badge": {},
+			"cordova-plugin-inappbrowser": {},
+			"cordova-plugin-headsetdetection": {},
+			"cordova-plugin-local-notifications-appstr": {},
+			"cordova-plugin-fastrde-md5": {}
+		}
+	}
+}
