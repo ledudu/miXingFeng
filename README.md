@@ -25,7 +25,7 @@ $ npm i
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
 
 # 注意
-推荐使用cordova8.0.0,cordova-android7.1.4,cordova-plugin-jcore1.3.1,jpush-phonegap-plugin3.7.3,否则cordova-plugin-android-permissions, cordova-plugin-background-mode和JPush可能不工作,甚至会影响整个app稳定性  
+推荐使用cordova8.0.0,cordova-android7.1.4,cordova-plugin-jcore1.3.1,jpush-phonegap-plugin3.7.3,cordova-plugin-local-notifications-appstr0.9.3,否则cordova-plugin-android-permissions, cordova-plugin-background-mode和JPush可能不工作,甚至会影响整个app稳定性  
 
 ````AndroidStudio打包出现"xxx" is not translated in "zh" (Chinese):````
 To ignore this in a gradle build add this to the android section of your build file:

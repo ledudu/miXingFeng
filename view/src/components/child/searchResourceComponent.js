@@ -159,7 +159,7 @@ class SearchResourceComponent extends Component {
 			this.setState({
 				makeUpSearchString: false
 			});
-			const query = e ? e.target.value : "", self = this
+			const query = e ? e.target.value : ""
 			this.dispatchSearchString(type, query)
 			if(!query) {
 				this.setState({
@@ -185,7 +185,8 @@ class SearchResourceComponent extends Component {
 
 	getAutoSuggest = (query) => {
 		logger.info("SearchResourceComponent getAutoSuggest query", query)
-		if(!query) return;
+		const { lastSearchString } = this.props;
+		if(!query || !lastSearchString) return;
 		const { type } = this.props
 		this.setState({
 			isSearching: true,
@@ -535,7 +536,7 @@ const mapStateToProps = state => {
 		noMoreSearchAllNetEaseCloudResults: state.fileServer.noMoreSearchAllNetEaseCloudResults,
 		noMoreSearchAllQQMusicResults: state.fileServer.noMoreSearchAllQQMusicResults,
 		noMoreSearchAllKuGouMusicResults: state.fileServer.noMoreSearchAllKuGouMusicResults,
-		musicCollection: state.fileServer.musicCollection
+		musicCollection: state.fileServer.musicCollection,
 	};
 };
 

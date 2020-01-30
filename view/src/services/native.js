@@ -1,10 +1,12 @@
+import { Redirect } from 'react-router'
 import { updateBackToDesktopTime,
 	updateSavedCurrentRoute,
 	updateAdsTime,
 	updateHideNavBar,
 	updateAllowGetPosition,
 	updatePowerRun,
-	updateAppUpdating
+	updateAppUpdating,
+	updateAdPicSrc
 } from '../ducks/common'
 import { updateDirectShowSignPage, updateAdNumber, updateFromResume } from "../ducks/sign"
 import { reconnectAndSend } from "../logic/common"
@@ -40,14 +42,23 @@ function onDeviceReady(){
 			logger.info('resume backToApp', backToDesktopTime, new Date().format("yyyy-MM-dd hh:mm:ss"));
 			logger.info('Date.now() - backToDesktopTime 1800000', Date.now() - backToDesktopTime)
 			if((backToDesktopTime && (Date.now() - backToDesktopTime) > 300000) && alwaysShowAdsPage){  //more than 5 minutes
+				const adsName = localStorage.getItem("adsName")
+				const isWiFiNetwork = localStorage.getItem("isWiFiNetwork")
+				if(!adsName && !isWiFiNetwork){
+					const adNumber = parseInt(Math.random() * 7)
+					$dispatch(updateAdNumber(adNumber))
+					$dispatch(updateAdPicSrc(`./ads/ad${adNumber}.jpeg`))
+				}
 				$dispatch(updateBackToDesktopTime(0))
-				$dispatch(updateAdNumber(parseInt(Math.random() * 7)))
 				$dispatch(updateAdsTime(3))
 				logger.info('time(minutes)', parseInt((Date.now() - backToDesktopTime) / 60000), 'going to ads page')
 				$dispatch(updateDirectShowSignPage(false))
 				$dispatch(updateHideNavBar(true))
 				$dispatch(updateFromResume(true))
-				window.goRoute(null, '/')
+				// window.goRoute(null, '/')
+				return (
+					<Redirect to="/main/sign"/>
+				)
 			} else if(backToDesktopTime){
 				logger.info("resume backToDesktopTime", backToDesktopTime)
 				$dispatch(updateBackToDesktopTime(0))

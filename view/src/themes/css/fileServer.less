@@ -205,14 +205,12 @@
 						top: 0;
 					}
 					.audio-player-bar{
-						-webkit-box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
-						-moz-box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
-						box-shadow: -1px -1px 0 rgba( 0, 0, 0, .5 ), 1px 1px 0 rgba( 255, 255, 255, .1 );
 						border-radius: 4px;
 						height: 5px;
 						bottom: -9px;
 						right: 50px;
 						left: 40px;
+						border: 1px solid rgba(128, 128, 128, .3);
 						.audio-player-bar-loaded, .audio-player-bar-played{
 							border-radius: 4px;
 							width: 0;
@@ -410,9 +408,6 @@
 					}
 				}
 			}
-		}
-		.downloading{
-			width: calc(~"100% - 35px");
 		}
 		.menu, .move-downloading-item{
 			display:flex;

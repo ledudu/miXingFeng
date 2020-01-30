@@ -159,6 +159,45 @@
 	color: #4876FF
 }
 
+.square-middle-page-container{
+	.square-middle-page-content{
+		display: flex;
+		width: 100%;
+    	flex-wrap: wrap;
+		.square-item{
+			width: 50%;
+			height: 100px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-color: #fffefb;
+			color: #000;
+			box-sizing: border-box;
+			border-radius: 2px;
+			cursor: pointer;
+			font-size: 15px;
+			&:nth-child(odd){
+				border-right: 1px solid #C2C2C2;
+				border-bottom: 1px solid #C2C2C2;
+			}
+			&:nth-child(even){
+				border-bottom: 1px solid #C2C2C2;
+			}
+			&:nth-last-child(1){
+				border-bottom: none;
+			}
+			&:nth-last-child(2){
+				border-bottom: none;
+			}
+			&:hover{
+				background-color: rgb(128, 128, 128);
+				color: #fff;
+				transition: all .8s;
+			}
+		}
+	}
+}
+
 
 a {
 	cursor: pointer;

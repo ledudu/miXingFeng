@@ -11,3 +11,6 @@ platforms
 /plugins/*
 /platforms/*
 /view/build/*
+/view/.cache
+*/package-lock.json
+package-lock.json

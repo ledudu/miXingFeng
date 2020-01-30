@@ -118,7 +118,8 @@ export const downloadAdPic = () => {
 			})
 			.catch((err) => {
 				alertDebug("setTimeout download ad pic err")
-				logger.error("setTimeout download ad pic err", err)
+				console.log("setTimeout download ad pic err ", err)
+				logger.error("setTimeout download ad pic err", err.stack || err.toString())
 			})
 	}, 30*1000)
 }

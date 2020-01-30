@@ -4,6 +4,7 @@ import { HTTP_URL } from "../constants/httpRoute";
 import NavBar from "./child/navbar";
 import { updateOnlinePersonsName, updateOnlinePersons } from "../ducks/sign"
 import { networkErr } from "../services/utils"
+import { checkOnlinePersons } from "../logic/common"
 
 class ShowOnlinePersons extends React.Component {
 
@@ -16,16 +17,7 @@ class ShowOnlinePersons extends React.Component {
 	}
 
     componentDidMount(){
-		const userId = window.localStorage.getItem("userId")
-		const msg = Object.assign({},{
-			type:'try-connect',
-			userId,
-			date: Date.now(),
-			data: ""
-		})
-		if(window.ws && window.ws.readyState === 1){
-			ws.send(JSON.stringify(msg));
-		}
+		checkOnlinePersons()
 		return axios.get(HTTP_URL.getOnlinePersons)
 			.then(response => {
 				let result = response.data.result.response;

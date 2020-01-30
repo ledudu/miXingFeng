@@ -1,5 +1,5 @@
 import React from 'react';
-import MyInfoMiddlePageComponent from "./child/myInfoMiddlePageComponent";
+import SquareMiddlePageComponent from "./child/squareMiddlePageComponent";
 
 const itemColumns = [
 	{
@@ -23,7 +23,7 @@ const itemColumns = [
 		routeName: "/search_online_music"
 	},
 	{
-		displayName: "综合搜索",
+		displayName: "全局搜索",
 		routeName: "/search_all"
 	},
 ]
@@ -33,7 +33,7 @@ class SearchColumn extends React.Component {
 	render() {
         return (
             <div className="sites-container">
-				<MyInfoMiddlePageComponent
+				<SquareMiddlePageComponent
 					pageName="搜索"
 					itemColumns={itemColumns}
 					self={this}  //need this due to route so use class component

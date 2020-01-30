@@ -20,6 +20,8 @@ const ALLOW_SHARE_MY_NICKNAME = "common/allowShareMyNickname"
 const SHARED_NICKNAMES = "common/sharedNicknames"
 const APP_UPDATING = "common/appUpdating"
 const APP_SIZE = "common/appSize"
+const IS_FROM_SYSTEM_SETUP = "common/isFromSystemSetup"
+const AD_PIC_SRC = "common/adPicSrc"
 
 // initialSate
 const initialState = () => ({
@@ -75,7 +77,9 @@ const initialState = () => ({
 	allowShareMyNickname: true,
 	sharedNicknames: [],
 	appUpdating: false,
-	appSize: 0
+	appSize: 0,
+	isFromSystemSetup: false,
+	adPicSrc: `./ads/ad0.jpeg`
 });
 
 // Reducer
@@ -164,6 +168,14 @@ export default function reducer(state = initialState(), action = {}) {
 		case APP_SIZE:
 			return Object.assign({}, state, {
 				appSize: action.data
+			});
+		case IS_FROM_SYSTEM_SETUP:
+			return Object.assign({}, state, {
+				isFromSystemSetup: action.data
+			});
+		case AD_PIC_SRC:
+			return Object.assign({}, state, {
+				adPicSrc: action.data
 			});
 		default:
 			return state;
@@ -268,5 +280,15 @@ export const updateAppUpdating = data => ({
 
 export const updateAppSize = data => ({
 	type: APP_SIZE,
+	data
+})
+
+export const updateIsFromSystemSetup = data => ({
+	type: IS_FROM_SYSTEM_SETUP,
+	data
+})
+
+export const updateAdPicSrc = data => ({
+	type: AD_PIC_SRC,
 	data
 })

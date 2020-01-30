@@ -6,7 +6,7 @@ import { logoutApp } from "../logic/common/index";
 import { exitApp } from "../services/utils";
 import { onBackKeyDown } from "../services/utils";
 import { updateDirectShowSignPage } from "../ducks/sign";
-import { updateHideNavBar, updateSavedCurrentRoute } from "../ducks/common"
+import { updateHideNavBar, updateSavedCurrentRoute, updateIsFromSystemSetup } from "../ducks/common"
 
 class SystemSetup extends React.Component {
 
@@ -41,7 +41,7 @@ class SystemSetup extends React.Component {
 
 
 	gotoAdsPage = () => {
-		window.isFromSystemSetup = true;
+		$dispatch(updateIsFromSystemSetup(true))
 		$dispatch(updateSavedCurrentRoute(window.getRoute()))
 		$dispatch(updateHideNavBar(true))
 		$dispatch(updateDirectShowSignPage(false))

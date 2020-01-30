@@ -784,3 +784,16 @@ export const removePrefixFromFileOrigin = (filenameOrigin) => {
 	if(!filenameOrigin) return
 	return filenameOrigin.replace(/downloading_|downloaded_|saved_|searchAll_|onlineMusic_|searchMusic_/g, "")
 }
+
+export const checkOnlinePersons = () => {
+	const userId = localStorage.getItem("userId")
+	const msg = Object.assign({},{
+		type:'try-connect',
+		userId,
+		date: Date.now(),
+		data: ""
+	})
+	if(window.ws && window.ws.readyState === 1){
+		ws.send(JSON.stringify(msg));
+	}
+}

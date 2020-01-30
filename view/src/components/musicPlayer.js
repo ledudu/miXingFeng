@@ -253,6 +253,7 @@ class MusicPlayer extends React.Component {
 	pause = () => {
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props;
 		logger.info("music pause currentPlayingSong", currentPlayingSong)
+		clearInterval(window.currentTimeInterval)
 		soundInstance.pause(soundInstanceId);
 		$dispatch(updateSoundPlaying(false))
 	}
@@ -260,6 +261,7 @@ class MusicPlayer extends React.Component {
 	resume = () => {
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props;
 		logger.info("music resume currentPlayingSong", currentPlayingSong)
+		this.getMusicCurrentPlayProcess()
 		soundInstance.play(soundInstanceId)
 		$dispatch(updateSoundPlaying(true))
 	}

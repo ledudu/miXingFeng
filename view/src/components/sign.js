@@ -6,14 +6,14 @@ import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
 import { retrieveLastLoginTime, signInApp, signed, downloadAdPic } from "../logic/sign";
-import { retrieveOthers, getUserPosition, getLocation, previewNew, getGreeting, autoLogin, reconnectAndSend, requestPositionPermission } from "../logic/common";
+import { retrieveOthers, getUserPosition, getLocation, previewNew, getGreeting, autoLogin, reconnectAndSend, requestPositionPermission, checkOnlinePersons } from "../logic/common";
 import { updateDirectShowSignPage, updateAdNumber, updateFromResume } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CON } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { updateFileList, updateMusicList, updateDownloadedMusicList } from "../ducks/fileServer";
-import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar } from "../ducks/common"
+import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc } from "../ducks/common"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
 
@@ -21,8 +21,26 @@ class Sign extends Component {
 
 	constructor(props) {
 		super(props);
-		const { adsTime, adNumber, isFromSignPage } = this.props;
+		const { adsTime, adNumber, isFromSignPage, fromResume, adPicSrc } = this.props;
 		if(isFromSignPage) $dispatch(updateIsFromSignPage(false))
+		// 如果在localStorage里有相应的值说明广告下载好了
+		const adsName = localStorage.getItem("adsName")
+		const isWiFiNetwork = localStorage.getItem("isWiFiNetwork")
+		let loadedInWifi = "", adPicSrcState = adPicSrc
+		if(adsName && isWiFiNetwork && fromResume){
+			if(fromResume) $dispatch(updateFromResume(false))
+			localStorage.removeItem("adsName")
+			localStorage.removeItem("isWiFiNetwork")
+			// 重新计时下载广告
+			if(!window.downloadAdPicTimer){
+				downloadAdPic()
+			}
+			if(isWiFiNetwork === "yes"){
+				loadedInWifi = "已wifi预加载"
+			}
+			adPicSrcState = `/storage/emulated/0/miXingFeng/adPics/${adsName}`
+			$dispatch(updateAdPicSrc(adPicSrcState))
+		}
 		this.state = {
 			skipTime: adsTime || 4,
 			progress: 0,
@@ -32,23 +50,17 @@ class Sign extends Component {
 			fileTransfer: {},
 			showUpdateConfirm: false,
 			checkingPackage: false,
-			loadedInWifi: "已wifi预加载",
-			adPicSrc: `./ads/ad${adNumber}.jpeg`
+			loadedInWifi,
+			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.jpeg`
 		}
 	}
 
 	async componentDidMount() {
 		try {
 			const { skipTime } = this.state
-			const { directShowSignPage, alwaysShowAdsPage, username, isFromLoginPage, isSignedUp, setSystemSetupDot, fromResume } = this.props;
-			logger.info("window.isFromSystemSetup", window.isFromSystemSetup)
-			if(window.isFromSystemSetup){
-				logger.info("look at ads page")
-				$dispatch(updateAdNumber(0))
-				window.isFromSystemSetup = false;
-				return;
-			}
-
+			const { directShowSignPage, alwaysShowAdsPage, username, isFromLoginPage, isSignedUp, setSystemSetupDot, fromResume, isFromSystemSetup } = this.props;
+			checkOnlinePersons()
+			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
 				logger.info("directShowSignPage", directShowSignPage)
 
@@ -58,26 +70,6 @@ class Sign extends Component {
 				//  启动app的时候先计时下载广告；翻页过来的时候如果已经下载好但是还没使用的情况下，不要再次下载广告
 				if(!window.downloadAdPicTimer && !adsName && !isWiFiNetwork){
 					downloadAdPic()
-				}
-				// 如果在localStorage里有相应的值说明广告下载好了
-				if(adsName && isWiFiNetwork && fromResume){
-					if(fromResume) $dispatch(updateFromResume(false))
-					localStorage.removeItem("adsName")
-					localStorage.removeItem("isWiFiNetwork")
-					// 重新计时下载广告
-					if(!window.downloadAdPicTimer){
-						downloadAdPic()
-					}
-					if(isWiFiNetwork === "no"){
-						this.setState({
-							loadedInWifi: "",
-							adPicSrc: `/storage/emulated/0/miXingFeng/adPics/${adsName}`
-						})
-					} else {
-						this.setState({
-							adPicSrc: `/storage/emulated/0/miXingFeng/adPics/${adsName}`
-						})
-					}
 				}
 
 				if(!directShowSignPage){
@@ -220,8 +212,10 @@ class Sign extends Component {
 		localStorage.setItem("leaveSignPage", "yes")
 		clearInterval(window.clockIntervalTimer)
 		document.removeEventListener("deviceready", this.listenBackKeyDown, false);
-		document.removeEventListener("deviceready", this.backgroundColorByHexString);
+		document.removeEventListener("deviceready", this.backgroundColorByHexString, false);
 		document.removeEventListener("backbutton", this.onBackKeyDownSign, false);
+		document.removeEventListener("backbutton", this.checkUpdateSign, false);
+		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
 	}
 
 	gettingPermissions = () => {
@@ -549,6 +543,7 @@ class Sign extends Component {
 			signedFlag,
 			setNickname,
 			directShowSignPage,
+			isFromSystemSetup
 		} = this.props;
 		alreadySignUpPersons = alreadySignUpPersons ? alreadySignUpPersons : [];
 		notSignUpPersons = notSignUpPersons ? notSignUpPersons : [];
@@ -622,7 +617,7 @@ class Sign extends Component {
 							<div className="top-ads">
 								<div className="tip-text">{loadedInWifi}</div>
 								{
-									window.isFromSystemSetup
+									isFromSystemSetup
 									? <div className="skip-ads" onClick={this.prepareSkip}>跳过</div>
 									: <div className="rect-box" onClick={this.prepareSkip}>
 										<div className="rect left">
@@ -676,6 +671,8 @@ const mapStateToProps = state => {
 		adNumber: state.sign.adNumber,
 		fromResume: state.sign.fromResume,
 		isFromSignPage: state.common.isFromSignPage,
+		isFromSystemSetup: state.common.isFromSystemSetup,
+		adPicSrc: state.common.adPicSrc
 	};
 };
 

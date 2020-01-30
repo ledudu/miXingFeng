@@ -1,5 +1,5 @@
 import React from 'react';
-import MyInfoMiddlePageComponent from "./child/myInfoMiddlePageComponent";
+import SquareMiddlePageComponent from "./child/squareMiddlePageComponent";
 
 const itemColumns = [
 	{
@@ -30,7 +30,7 @@ const itemColumns = [
 		displayName: "SSR",
 		routeName: "/package_iframe",
 		name: '摘苹果-SSR',
-		src: "http://192.144.213.72:8002/"
+		src: "http://129.226.77.79:8002/"
 	},
 	{
 		displayName: "RPC",
@@ -43,7 +43,7 @@ class SearchColumn extends React.Component {
 	render() {
         return (
             <div className="sites-container">
-				<MyInfoMiddlePageComponent
+				<SquareMiddlePageComponent
 					pageName="游戏"
 					itemColumns={itemColumns}
 					self={this}
