@@ -51,7 +51,7 @@ class Sign extends Component {
 			showUpdateConfirm: false,
 			checkingPackage: false,
 			loadedInWifi,
-			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.jpeg`
+			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.png`
 		}
 	}
 
@@ -82,16 +82,17 @@ class Sign extends Component {
 							await this.gettingPermissions();
 							document.addEventListener("deviceready", this.backgroundColorByHexString);
 						} else {
-							logger.info("Loadable.preloadAll()")
 							$(".ads-container").hide()
 							Loadable.preloadAll()
 							try {
 								window.navigator.splashscreen.hide();
-								$(".ads-container").fadeIn('slow');
-								$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
-								$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
-								logger.info("start ad page this.getAdsConfig skipTime", skipTime)
-								this.getAdsConfig();
+								setTimeout(() => {
+									$(".ads-container").fadeIn();
+									$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
+									$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
+									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
+									this.getAdsConfig();
+								}, 200)
 							} catch (err) {
 								if(window.logger){
 									window.logger.error("splashscreen err", err.stack || err.toString())
@@ -101,10 +102,14 @@ class Sign extends Component {
 							}
 						}
 					} else {
-						$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
-						$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
-						this.getAdsConfig();
-						$('.top-ads').css("width", "auto");
+						$(".ads-container").hide()
+						setTimeout(() => {
+							$(".ads-container").fadeIn();
+							$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
+							$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
+							this.getAdsConfig();
+							$('.top-ads').css("width", "auto");
+						}, 500)
 						Loadable.preloadAll()
 					}
 				}

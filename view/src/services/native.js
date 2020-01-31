@@ -1,4 +1,3 @@
-import { Redirect } from 'react-router'
 import { updateBackToDesktopTime,
 	updateSavedCurrentRoute,
 	updateAdsTime,
@@ -47,18 +46,15 @@ function onDeviceReady(){
 				if(!adsName && !isWiFiNetwork){
 					const adNumber = parseInt(Math.random() * 7)
 					$dispatch(updateAdNumber(adNumber))
-					$dispatch(updateAdPicSrc(`./ads/ad${adNumber}.jpeg`))
+					$dispatch(updateAdPicSrc(`./ads/ad${adNumber}.png`))
 				}
 				$dispatch(updateBackToDesktopTime(0))
-				$dispatch(updateAdsTime(3))
+				$dispatch(updateAdsTime(4))
 				logger.info('time(minutes)', parseInt((Date.now() - backToDesktopTime) / 60000), 'going to ads page')
 				$dispatch(updateDirectShowSignPage(false))
 				$dispatch(updateHideNavBar(true))
 				$dispatch(updateFromResume(true))
-				// window.goRoute(null, '/')
-				return (
-					<Redirect to="/main/sign"/>
-				)
+				window.goRoute(null, '/')
 			} else if(backToDesktopTime){
 				logger.info("resume backToDesktopTime", backToDesktopTime)
 				$dispatch(updateBackToDesktopTime(0))

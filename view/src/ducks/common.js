@@ -79,7 +79,7 @@ const initialState = () => ({
 	appUpdating: false,
 	appSize: 0,
 	isFromSystemSetup: false,
-	adPicSrc: `./ads/ad0.jpeg`
+	adPicSrc: `./ads/ad0.png`
 });
 
 // Reducer
