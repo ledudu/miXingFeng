@@ -4,7 +4,7 @@ import { createForm } from 'rc-form';
 import NavBar from "./child/navbar";
 import { HTTP_URL } from "../constants/httpRoute";
 import { alert, networkErr } from "../services/utils";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 
 
 class Feedback extends React.Component {
@@ -48,7 +48,7 @@ class Feedback extends React.Component {
 			axios.post(HTTP_URL.feedback, data)
             .then((response) => {
 				this.startToSubmit = false
-                Toast.success('提交成功, 非常感谢您的反馈', CON.toastTime);
+                Toast.success('提交成功, 非常感谢您的反馈', CONSTANT.toastTime);
 				return response.data.result.filename
 			})
 			.then((filename) => {

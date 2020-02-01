@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from "react-redux";
 import { HTTP_URL } from "../../constants/httpRoute";
 import NavBar from "./navbar";
-import { CON } from "../../constants/enumeration";
+import { CONSTANT } from "../../constants/enumeration";
 import { onBackKeyDown } from "../../services/utils";
 import Loading from "./loading"
 
@@ -38,7 +38,7 @@ class packageIframe extends React.Component {
 		axios.get(HTTP_URL.heartBeat)
 			.catch(err => {
 				if(err.message === 'Network Error'){
-					return Toast.fail("请检查网络连接", CON.toastTime);
+					return Toast.fail("请检查网络连接", CONSTANT.toastTime);
 				}
 			})
     }

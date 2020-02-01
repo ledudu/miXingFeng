@@ -6,7 +6,7 @@ import { HTTP_URL } from "../constants/httpRoute";
 import MusicPlayer from "./musicPlayer"
 import { updateMusicSubmitStatus, updateMusicUploadProgress } from "../ducks/fileServer"
 import { checkFileMD5Func, calcFileMD5, checkSongSavedFunc } from "../logic/common"
-import { CON } from "../constants/enumeration"
+import { CONSTANT } from "../constants/enumeration"
 
 class Music extends React.Component {
 
@@ -216,7 +216,7 @@ class Music extends React.Component {
     render() {
 		const { willUploadMusicSrc } = this.state;
 		const { musicList, musicSubmitStatus, musicUploadProgress } = this.props
-		checkSongSavedFunc(musicList, CON.musicOriginal.musicShare)
+		checkSongSavedFunc(musicList, CONSTANT.musicOriginal.musicShare)
         return (
             <div className="music-container">
                 <StatusBar />
@@ -229,7 +229,7 @@ class Music extends React.Component {
                     </div>
                 </div>
 				<audio className="will-upload-music" src={willUploadMusicSrc} style={{"display": "none"}}></audio>
-				<MusicPlayer musicDataList={musicList} original={CON.musicOriginal.musicShare} />
+				<MusicPlayer musicDataList={musicList} original={CONSTANT.musicOriginal.musicShare}  pageType={CONSTANT.musicOriginal.musicShare} />
             </div>
         );
     }

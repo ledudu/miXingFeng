@@ -17,7 +17,7 @@ import {
 	updateSetRole,
 	updateSetEmail
 } from "../../ducks/myInfo";
-import { CON } from "../../constants/enumeration";
+import { CONSTANT } from "../../constants/enumeration";
 import { logoutApp, reconnectSocket, checkPassword } from "../common";
 import { updateDeviceInfo, updateAllowShareMyNickname } from "../../ducks/common";
 import { saveHeadPicToLocal } from "../myInfo";
@@ -38,7 +38,7 @@ export const loginApp = (that, username, password) => {
         return;
     }
     $('#loginButton').text('登录中...');
-    Toast.loading('加载中...', CON.toastLoadingTime, () => {});
+    Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.loginVerify ,(data))
         .then(async (response) => {
             loginFlag = true;
@@ -99,11 +99,11 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 	const savedQQMusic = []
 	const savedKuGouMusic = []
 	favoriteSongs.forEach(item => {
-		if(item.original === CON.musicOriginal.netEaseCloud){
+		if(item.original === CONSTANT.musicOriginal.netEaseCloud){
 			savedNetEaseCloudMusic.push(item.id)
-		} else if(item.original === CON.musicOriginal.qqMusic){
+		} else if(item.original === CONSTANT.musicOriginal.qqMusic){
 			savedQQMusic.push(item.id)
-		} else if(item.original === CON.musicOriginal.kuGouMusic){
+		} else if(item.original === CONSTANT.musicOriginal.kuGouMusic){
 			savedKuGouMusic.push(item.id)
 		}
 	})
@@ -198,7 +198,7 @@ export const registerUsername = (that) => {
     }, {
         pwd: pwdValue
     });
-    Toast.loading('加载中...', CON.toastLoadingTime, () => {});
+    Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.registerVerify , (data))
         .then((response) => {
             Toast.hide();
@@ -256,7 +256,7 @@ export const resetPasswordFunc = (self) => {
         }
     }
 
-    Toast.loading('加载中...', CON.toastLoadingTime, () => {});
+    Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.resetPassword, data)
     	.then((response) => {
     	    Toast.hide();

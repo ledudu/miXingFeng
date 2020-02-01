@@ -2,13 +2,13 @@ import { HTTP_URL } from "../../constants/httpRoute";
 import { networkErr, alert, saveFileToLocal } from "../../services/utils";
 import { updateSetSex, updateSetBirthday, updateSetHeadPic, updateSetAddress, updateSetHeadPicName, updateReplaceHeadPic } from "../../ducks/myInfo";
 import { Toast  } from 'antd-mobile';
-import { CON } from "../../constants/enumeration";
+import { CONSTANT } from "../../constants/enumeration";
 import { updateToken } from "../../ducks/login"
 
 export const saveUserInfoFunc = (name, info, self) => {
     let {username, token} = window.$getState().login;
         if(!token) {
-            return Toast.fail('请先登录', CON.toastTime);
+            return Toast.fail('请先登录', CONSTANT.toastTime);
         }
         if(name === 'sex'){
             info = info.join();
@@ -24,7 +24,7 @@ export const saveUserInfoFunc = (name, info, self) => {
             	.then((response) => {
 					self.startToSubmit = false
             	    if(response.data.result.response === "modify_success"){
-            	        Toast.success('保存成功', CON.toastTime);
+            	        Toast.success('保存成功', CONSTANT.toastTime);
             	        if(name === 'sex'){
             	            window.$dispatch(updateSetSex(info));
             	        } else if(name === 'birthday'){
@@ -33,7 +33,7 @@ export const saveUserInfoFunc = (name, info, self) => {
             	            window.$dispatch(updateSetAddress(info));
             	        }
             	    } else {
-            	        Toast.fail('设置失败', CON.toastTime);
+            	        Toast.fail('设置失败', CONSTANT.toastTime);
             	    }
             	})
             	.catch(err => {
@@ -76,20 +76,20 @@ const onPhotoURISuccess = (imageURI) => {
         logger.info("onPhotoURISuccess.response", JSON.parse(r.response));
         const result = JSON.parse(r.response).result
         if(result.response === "more_than_10mb"){
-            return Toast.fail('图片大小不得超过10MB', CON.toastTime);
+            return Toast.fail('图片大小不得超过10MB', CONSTANT.toastTime);
         } else if(result.response === "illegal_filename"){
-            return Toast.fail('文件名不得含有%或#', CON.toastTime);
+            return Toast.fail('文件名不得含有%或#', CONSTANT.toastTime);
         } else if(result.response === "illegal_filetype"){
-            return Toast.fail('图片不得上传非jpeg或png以外的格式', CON.toastTime);
+            return Toast.fail('图片不得上传非jpeg或png以外的格式', CONSTANT.toastTime);
         }
 		$dispatch(updateSetHeadPic(result.newFilePath));
 		$dispatch(updateReplaceHeadPic(true));
 		$dispatch(updateToken(result.token));
 		saveHeadPicToLocal(result.newFilePath, username, 'onPhotoURISuccess');
-        Toast.success('上传成功', CON.toastTime);
+        Toast.success('上传成功', CONSTANT.toastTime);
     }
     let errorCallback = function (error) {
-		Toast.fail("上传失败", CON.toastTime)
+		Toast.fail("上传失败", CONSTANT.toastTime)
         logger.error("An error has occurred: Code = " + error.code);
         logger.error("upload error source " + error.source);
         logger.error("upload error target " + error.target);

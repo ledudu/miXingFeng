@@ -3,7 +3,7 @@ import { Button, Toast, InputItem } from "antd-mobile";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { networkErr } from "../../services/utils";
 import { updateToken } from "../../ducks/login";
-import { CON } from "../../constants/enumeration";
+import { CONSTANT } from "../../constants/enumeration";
 import { checkEmail } from "../../logic/common"
 
 class UpdateUserInfoComponent extends React.Component {
@@ -50,23 +50,23 @@ class UpdateUserInfoComponent extends React.Component {
 		if(!this.startToSubmit){
 			this.startToSubmit = true
 			if(pageTitle === "填写邮箱"){
-				Toast.loading('请稍后...', CON.toastLoadingTime, () => {});
+				Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
 			}
 			axios.post(HTTP_URL.updateUserInfo, data)
             	.then((response) => {
 					this.startToSubmit = false
 					const {result} = response.data
             	    if(result.response === "modify_success"){
-						Toast.success('保存成功', CON.toastTime);
+						Toast.success('保存成功', CONSTANT.toastTime);
 						$dispatch(updateToken(result.token));
             	        $dispatch(updateUserInfoDispatch(value));
             	        backToMainPage()
             	    } else if(result.response === "lack_fields"){
-						Toast.fail('缺少必要的字段', CON.toastTime);
+						Toast.fail('缺少必要的字段', CONSTANT.toastTime);
 					} else if(result.response === "more_string_length"){
-						Toast.fail('字数超过长度限制', CON.toastTime);
+						Toast.fail('字数超过长度限制', CONSTANT.toastTime);
 					} else if(result.response === "wrong_email_format"){
-						Toast.fail('错误的邮箱格式', CON.toastTime);
+						Toast.fail('错误的邮箱格式', CONSTANT.toastTime);
 					} else if(result.response === "send_email_success"){
 						Toast.hide();
 						alert("验证码已发送邮箱，请注意查收")
@@ -74,7 +74,7 @@ class UpdateUserInfoComponent extends React.Component {
             	        $dispatch(updateUserInfoDispatch(value));
 						window.goRoute(self, "/check_email")
 					} else {
-            	        Toast.fail('设置失败', CON.toastTime);
+            	        Toast.fail('设置失败', CONSTANT.toastTime);
             	    }
             	})
             	.catch(err => {

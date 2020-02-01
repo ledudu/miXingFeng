@@ -52,7 +52,7 @@ code {
 				padding-bottom: 5px;
 				.song-pic{
 					text-transform: uppercase;
-					border: 1px solid rgb(128, 128, 128);
+					border: 2px solid #81AFED;
 					width: 32px;
 					height: 32px;
 					margin: 8px 0 0 5px;
@@ -62,11 +62,13 @@ code {
 					justify-content: center;
 					-webkit-align-items: center;
 					align-items: center;
-					color: #81AFED;
+					background-color: #81AFED;
+					color: #fff;
 					font-size: 20px;
 					font-weight: 600;
 					border-radius: 8px;
-					padding-bottom: 4px;
+					padding-bottom: 2px;
+					border-radius: 50%;
 				}
 				.song-info{
 					width: calc(100% - 215px);
@@ -111,71 +113,31 @@ code {
 					align-items: center;
 				}
 				.play-or-pause{
-					border-radius: 50%;
-					height: 36px;
-					width: 36px;
-					margin: 7px 0;
-					color: #363636;
 					position: relative;
-					.rect-box {
-						box-sizing: border-box;
-						position: absolute;
-						width: 35px;
-						height: 35px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-
-						.rect {
-							width: 35px;
-							height: 35px;
-							box-sizing: border-box;
-							position: absolute;
-							overflow: hidden;
-							top: 0;
-
-							.circle {
-								width: 35px;
-								height: 35px;
-								border: 2px solid transparent;
-								border-radius: 50%;
-								box-sizing: border-box;
-								position: absolute;
-								top: 0;
-								z-index: 3;
-								transform: rotate(45deg);
-							}
-						}
-
-						.left {
-							left: 0;
-							.circle {
-								border-bottom: 2px solid #81AFED;
-								border-left: 2px solid #81AFED;
-								left: 0;
-								animation: left 25s linear;
-								-webkit-animation: left 25s linear;
-							}
-						}
-
-						.right {
-							right: 0;
-							.circle {
-								border-top: 2px solid #81AFED;
-								border-right: 2px solid #81AFED;
-								border-left: 2px solid #fff;
-								border-bottom: 2px solid #fff;
-								right: 0;
-								animation: right 25s linear;
-								-webkit-animation: right 25s linear;
-							}
-						}
+					font-size: 14px;
+					circle.progress-background {
+						-webkit-transform: scale(.9);
+						transform: scale(.9);
+						stroke: white;
 					}
+
+					circle.progress-bar {
+						-webkit-transform: scale(.9) rotate(-90deg);
+						transform: scale(.9) rotate(-90deg);
+						stroke: #81AFED;
+					}
+
+					circle {
+						stroke-width: 0;
+						-webkit-transform-origin: center;
+						transform-origin: center;
+					}
+
 					.fa-pause{
-						font-size: 14px;
+						position: absolute;
 					}
 					.fa-play{
-						font-size: 16px;
+						position: absolute;
 					}
 				}
 
@@ -200,7 +162,6 @@ code {
 				height: 80vh;
 				overflow: hidden;
 				position: relative;
-				width: 414px;
 				width: 100vw;
 				max-width: 100vw;
 				display: flex;

@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
 import MusicPlayer from "./musicPlayer"
-import { CON } from "../constants/enumeration"
+import { CONSTANT } from "../constants/enumeration"
 
 class SavedSongs extends React.Component {
 
@@ -17,7 +17,7 @@ class SavedSongs extends React.Component {
             <div className="saved-song-container">
                 <NavBar centerText="收藏" backToPreviousPage={this.backToMainPage} />
                 <div className="saved-song-content">
-					<MusicPlayer musicDataList={musicCollection} original={CON.musicOriginal.savedSongs} />
+					<MusicPlayer musicDataList={musicCollection} original={CONSTANT.musicOriginal.savedSongs} pageType={CONSTANT.musicOriginal.savedSongs} />
 				</div>
             </div>
         );

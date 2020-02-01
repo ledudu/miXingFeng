@@ -1,6 +1,6 @@
 ﻿import { Modal, Toast } from "antd-mobile";
 import { updateToken } from "../ducks/login";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
 import { calcSize } from "../logic/common";
 import { addDataFromIndexDB, readAllDataFromIndexDB,readDataFromIndexDB, removeDataFromIndexDB } from "./indexDB"
@@ -47,7 +47,7 @@ export const networkErr = function(err){
 	logger.info("networkErr", window.getRoute())
 	if(err === undefined){
 		logger.warn("network err 请检查网络连接")
-		return Toast.fail("请检查网络连接", CON.toastTime);
+		return Toast.fail("请检查网络连接", CONSTANT.toastTime);
 	} else {
 		if(Object.prototype.toString.call(err) === '[object Error]'){
 			alertDebug("[object Error]: 请检查网络连接: " + err.stack || err.toString());

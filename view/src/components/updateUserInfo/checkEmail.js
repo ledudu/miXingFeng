@@ -6,7 +6,7 @@ import { networkErr } from "../../services/utils";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { updateSetEmail } from "../../ducks/myInfo";
 import { updateToken, updateHasForgetPassword } from "../../ducks/login";
-import { CON } from "../../constants/enumeration";
+import { CONSTANT } from "../../constants/enumeration";
 
 const keyCode = [
 	48, 49, 50, 51, 52, 53, 54, 55, 56, 57,  //数字键
@@ -80,7 +80,7 @@ class CheckEmail extends React.Component {
 		logger.info("checkEmail submit value", value)
 		if(!this.startToSubmit){
 			this.startToSubmit = true
-			Toast.loading('请稍后...', CON.toastLoadingTime, () => {});
+			Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
 			axios.get(HTTP_URL.checkEmailValid.format({value, username, email: setTempEmail}))
 				.then((response) => {
 					Toast.hide();

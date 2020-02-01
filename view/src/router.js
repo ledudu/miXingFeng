@@ -5,7 +5,7 @@ import MyLoadable from './Loadable';
 import { updateAppVersion, updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
 import { updateDirectShowSignPage } from "./ducks/sign";
 import { updatePauseWhenOver, updatePlayByOrder, updateMusicMenuBadge, updateSoundPlaying, updatePlayByRandom } from "./ducks/fileServer"
-import { CON } from "./constants/enumeration"
+import { CONSTANT } from "./constants/enumeration"
 
 const Login = MyLoadable({
     loader: () => import('./components/login')
@@ -301,7 +301,6 @@ class Routers extends Component {
 	}
 
     render(){
-		const { soundPlaying, isMusicPlayerPage, currentPlayingMusicList } = this.props;
     	return (
     		<Router>
     			<div className="container">
@@ -349,9 +348,6 @@ class Routers extends Component {
     					</Switch>
 					</div>
 					<div className="window-music-container">
-						<div className="window-music-player">
-							{soundPlaying && !isMusicPlayerPage && <MusicPlayer musicDataList={currentPlayingMusicList} original={CON.musicOriginal.window}/>}
-						</div>
 						<MusicController />
 					</div>
     			</div>
@@ -363,9 +359,7 @@ class Routers extends Component {
 
 const mapStateToProps = state => {
     return {
-		soundPlaying: state.fileServer.soundPlaying,
-		isMusicPlayerPage: state.fileServer.isMusicPlayerPage,
-		currentPlayingMusicList: state.fileServer.currentPlayingMusicList,
+
     };
 };
 

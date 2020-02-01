@@ -1,4 +1,5 @@
 import SparkMD5 from "spark-md5"
+import { Howl } from 'howler';
 import { HTTP_URL } from "../../constants/httpRoute";
 import {
 	updateCurrentLocation,
@@ -7,7 +8,7 @@ import {
 	updateAllowGetPosition,
 	updateSharedNicknames
 } from "../../ducks/common"
-import { writeFile, networkErr, alertDialog } from "../../services/utils";
+import { writeFile, networkErr, alertDialog, saveFileToLocal, updateDownloadingStatus } from "../../services/utils";
 import { updateToken, updateLogOutFlag} from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
 import { updateSetNickname,
@@ -18,12 +19,26 @@ import { updateSetNickname,
 	updateSetHeadPic,
 	updateSetRole,
 } from "../../ducks/myInfo";
-import { updateFileList, updateMusicList, updateDownloadedMusicList, updateMusicCollection, updateCurrentSongTime } from "../../ducks/fileServer";
+import {
+	updateFileList,
+	updateMusicList,
+	updateDownloadedMusicList,
+	updateMusicCollection,
+	updateCurrentSongTime,
+	updateSoundPlaying,
+	updateCurrentPlayingMusicList,
+	updateCurrentPlayingSong,
+	updateCurrentPlayingSongDuration,
+	updateCurrentPlayingSongOriginal,
+	updateSoundInstance,
+	updateSoundInstanceId,
+	updateMusicPageType
+} from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
 import { dealtWithLoginIn } from "../../logic/login"
 import { removeMusicDataByIndexFromIndexDB } from "../../services/indexDBMusic"
-import { CON } from "../../constants/enumeration"
+import { CONSTANT } from "../../constants/enumeration"
 
 const logger = window.logger || console;
 let receiveServerSocketPong = false;
@@ -762,7 +777,7 @@ export const checkEmail = (email) => {
 
 export const checkSongSavedFunc = (musicDataList, original) => {
 	const { musicCollection } = $getState().fileServer
-	if(original !== CON.musicOriginal.savedSongs){
+	if(original !== CONSTANT.musicOriginal.savedSongs){
 		musicDataList.forEach(item => {
 			delete item.saved
 		})
@@ -798,7 +813,8 @@ export const checkOnlinePersons = () => {
 	}
 }
 
-export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original) => {
+export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e) => {
+	if(e) e.stopPropagation();
 	if(currentFileIndex === -1) return
 	const { username, token } = $getState().login
 	if (!username || !token) return alert("请先登录")
@@ -842,53 +858,26 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 		})
 }
 
-export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, currentMusicNodeList, currentPlayingSong, soundPlaying) => {
+export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e) => {
+	if(e) e.stopPropagation();
 	if(currentFileIndex === -1) return
 	if(!currentFileIndex){
 		currentFileIndex = currentMusicFilenameOriginalArr.length
 	}
-	if(currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]]){
-		currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
-		setTimeout(() => {
-			// 未知原因，需要20毫秒后再点击一次才生效
-			logger.info("播放上一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong)
-			if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex - 1]){
-
-			} else {
-				logger.warn("播放上一首 click again")
-				currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
-			}
-		}, 20)
-	} else {
-		logger.error("播放上一首 warn currentMusicFilenameOriginalArr", currentMusicFilenameOriginalArr, 'currentFileIndex - 1', currentFileIndex -1)
-	}
+	currentFileIndex--
+	const previousSongInfo = musicDataList[currentFileIndex]
+	return playAnotherSong(previousSongInfo, original, musicDataList, null, {type: 'playPreviousSong', currentFileIndex, currentMusicFilenameOriginalArr})
 }
 
-export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, currentMusicNodeList, currentPlayingSong, soundPlaying) => {
+export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e) => {
+	if(e) e.stopPropagation();
 	if(currentFileIndex === -1) return
 	if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
 		currentFileIndex = -1
 	}
-	if(currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]]){
-		console.warn("currentMusicNodeList", currentMusicNodeList)
-		console.warn("currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]]", currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]])
-		currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
-		return checkPlaying(soundPlaying, currentPlayingSong, currentMusicFilenameOriginalArr, currentFileIndex, currentMusicNodeList)
-	} else {
-		logger.error("播放下一首 warn currentMusicFilenameOriginalArr",  currentMusicFilenameOriginalArr, 'currentFileIndex + 1', currentFileIndex + 1)
-	}
-}
-
-function checkPlaying(soundPlaying, currentPlayingSong, currentMusicFilenameOriginalArr, currentFileIndex, currentMusicNodeList){
-	setTimeout(() => {
-		logger.info("播放下一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong, "nextPlayingSong", currentMusicFilenameOriginalArr[currentFileIndex + 1])
-		if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex + 1]){
-			return
-		} else {
-			logger.warn("播放下一首 click again")
-			currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
-		}
-	}, 20)
+	currentFileIndex++
+	const nextSongInfo = musicDataList[currentFileIndex]
+	return playAnotherSong(nextSongInfo, original, musicDataList, null, {type: 'playNextSong', currentFileIndex, currentMusicFilenameOriginalArr})
 }
 
 export const getMusicCurrentPlayProcess = () => {
@@ -904,4 +893,210 @@ export const getMusicCurrentPlayProcess = () => {
 			logger.error("checkStatus soundInstance.seek() err", err.stack || err.toString())
 		}
 	}, 1000)
+}
+
+export const musicPlayingProgressFunc = () => {
+	const { currentPlayingSongDuration } = $getState().fileServer
+	if(!currentPlayingSongDuration || currentPlayingSongDuration === NaN) return
+	const intervalTimerNumber = parseInt( currentPlayingSongDuration / CONSTANT.strokeDashoffset * 1000)
+	logger.info("musicPlayingProgressFunc intervalTimerNumber", intervalTimerNumber)
+	let lastSongTime = 0, intervalTimerNumberInteger = Math.ceil(intervalTimerNumber), i=0
+	window.musicPlayingProgressTimer = setInterval(function () {
+		setTimeout(() => {
+			const { currentSongTime } = $getState().fileServer
+			if(currentSongTime === 0) return  // 刚开始播放,正在缓冲音乐,不要计时
+			if(i < intervalTimerNumberInteger) {
+				i++
+			} else {
+				if(currentSongTime === lastSongTime) return  // 播放过程中如果正在缓冲,不要计时
+				lastSongTime = currentSongTime
+			}
+			if (window.circleControlRef.style.strokeDashoffset > 0) {
+				window.circleControlRef.style.strokeDashoffset -= 1
+			} else {
+				window.circleControlRef.style.strokeDashoffset = 314
+				clearInterval(window.musicPlayingProgressTimer)
+			}
+		})
+	}, intervalTimerNumber)
+}
+
+export const pauseMusic = () => {
+	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
+	logger.info("music pause currentPlayingSong", currentPlayingSong, "window.musicPlayingProgressTimer", window.musicPlayingProgressTimer)
+	clearInterval(window.musicPlayingProgressTimer)
+	clearInterval(window.currentTimeInterval)
+	soundInstance.pause(soundInstanceId);
+	$dispatch(updateSoundPlaying(false))
+}
+
+export const resumeMusic = () => {
+	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
+	logger.info("music resume currentPlayingSong", currentPlayingSong)
+	getMusicCurrentPlayProcess()
+	musicPlayingProgressFunc()
+	soundInstance.play(soundInstanceId)
+	$dispatch(updateSoundPlaying(true))
+}
+
+export const stopMusic = () => {
+	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
+	logger.info("music stop currentPlayingSong", currentPlayingSong)
+	clearInterval(window.musicPlayingProgressTimer)
+	if(soundInstance && soundInstanceId) soundInstance.stop(soundInstanceId)
+	$dispatch(updateSoundPlaying(false))
+}
+
+export const playMusic = (filePath, filenameOrigin, duration, original, musicDataList, pageType) => {
+	try {
+		const { pauseWhenOver, playByOrder, soundInstance, soundInstanceId, playByRandom } = $getState().fileServer;
+		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
+		logger.info("music play filenameOrigin", filenameOrigin)
+		if(soundInstance && soundInstanceId){
+			soundInstance.unload()
+		}
+		$dispatch(updateCurrentPlayingMusicList(musicDataList))
+		$dispatch(updateCurrentSongTime(0))
+		$dispatch(updateSoundPlaying(true))
+		$dispatch(updateCurrentPlayingSong(filenameOrigin))
+		$dispatch(updateCurrentPlayingSongDuration(duration))
+		$dispatch(updateCurrentPlayingSongOriginal(original))
+		if(pageType) $dispatch(updateMusicPageType(pageType))
+		filePath = removePrefixFromFileOrigin(filePath)
+		const soundInstanceModel = new Howl({
+			src: [filePath],
+			loop: !pauseWhenOver,
+			rate: 1.0,
+			html5: true,
+			onend: function() {
+				logger.info("onend playByOrder", playByOrder)
+				if(playByOrder){
+					autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original)
+				} else if(playByRandom){
+					autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original)
+				} else if(pauseWhenOver){
+					$dispatch(updateSoundPlaying(false))
+					clearInterval(window.currentTimeInterval)
+				}
+			}
+		});
+		const soundInstanceModelId = soundInstanceModel.play();
+		$dispatch(updateSoundInstance(soundInstanceModel))
+		$dispatch(updateSoundInstanceId(soundInstanceModelId))
+		if(window.circleControlRef){
+			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
+			window.circleControlRef.style.strokeWidth = "8px"
+			musicPlayingProgressFunc()
+		}
+	} catch(err){
+		$dispatch(updateSoundPlaying(false))
+		logger.error("play() fail err", err.stack || err.toString())
+		alert('播放失败')
+	}
+}
+
+export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original) => {
+	try {
+		const currentMusicFilenameOriginalArr = musicDataList.map(item => item.filenameOrigin)
+		let currentFileIndex = currentMusicFilenameOriginalArr.indexOf(filenameOrigin)
+		if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
+			currentFileIndex = -1
+		}
+		currentFileIndex++
+		logger.info("autoPlayNextOne filenameOrigin", filenameOrigin, 'type', type)
+		if(type === "playByRandom" && currentMusicFilenameOriginalArr.length !== 1){
+			currentFileIndex = getRandomFileIndex(currentMusicFilenameOriginalArr, currentFileIndex)
+		}
+		const nextSongInfo = musicDataList[currentFileIndex]
+		playAnotherSong(nextSongInfo, original, musicDataList, type)
+	} catch(err){
+		alert("歌曲文件异常, 暂停播放");
+		logger.error("play onEnd err", err)
+	}
+}
+
+function playAnotherSong(anotherSongInfo, original, musicDataList, type, others){
+	$dispatch(updateCurrentSongTime(0))
+	stopMusic()
+	if(anotherSongInfo.payPlay) {
+		alert("尊重版权,人人有责")
+		if(type){
+			return autoPlayNextOne(type, anotherSongInfo.filenameOrigin, musicDataList, original)
+		} else if(others){
+			if(others.type === "playPreviousSong"){
+				return playPreviousSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList)
+			} else if(others.type === "playNextSong"){
+				return playNextSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList)
+			}
+		}
+	} else {
+		playMusic(anotherSongInfo.filePath, anotherSongInfo.filenameOrigin, anotherSongInfo.duration, original, musicDataList)
+	}
+}
+
+export const getRandomFileIndex = (currentMusicFilenameOriginalArr, currentFileIndex) => {
+	const randomFileIndex = parseInt(Math.random() * currentMusicFilenameOriginalArr.length)
+	if(currentFileIndex === randomFileIndex){
+		logger.warn("getRandomFileIndex repeat randomFileIndex", randomFileIndex, 'currentFileIndex', currentFileIndex)
+		return getRandomFileIndex(currentMusicFilenameOriginalArr, currentFileIndex)
+	} else {
+		return randomFileIndex
+	}
+}
+
+export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay) => {
+	try {
+		if(payPlay) return alert("尊重版权,人人有责")
+		const { soundPlaying, currentPlayingSong, downloadingMusicItems } = $getState().fileServer;
+		if(original === CONSTANT.musicOriginal.musicDownloading){
+			downloadingMusicItems.some((item) => {
+				if(item.filenameOrigin === filenameOrigin) {
+					logger.info("checkStatus musicDownloading filenameOrigin", filenameOrigin)
+					filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
+					if(item.progress === "失败" || item.progress === "已取消"){
+						alert(`重新下载${filename}`)
+						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, true, duration)
+						saveFileToLocal(filenameOrigin, filePath, "music", filename, uploadUsername, true, fileSize, true, {duration, songOriginal})
+					} else {
+						window.eventEmit.$emit(`FileTransfer-${filenameOrigin}`, 'abort')
+					}
+					return true
+				} else {
+					return false
+				}
+			})
+			return
+		}
+		getMusicCurrentPlayProcess()
+		clearInterval(window.musicPlayingProgressTimer)
+		logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
+		if(!soundPlaying){
+			if(!currentPlayingSong){
+				// first play case
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+			} else {
+				// pause case
+				if(filenameOrigin === currentPlayingSong){
+					resumeMusic()
+				} else {
+					// stop current song and switch to another song case and then initial play current time
+					$dispatch(updateCurrentSongTime(0))
+					stopMusic()
+					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+				}
+			}
+		} else {
+			if(filenameOrigin !== currentPlayingSong){
+				// stop current song and switch to another song case and initial play current time
+				$dispatch(updateCurrentSongTime(0))
+				stopMusic()
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+			} else {
+				// pause current song
+				pauseMusic()
+			}
+		}
+	} catch (err){
+		logger.error("checkStatus err", err)
+	}
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Toast } from "antd-mobile";
 import { onBackKeyDown, networkErr } from "../services/utils";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail } from "../ducks/myInfo";
 import { updateUsername, updateHasForgetPassword } from "../ducks/login"
@@ -22,7 +22,7 @@ export default class ForgetPassword extends Component {
 
     listenBackButton = () => {
         setTimeout(() => {
-            StatusBar.backgroundColorByHexString(CON.statusBarColor);
+            StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
         }, 300)
         document.addEventListener("backbutton", this.backToMain, false)
     }
@@ -58,7 +58,7 @@ export default class ForgetPassword extends Component {
 					username: usernameValue,
 					email: emailValue
 				}
-				Toast.loading('请稍后...', CON.toastLoadingTime, () => {});
+				Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
 				axios.post(HTTP_URL.forgetPassword, data)
 					.then((response) => {
 						this.startToSubmit = false

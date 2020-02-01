@@ -10,14 +10,12 @@ const PAUSE_WHEN_OVER = "fileServer/pauseWhenOver"
 const MUSIC_MENU_BADGE = "fileServer/musicMenuBadge"
 const PLAY_BY_ORDER = "fileServer/playByOrder"
 const MUSIC_COLLECTION = "fileServer/musicCollection"
-const MUSIC_NODE_LIST = "fileServer/musicNodeList"
 const FILE_SUBMIT_STATUS = "fileServer/fileSubmitStatus"
 const FILE_UPLOAD_PROGRESS = "fileServer/fileUploadProgress"
 const MUSIC_SUBMIT_STATUS = "fileServer/musicSubmitStatus"
 const MUSIC_UPLOAD_PROGRESS = "fileServer/musicUploadProgress"
 const DOWNLOADING_FILE_ITEMS = "fileServer/downloadingFileItems"
 const DOWNLOADING_MUSIC_ITEMS = "fileServer/downloadingMusicItems"
-const IS_MUSIC_PLAYER_PAGE = "fileServer/isMusicPlayerPage"
 const CURRENT_PLAYING_MUSIC_LIST = "fileServer/currentPlayingMusicList"
 const PLAY_BY_RANDOM = "fileServer/playByRandom"
 const LAST_NET_EASE_CLOUD_SEARCH_RESULT = "fileServer/lastNetEaseCloudSearchResult"
@@ -44,8 +42,8 @@ const NO_MORE_SEARCH_ALL_QQ_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllQQ
 const NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllKuGouMusicResults"
 const DOWNLOADED_MUSIC_LIST = "fileServer/downloadedMusicList"
 const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
-const CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW = "fileServer/currentPlayingSongOriginalExceptWindow"
 const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
+const MUSIC_PAGE_TYPE = "fileServer/musicPageType"
 
 // initialSate
 const initialState = () => ({
@@ -74,14 +72,12 @@ const initialState = () => ({
 	],
 	playByOrder: false,
 	musicCollection: [],
-	musicNodeList: {},
 	fileSubmitStatus: "上传",
 	fileUploadProgress: "",
 	musicSubmitStatus: "上传",
 	musicUploadProgress: "",
 	downloadingFileItems: [],
 	downloadingMusicItems: [],
-	isMusicPlayerPage: false,
 	currentPlayingMusicList: [],
 	playByRandom: false,
 	lastNetEaseCloudSearchResult: [],
@@ -108,8 +104,8 @@ const initialState = () => ({
 	noMoreSearchAllKuGouMusicResults: false,
 	downloadedMusicList: [],
 	currentPlayingSongOriginal: "",
-	currentPlayingSongOriginalExceptWindow: "",
 	currentPlayingSongDuration: "",
+	musicPageType: ""
 });
 
 // Reducer
@@ -137,8 +133,6 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {playByOrder: action.data});
 		case MUSIC_COLLECTION:
 			return Object.assign({}, state, {musicCollection: action.data});
-		case MUSIC_NODE_LIST:
-			return Object.assign({}, state, {musicNodeList: action.data});
 		case FILE_SUBMIT_STATUS:
 			return Object.assign({}, state, {fileSubmitStatus: action.data});
 		case FILE_UPLOAD_PROGRESS:
@@ -151,8 +145,6 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {downloadingFileItems: action.data});
 		case DOWNLOADING_MUSIC_ITEMS:
 			return Object.assign({}, state, {downloadingMusicItems: action.data});
-		case IS_MUSIC_PLAYER_PAGE:
-			return Object.assign({}, state, {isMusicPlayerPage: action.data});
 		case CURRENT_PLAYING_MUSIC_LIST:
 			return Object.assign({}, state, {currentPlayingMusicList: action.data});
 		case PLAY_BY_RANDOM:
@@ -205,10 +197,10 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {downloadedMusicList: action.data});
 		case CURRENT_PLAYING_SONG_ORIGINAL:
 			return Object.assign({}, state, {currentPlayingSongOriginal: action.data});
-		case CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW:
-			return Object.assign({}, state, {currentPlayingSongOriginalExceptWindow: action.data});
 		case CURRENT_PLAYING_SONG_DURATION:
 			return Object.assign({}, state, {currentPlayingSongDuration: action.data});
+		case MUSIC_PAGE_TYPE:
+			return Object.assign({}, state, {musicPageType: action.data});
 		default:
 			return state;
 	}
@@ -270,11 +262,6 @@ export const updateMusicCollection = data => ({
 	data
 })
 
-export const updateMusicNodeList = data => ({
-	type: MUSIC_NODE_LIST,
-	data
-})
-
 export const updateFileSubmitStatus= data => ({
 	type: FILE_SUBMIT_STATUS,
 	data
@@ -302,11 +289,6 @@ export const updateDownloadingFileItems = data => ({
 
 export const updateDownloadingMusicItems = data => ({
 	type: DOWNLOADING_MUSIC_ITEMS,
-	data
-})
-
-export const updateIsMusicPlayerPage = data => ({
-	type: IS_MUSIC_PLAYER_PAGE,
 	data
 })
 
@@ -440,12 +422,12 @@ export const updateCurrentPlayingSongOriginal = data => ({
 	data
 })
 
-export const updateCurrentPlayingSongOriginalExceptWindow = data => ({
-	type: CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW,
+export const updateCurrentPlayingSongDuration = data => ({
+	type: CURRENT_PLAYING_SONG_DURATION,
 	data
 })
 
-export const updateCurrentPlayingSongDuration = data => ({
-	type: CURRENT_PLAYING_SONG_DURATION,
+export const updateMusicPageType = data => ({
+	type: MUSIC_PAGE_TYPE,
 	data
 })

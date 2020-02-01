@@ -74,11 +74,14 @@ window.goRoute = ( self, path ) => {
 				}
 			})
 			if(notDisplay){
+				$("#root .container .main-content").css("height", "100vh")
 				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 			} else {
+				$("#root .container .main-content").css("height", "calc(100vh - 60px)")
 				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
 			}
 		} else {
+			$("#root .container .main-content").css("height", "100vh")
 			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 		}
 	})

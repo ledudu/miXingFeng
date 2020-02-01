@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, getMusicCurrentPlayProcess } from "../../logic/common"
-import { updateSoundPlaying } from "../../ducks/fileServer"
+import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic } from "../../logic/common"
+import { CONSTANT } from '../../constants/enumeration';
 
 class MusicController extends React.Component{
 
@@ -12,22 +12,51 @@ class MusicController extends React.Component{
 		})
 	}
 
-	pause = () => {
+	componentWillUnmount(){
+		window.eventEmit.$off("listenMusicSaved")
+	}
+
+	pause = (e) => {
+		if(e) e.stopPropagation();
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId) return
 		logger.info("MusicController pause currentPlayingSong", currentPlayingSong)
-		clearInterval(window.currentTimeInterval)
-		soundInstance.pause(soundInstanceId);
-		$dispatch(updateSoundPlaying(false))
+		pauseMusic(soundInstance, soundInstanceId, currentPlayingSong)
 	}
 
-	resume = () => {
+	resume = (e) => {
+		if(e) e.stopPropagation();
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId) return
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
-		getMusicCurrentPlayProcess(soundInstance)
-		soundInstance.play(soundInstanceId)
-		$dispatch(updateSoundPlaying(true))
+		resumeMusic(soundInstance, soundInstanceId, currentPlayingSong)
+	}
+
+	gotoPlayingMusicPage = () => {
+		const { musicPageType } = this.props
+		const urlHash =  window.location.href.split("#/")[1]
+		switch(musicPageType){
+			case CONSTANT.musicOriginal.musicShare:
+				if(urlHash !== "main/music") window.goRoute(null, "main/music")
+				break
+			case CONSTANT.musicOriginal.savedSongs:
+				if(urlHash !== "saved_songs") window.goRoute(null, "saved_songs")
+				break
+			case CONSTANT.musicOriginal.musicFinished:
+				if(urlHash !== "my_finished_musics") window.goRoute(null, "my_finished_musics")
+				break
+			case "onlySearchShareMusic":
+				if(urlHash !== "search_music") window.goRoute(null, "search_music")
+				break
+			case "onlineMusic":
+				if(urlHash !== "search_online_music") window.goRoute(null, "search_online_music")
+				break
+			case "onlineMusicSearchALl":
+				if(urlHash !== "onlineMusicSearchALl") window.goRoute(null, "onlineMusicSearchALl")
+				break
+			default:
+				break
+		}
 	}
 
 	render(){
@@ -36,7 +65,6 @@ class MusicController extends React.Component{
 			currentPlayingMusicList=[],
 			musicCollection=[],
 			currentPlayingSongOriginal,
-			musicNodeList,
 			soundPlaying,
 		} = this.props
 		let currentSongInfo = {}
@@ -55,37 +83,35 @@ class MusicController extends React.Component{
 			currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
 		}
 		return (
-			<div className="window-music-controller"  ref={ref => window.musicController = ref}>
-				<div className="song-pic">{currentSongInfo.filename && currentSongInfo.filename.slice(0, 1).toUpperCase() || "没"}</div>
+			<div className="window-music-controller"  ref={ref => window.musicController = ref} onClick={this.gotoPlayingMusicPage} >
+				<div className="song-pic" >{currentSongInfo.filename && currentSongInfo.filename.slice(0, 1).toUpperCase() || "没"}</div>
 				<div className="song-info">
 					<div className="song-name">{currentSongInfo.filename || "当前没有播放歌曲"}</div>
 					<div className="singer-name">{currentSongInfo.uploadUsername || "无"}</div>
 				</div>
-				<div className={`fa fa-heart ${(currentSongInfo.saved) ? "saved" : "no-save"}`}
-					onClick={() => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal)}>
+				<div className={`fa fa-heart ${(currentSongInfo.saved || currentPlayingSongOriginal === "savedSongs") ? "saved" : "no-save"}`}
+					onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e)}>
 
 				</div>
 				<div className="fa fa-step-backward play-previous"
-					onClick={() => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, musicNodeList, currentPlayingSong, soundPlaying)}>
+					onClick={(e) => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
 
-				</div>}
-				<div className="play-or-pause ">
-					<div className="rect-box">
-						<div className="rect left">
-							<div className="circle"></div>
-						</div>
-						<div className="rect right">
-							<div className="circle"></div>
-						</div>
-						{
-							soundPlaying
-							?	<div className="fa fa-pause" onClick={this.pause}></div>
-							:	<div className="fa fa-play" onClick={this.resume}></div>
-						}
-					</div>
+				</div>
+				<div className="play-or-pause">
+					<svg width="32" height="32" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+						<circle r="50" cx="50" cy="50" fill="transparent" className="progress-background"></circle>
+						<circle r="50" cx="50" cy="50" fill="transparent" ref={ref => window.circleControlRef = ref}
+							strokeDasharray={314.1592653589793} strokeDashoffset={142.47214515199587}
+							className="progress-bar"></circle>
+    				</svg>
+					{
+						soundPlaying
+						?	<div className="fa fa-pause" onClick={this.pause}></div>
+						:	<div className="fa fa-play" onClick={this.resume}></div>
+					}
 				</div>
 				<div className="fa fa-step-forward play-next"
-					onClick={() => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, musicNodeList, currentPlayingSong, soundPlaying)}>
+					onClick={(e) => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
 
 				</div>
 			</div>
@@ -100,9 +126,9 @@ const mapStateToProps = state => {
 		soundInstanceId: state.fileServer.soundInstanceId,
 		currentPlayingSong: state.fileServer.currentPlayingSong,
 		musicCollection: state.fileServer.musicCollection,
-		musicNodeList: state.fileServer.musicNodeList,
 		currentPlayingSongOriginal: state.fileServer.currentPlayingSongOriginal,
 		currentPlayingMusicList: state.fileServer.currentPlayingMusicList,
+		musicPageType: state.fileServer.musicPageType,
     };
 };
 

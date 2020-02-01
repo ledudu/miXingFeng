@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from "react-redux";
 import MusicPlayer from "./musicPlayer"
 import NavBar from "./child/navbar";
-import { CON } from "../constants/enumeration"
+import { CONSTANT } from "../constants/enumeration"
 import { checkSongSavedFunc } from "../logic/common"
 
 class MyFinishedMusics extends React.Component {
@@ -26,19 +26,19 @@ class MyFinishedMusics extends React.Component {
 
     render() {
 		const { downloadedMusicList, downloadingMusicItems } = this.props
-		checkSongSavedFunc(downloadedMusicList, CON.musicOriginal.musicFinished)
+		checkSongSavedFunc(downloadedMusicList, CONSTANT.musicOriginal.musicFinished)
 		return (
 			<div className="my-download-container">
 				<NavBar centerText="音乐" backToPreviousPage={this.backToMainPage} />
 				<div className="my-download-content">
 					<div className="downloading-file-container">
 						<div className="downloading-file-title">正在下载</div>
-						{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CON.musicOriginal.musicDownloading} /> }
+						{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CONSTANT.musicOriginal.musicDownloading} /> }
 					</div>
 					<div className="interval-line"></div>
 					<div className="downloaded-file-container">
 						<div className="downloaded-file-title">已完成</div>
-						{ window.isCordova && <MusicPlayer musicDataList={downloadedMusicList} original={CON.musicOriginal.musicFinished} /> }
+						{ window.isCordova && <MusicPlayer musicDataList={downloadedMusicList} original={CONSTANT.musicOriginal.musicFinished} pageType={CONSTANT.musicOriginal.musicFinished} /> }
 					</div>
 				</div>
 			</div>

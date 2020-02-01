@@ -3,7 +3,7 @@ import { Button } from "antd-mobile";
 import { registerUsername} from "../logic/login";
 import NavBar from "./child/navbar";
 import { onBackKeyDown } from "../services/utils";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 
 export default class Register extends Component {
 
@@ -19,7 +19,7 @@ export default class Register extends Component {
 
     listenBackButton = () => {
         setTimeout(() => {
-            StatusBar.backgroundColorByHexString(CON.statusBarColor);
+            StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
         }, 300)
         document.addEventListener("backbutton", this.backToMain, false)
     }

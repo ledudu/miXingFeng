@@ -5,7 +5,7 @@ import MyInfoMiddlePageComponent from "./child/myInfoMiddlePageComponent";
 import { networkErr } from "../services/utils";
 import UpdateBody from "./child/updateBody";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { confirm, alertDialog } from "../services/utils";
 import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize } from "../ducks/common"
@@ -48,7 +48,7 @@ class About extends React.Component {
 		const { appUpdating, appVersion } = this.props;
 		if(appUpdating) return alert("请勿重复下载")
 		$dispatch(updateSetSystemSetupDot(false))
-		Toast.loading('正在检查更新', CON.toastLoadingTime, () => {});
+		Toast.loading('正在检查更新', CONSTANT.toastLoadingTime, () => {});
         axios.get(HTTP_URL.checkUpdate)
             .then(response => {
                 window.logger.info(`response`, response.data)
@@ -71,7 +71,7 @@ class About extends React.Component {
 					})
 				} else {
 					window.logger.info("已是最新版本");
-					Toast.success('已是最新版本', CON.toastTime);
+					Toast.success('已是最新版本', CONSTANT.toastTime);
 				}
             })
             .catch(err => {

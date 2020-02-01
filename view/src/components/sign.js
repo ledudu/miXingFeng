@@ -10,7 +10,7 @@ import { retrieveOthers, getUserPosition, getLocation, previewNew, getGreeting, 
 import { updateDirectShowSignPage, updateAdNumber, updateFromResume } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
-import { CON } from "../constants/enumeration";
+import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { updateFileList, updateMusicList, updateDownloadedMusicList } from "../ducks/fileServer";
 import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc } from "../ducks/common"
@@ -305,7 +305,7 @@ class Sign extends Component {
 	backgroundColorByHexString = (t=200) => {
 		setTimeout(() => {
 			logger.info("backgroundColorByHexString #81AFED")
-			window.StatusBar.backgroundColorByHexString(CON.statusBarColor);
+			window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
 		}, t)
 	}
 
