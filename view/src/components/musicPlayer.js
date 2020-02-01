@@ -11,7 +11,6 @@ import {
 	updateCurrentSongTime,
 	updatePauseWhenOver,
 	updatePlayByOrder,
-	updateMusicCollection,
 	updateMusicMenuBadge,
 	updateMusicNodeList,
 	updateCurrentPlayingMusicList,
@@ -21,10 +20,21 @@ import {
 	updateCurrentPlayingSongOriginal,
 	updateIsMusicPlayerPage,
 	updateCurrentPlayingSongOriginalExceptWindow,
+	updateCurrentPlayingSongDuration,
 } from "../ducks/fileServer";
 import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus } from "../services/utils";
 import { updateToken } from "../ducks/login";
-import { calcSize, removeDuplicateObjectList, removeFileFromDownload, checkSongSavedFunc, removePrefixFromFileOrigin } from "../logic/common";
+import {
+	calcSize,
+	removeDuplicateObjectList,
+	removeFileFromDownload,
+	checkSongSavedFunc,
+	removePrefixFromFileOrigin,
+	saveSongFunc,
+	playPreviousSong,
+	playNextSong,
+	getMusicCurrentPlayProcess
+} from "../logic/common";
 import { CON } from '../constants/enumeration';
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
@@ -53,7 +63,7 @@ class MusicPlayer extends React.Component {
 		if(original !== CON.musicOriginal.musicDownloading && original !== CON.musicOriginal.window){
 			if(currentPlayingSongOriginal === original){
 				$dispatch(updateIsMusicPlayerPage(true))
-				this.getMusicCurrentPlayProcess()
+				getMusicCurrentPlayProcess()
 			} else if(currentPlayingSongOriginal) {
 				// 当切出正在播放的音乐页面时会触发window来源的音乐页面
 				// 所以不需要在unmount里更新，直接在这更新就可以了
@@ -130,25 +140,9 @@ class MusicPlayer extends React.Component {
 		$dispatch(updateMusicNodeList(this.currentMusicNodeListOld))
 	}
 
-	getMusicCurrentPlayProcess = () => {
-		clearInterval(window.currentTimeInterval)
-		window.currentTimeInterval = setInterval(() => {
-			const { soundInstance } = this.props;
-			try {
-				if(soundInstance && soundInstance.seek && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
-					$dispatch(updateCurrentSongTime(soundInstance.seek()))
-				}
-			} catch(err){
-				clearInterval(window.currentTimeInterval)
-				logger.error("checkStatus soundInstance.seek() err", err)
-			}
-		}, 1000)
-	}
-
 	checkStatus = (filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal) => {
 		try {
-			const { soundPlaying, currentPlayingSong, username, token, original, downloadingMusicItems } = this.props;
-			if(!username || !token) return alert("请先登录")
+			const { soundPlaying, currentPlayingSong, original, downloadingMusicItems } = this.props;
 			this.updateMusicDomNodeList()
 			if(original === CON.musicOriginal.musicDownloading){
 				downloadingMusicItems.some((item) => {
@@ -169,12 +163,12 @@ class MusicPlayer extends React.Component {
 				})
 				return
 			}
-			this.getMusicCurrentPlayProcess()
+			getMusicCurrentPlayProcess()
 			logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
 			if(!soundPlaying){
 				if(!currentPlayingSong){
 					// first play case
-					this.play(filePath, filenameOrigin)
+					this.play(filePath, filenameOrigin, duration)
 				} else {
 					// pause case
 					if(filenameOrigin === currentPlayingSong){
@@ -183,7 +177,7 @@ class MusicPlayer extends React.Component {
 						// stop current song and switch to another song case and then initial play current time
 						$dispatch(updateCurrentSongTime(0))
 						this.stop()
-						this.play(filePath, filenameOrigin)
+						this.play(filePath, filenameOrigin, duration)
 					}
 				}
 			} else {
@@ -191,7 +185,7 @@ class MusicPlayer extends React.Component {
 					// stop current song and switch to another song case and initial play current time
 					$dispatch(updateCurrentSongTime(0))
 					this.stop()
-					this.play(filePath, filenameOrigin)
+					this.play(filePath, filenameOrigin, duration)
 				} else {
 					// pause current song
 					this.pause()
@@ -202,21 +196,22 @@ class MusicPlayer extends React.Component {
 		}
 	}
 
-	play = (filePath, filenameOrigin) => {
+	play = (filePath, filenameOrigin, duration) => {
 		try {
 			let { musicDataList=[] } = this.state
 			const { pauseWhenOver, playByOrder, soundInstance, soundInstanceId, playByRandom, original, currentPlayingSongOriginalExceptWindow } = this.props;
 			const self = this;
 			musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
-			$dispatch(updateCurrentPlayingMusicList(musicDataList))
 			logger.info("music play filenameOrigin", filenameOrigin)
-			$dispatch(updateCurrentSongTime(0))
 			if(soundInstance && soundInstanceId){
 				soundInstance.unload()
 			}
+			$dispatch(updateCurrentPlayingMusicList(musicDataList))
+			$dispatch(updateCurrentSongTime(0))
 			$dispatch(updateIsMusicPlayerPage(true))
 			$dispatch(updateSoundPlaying(true))
 			$dispatch(updateCurrentPlayingSong(filenameOrigin))
+			$dispatch(updateCurrentPlayingSongDuration(duration))
 			$dispatch(updateCurrentPlayingSongOriginal(original === CON.musicOriginal.window ? currentPlayingSongOriginalExceptWindow : original))
 			filePath = removePrefixFromFileOrigin(filePath)
 			const soundInstanceModel = new Howl({
@@ -261,7 +256,7 @@ class MusicPlayer extends React.Component {
 	resume = () => {
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props;
 		logger.info("music resume currentPlayingSong", currentPlayingSong)
-		this.getMusicCurrentPlayProcess()
+		getMusicCurrentPlayProcess()
 		soundInstance.play(soundInstanceId)
 		$dispatch(updateSoundPlaying(true))
 	}
@@ -286,7 +281,7 @@ class MusicPlayer extends React.Component {
 				original,
 				soundPlaying,
 				playByRandom,
-				currentPlayingSong
+				currentPlayingSong,
 			} = this.props
 			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -328,46 +323,10 @@ class MusicPlayer extends React.Component {
 					const filePath = musicDataList[currentFileIndex]['filePath']
 					switch(buttonIndex){
 						case 0:
-							if(!username || !token) return alert("请先登录")
 							this.checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal)
 							break;
 						case 1:
-							if(!username || !token) return alert("请先登录")
-							const hasSaved= savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
-							if(hasSaved !== -1){
-								musicCollection.splice(hasSaved, 1)
-							} else {
-								const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
-								willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
-								musicCollection.push(willSavedSong)
-							}
-							const dataObj = {
-								username,
-								token,
-								musicCollection
-							}
-							axios.post(HTTP_URL.saveSong, dataObj)
-								.then((result) => {
-									if(result.data.result.result === 'success'){
-										this.checkSongSaved()
-										$dispatch(updateToken(result.data.result.token))
-										if(hasSaved !== -1){
-											alert('取消收藏成功')
-										} else {
-											alert('收藏成功')
-										}
-										musicCollection.forEach(item => {
-											delete item.saved
-										})
-										$dispatch(updateMusicCollection(musicCollection))
-									} else {
-										logger.error("HTTP_URL.saveSong result", result)
-									}
-								})
-								.catch(err => {
-									logger.error("HTTP_URL.saveSong err", err)
-									networkErr(err);
-								})
+							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original)
 							break;
 						case 2:
 							if(!pauseWhenOver || playByOrder || playByRandom){
@@ -478,53 +437,16 @@ class MusicPlayer extends React.Component {
 							}
 							break;
 						case 6:
-							if(!username || !token) return alert("请先登录")
 							logger.info("播放上一首 currentFileIndex", currentFileIndex)
-							// 更新dom到store
+							// 更新dom到store,用于在其他页面直接点击播放上一首
 							this.updateMusicDomNodeList()
-							if(!currentFileIndex){
-								currentFileIndex = currentMusicFilenameOriginalArr.length
-							}
-							if(this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex - 1]]){
-								this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
-								setTimeout(() => {
-									// 未知原因，需要20毫秒后再点击一次才生效
-									const { currentPlayingSong, soundPlaying } = this.props;
-									logger.info("播放上一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong, 'filename', filename, 'filenameOrigin', filenameOrigin)
-									if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex - 1]){
-
-									} else {
-										logger.warn("播放上一首 click again")
-										this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
-									}
-								}, 20)
-							} else {
-								logger.error("播放上一首 warn currentMusicFilenameOriginalArr", currentMusicFilenameOriginalArr, 'currentFileIndex - 1', currentFileIndex -1)
-							}
+							playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, this.currentMusicNodeListOld, currentPlayingSong, soundPlaying)
 							break;
 						case 7:
-							if(!username || !token) return alert("请先登录")
 							logger.info("播放下一首 currentFileIndex", currentFileIndex)
 							// 更新dom到store
 							this.updateMusicDomNodeList()
-							if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
-								currentFileIndex = -1
-							}
-							if(this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex + 1]]){
-								this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
-								setTimeout(() => {
-									const { currentPlayingSong, soundPlaying } = this.props;
-									logger.info("播放下一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong, 'filename', filename, 'filenameOrigin', filenameOrigin)
-									if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex + 1]){
-
-									} else {
-										logger.warn("播放下一首 click again")
-										this.currentMusicNodeListOld[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
-									}
-								}, 20)
-							} else {
-								logger.error("播放下一首 warn currentMusicFilenameOriginalArr",  currentMusicFilenameOriginalArr, 'currentFileIndex + 1', currentFileIndex + 1)
-							}
+							playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, this.currentMusicNodeListOld, currentPlayingSong, soundPlaying)
 							break;
 						case 8:
 							if(original === CON.musicOriginal.musicFinished){

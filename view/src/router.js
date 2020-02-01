@@ -152,6 +152,10 @@ const SearchAll = MyLoadable({
 	loader: () => import("./components/searchAll")
 })
 
+const MusicController = MyLoadable({
+	loader: () => import("./components/child/musicController")
+})
+
 import { initWebsocket } from "./logic/common" ;
 
 class Routers extends Component {
@@ -301,49 +305,54 @@ class Routers extends Component {
     	return (
     		<Router>
     			<div className="container">
-    				<Switch>
-                        <Route path="/register" component={Register} />
-    				    <Route path="/forget_password" component={ForgetPassword} />
-                        <Route path="/login" component={Login} />
-    				    <Route path="/search_user_history" component={SearchUserHistory} />
-                        <Route path="/main" component={MainFrame} />
-                        <Route path="/about" component={About} />
-                        <Route path="/feedback" component={Feedback} />
-                        <Route path="/set_nickname" component={SetNickname} />
-                        <Route path="/set_mobile" component={SetMobile} />
-                        <Route path="/set_signature" component={SetSignature} />
-                        <Route path="/user_profile" component={UserProfile} />
-                        <Route path="/system_setup" component={SystemSetup} />
-                        <Route path="/licence" component={Licence} />
-                        <Route path="/service_list" component={ServiceList} />
-                        <Route path="/user_agreement" component={UserAgreement} />
-                        <Route path="/privacy" component={Privacy} />
-                        <Route path="/package_iframe" component={PackageIframe} />
-                        <Route path="/reset_password_sys" component={ResetPasswordSys} />
-						<Route path="/look_head_pic" component={LookHeadPic} />
-						<Route path="/search_column" component={SearchColumn} />
-						<Route path="/search_position" component={SearchPosition} />
-						<Route path="/show_online_persons" component={ShowOnlinePersons} />
-						<Route path="/my_sites" component={MySites} />
-						<Route path="/type_shell" component={TypeShell} />
-						<Route path="/login_record" component={LoginRecord} />
-						<Route path="/notification" component={Notification} />
-						<Route path="/saved_songs" component={SavedSongs} />
-						<Route path="/my_finished_files" component={MyFinishedFiles} />
-						<Route path="/my_finished_musics" component={MyFinishedMusics} />
-						<Route path="/my_games" component={MyGames} />
-						<Route path="/my_download_middle_page" component={MyDownloadMiddlePage} />
-						<Route path="/nickname_page" component={NicknamePage} />
-						<Route path="/set_email" component={SetEmail} />
-						<Route path="/check_email" component={CheckEmail} />
-						<Route path="/search_file" component={SearchFile} />
-						<Route path="/search_music" component={SearchMusic} />
-						<Route path="/search_online_music" component={SearchOnlineMusic} />
-						<Route path="/search_all" component={SearchAll} />
-                        <Route path="/" component={Entry} />
-    				</Switch>
-					<div className="window-music-player">
-						{soundPlaying && !isMusicPlayerPage && <MusicPlayer musicDataList={currentPlayingMusicList} original={CON.musicOriginal.window}/>}
+					<div className="main-content">
+    					<Switch>
+                    	    <Route path="/register" component={Register} />
+    					    <Route path="/forget_password" component={ForgetPassword} />
+                    	    <Route path="/login" component={Login} />
+    					    <Route path="/search_user_history" component={SearchUserHistory} />
+                    	    <Route path="/main" component={MainFrame} />
+                    	    <Route path="/about" component={About} />
+                    	    <Route path="/feedback" component={Feedback} />
+                    	    <Route path="/set_nickname" component={SetNickname} />
+                    	    <Route path="/set_mobile" component={SetMobile} />
+                    	    <Route path="/set_signature" component={SetSignature} />
+                    	    <Route path="/user_profile" component={UserProfile} />
+                    	    <Route path="/system_setup" component={SystemSetup} />
+                    	    <Route path="/licence" component={Licence} />
+                    	    <Route path="/service_list" component={ServiceList} />
+                    	    <Route path="/user_agreement" component={UserAgreement} />
+                    	    <Route path="/privacy" component={Privacy} />
+                    	    <Route path="/package_iframe" component={PackageIframe} />
+                    	    <Route path="/reset_password_sys" component={ResetPasswordSys} />
+							<Route path="/look_head_pic" component={LookHeadPic} />
+							<Route path="/search_column" component={SearchColumn} />
+							<Route path="/search_position" component={SearchPosition} />
+							<Route path="/show_online_persons" component={ShowOnlinePersons} />
+							<Route path="/my_sites" component={MySites} />
+							<Route path="/type_shell" component={TypeShell} />
+							<Route path="/login_record" component={LoginRecord} />
+							<Route path="/notification" component={Notification} />
+							<Route path="/saved_songs" component={SavedSongs} />
+							<Route path="/my_finished_files" component={MyFinishedFiles} />
+							<Route path="/my_finished_musics" component={MyFinishedMusics} />
+							<Route path="/my_games" component={MyGames} />
+							<Route path="/my_download_middle_page" component={MyDownloadMiddlePage} />
+							<Route path="/nickname_page" component={NicknamePage} />
+							<Route path="/set_email" component={SetEmail} />
+							<Route path="/check_email" component={CheckEmail} />
+							<Route path="/search_file" component={SearchFile} />
+							<Route path="/search_music" component={SearchMusic} />
+							<Route path="/search_online_music" component={SearchOnlineMusic} />
+							<Route path="/search_all" component={SearchAll} />
+                    	    <Route path="/" component={Entry} />
+    					</Switch>
+					</div>
+					<div className="window-music-container">
+						<div className="window-music-player">
+							{soundPlaying && !isMusicPlayerPage && <MusicPlayer musicDataList={currentPlayingMusicList} original={CON.musicOriginal.window}/>}
+						</div>
+						<MusicController />
 					</div>
     			</div>
             </Router>

@@ -18,7 +18,7 @@ import { updateSetNickname,
 	updateSetHeadPic,
 	updateSetRole,
 } from "../../ducks/myInfo";
-import { updateFileList, updateMusicList, updateDownloadedMusicList } from "../../ducks/fileServer";
+import { updateFileList, updateMusicList, updateDownloadedMusicList, updateMusicCollection, updateCurrentSongTime } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
 import { dealtWithLoginIn } from "../../logic/login"
@@ -796,4 +796,112 @@ export const checkOnlinePersons = () => {
 	if(window.ws && window.ws.readyState === 1){
 		ws.send(JSON.stringify(msg));
 	}
+}
+
+export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original) => {
+	if(currentFileIndex === -1) return
+	const { username, token } = $getState().login
+	if (!username || !token) return alert("请先登录")
+	const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
+	if (hasSaved !== -1) {
+		musicCollection.splice(hasSaved, 1)
+	} else {
+		const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+		willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
+		musicCollection.push(willSavedSong)
+	}
+	const dataObj = {
+		username,
+		token,
+		musicCollection
+	}
+	return axios.post(HTTP_URL.saveSong, dataObj)
+		.then((result) => {
+			if (result.data.result.result === 'success') {
+				checkSongSavedFunc(musicDataList, original)
+				$dispatch(updateToken(result.data.result.token))
+				musicCollection.forEach(item => {
+					delete item.saved
+				})
+				$dispatch(updateMusicCollection(musicCollection))
+				window.eventEmit.$emit("listenMusicSaved")
+				if (hasSaved !== -1) {
+					alert('取消收藏成功')
+					return false
+				} else {
+					alert('收藏成功')
+					return true
+				}
+			} else {
+				logger.error("HTTP_URL.saveSong result not success", result)
+			}
+		})
+		.catch(err => {
+			logger.error("HTTP_URL.saveSong err", err)
+			networkErr(err);
+		})
+}
+
+export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, currentMusicNodeList, currentPlayingSong, soundPlaying) => {
+	if(currentFileIndex === -1) return
+	if(!currentFileIndex){
+		currentFileIndex = currentMusicFilenameOriginalArr.length
+	}
+	if(currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]]){
+		currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
+		setTimeout(() => {
+			// 未知原因，需要20毫秒后再点击一次才生效
+			logger.info("播放上一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong)
+			if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex - 1]){
+
+			} else {
+				logger.warn("播放上一首 click again")
+				currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex - 1]].click();
+			}
+		}, 20)
+	} else {
+		logger.error("播放上一首 warn currentMusicFilenameOriginalArr", currentMusicFilenameOriginalArr, 'currentFileIndex - 1', currentFileIndex -1)
+	}
+}
+
+export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, currentMusicNodeList, currentPlayingSong, soundPlaying) => {
+	if(currentFileIndex === -1) return
+	if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
+		currentFileIndex = -1
+	}
+	if(currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]]){
+		console.warn("currentMusicNodeList", currentMusicNodeList)
+		console.warn("currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]]", currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]])
+		currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
+		return checkPlaying(soundPlaying, currentPlayingSong, currentMusicFilenameOriginalArr, currentFileIndex, currentMusicNodeList)
+	} else {
+		logger.error("播放下一首 warn currentMusicFilenameOriginalArr",  currentMusicFilenameOriginalArr, 'currentFileIndex + 1', currentFileIndex + 1)
+	}
+}
+
+function checkPlaying(soundPlaying, currentPlayingSong, currentMusicFilenameOriginalArr, currentFileIndex, currentMusicNodeList){
+	setTimeout(() => {
+		logger.info("播放下一首 soundPlaying", soundPlaying, "currentPlayingSong", currentPlayingSong, "nextPlayingSong", currentMusicFilenameOriginalArr[currentFileIndex + 1])
+		if(soundPlaying && currentPlayingSong === currentMusicFilenameOriginalArr[currentFileIndex + 1]){
+			return
+		} else {
+			logger.warn("播放下一首 click again")
+			currentMusicNodeList[currentMusicFilenameOriginalArr[currentFileIndex + 1]].click();
+		}
+	}, 20)
+}
+
+export const getMusicCurrentPlayProcess = () => {
+	clearInterval(window.currentTimeInterval)
+	window.currentTimeInterval = setInterval(() => {
+		try {
+			const { soundInstance } = $getState().fileServer
+			if(soundInstance && soundInstance.seek && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
+				$dispatch(updateCurrentSongTime(soundInstance.seek()))
+			}
+		} catch(err){
+			clearInterval(window.currentTimeInterval)
+			logger.error("checkStatus soundInstance.seek() err", err.stack || err.toString())
+		}
+	}, 1000)
 }

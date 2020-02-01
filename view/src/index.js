@@ -63,6 +63,25 @@ window.goRoute = ( self, path ) => {
 		return
 	}
 	logger.info("window.goRoute inner func", window.location.href)
+	setTimeout(() => {
+		const urlHash =  window.location.href.split("#/")[1]
+		const arr = ["search_position", "login", "nickname_page", "type_shell", "user_agreement", "service_list", "privacy"]
+		let notDisplay = false
+		if(urlHash && !/main/gi.test(urlHash)){
+			arr.forEach(item => {
+				if(item === urlHash){
+					notDisplay = true
+				}
+			})
+			if(notDisplay){
+				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+			} else {
+				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+			}
+		} else {
+			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+		}
+	})
 	return self.props.history.push(path);
 }
 

@@ -34,6 +34,7 @@ class packageIframe extends React.Component {
 				})
             };
 		}
+		window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 		axios.get(HTTP_URL.heartBeat)
 			.catch(err => {
 				if(err.message === 'Network Error'){

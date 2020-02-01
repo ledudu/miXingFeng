@@ -45,6 +45,7 @@ const NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchA
 const DOWNLOADED_MUSIC_LIST = "fileServer/downloadedMusicList"
 const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
 const CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW = "fileServer/currentPlayingSongOriginalExceptWindow"
+const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
 
 // initialSate
 const initialState = () => ({
@@ -107,7 +108,8 @@ const initialState = () => ({
 	noMoreSearchAllKuGouMusicResults: false,
 	downloadedMusicList: [],
 	currentPlayingSongOriginal: "",
-	currentPlayingSongOriginalExceptWindow: ""
+	currentPlayingSongOriginalExceptWindow: "",
+	currentPlayingSongDuration: "",
 });
 
 // Reducer
@@ -205,6 +207,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {currentPlayingSongOriginal: action.data});
 		case CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW:
 			return Object.assign({}, state, {currentPlayingSongOriginalExceptWindow: action.data});
+		case CURRENT_PLAYING_SONG_DURATION:
+			return Object.assign({}, state, {currentPlayingSongDuration: action.data});
 		default:
 			return state;
 	}
@@ -438,5 +442,10 @@ export const updateCurrentPlayingSongOriginal = data => ({
 
 export const updateCurrentPlayingSongOriginalExceptWindow = data => ({
 	type: CURRENT_PLAYING_SONG_ORIGINAL_EXCEPT_WINDOW,
+	data
+})
+
+export const updateCurrentPlayingSongDuration = data => ({
+	type: CURRENT_PLAYING_SONG_DURATION,
 	data
 })
