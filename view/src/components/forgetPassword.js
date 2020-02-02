@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Toast } from "antd-mobile";
-import { onBackKeyDown, networkErr } from "../services/utils";
+import { networkErr } from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail } from "../ducks/myInfo";
@@ -11,7 +11,6 @@ import { checkEmail } from "../logic/common"
 export default class ForgetPassword extends Component {
 
     componentDidMount(){
-        document.removeEventListener("backbutton", onBackKeyDown, false);
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 

@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { HTTP_URL } from "../../constants/httpRoute";
 import NavBar from "./navbar";
 import { CONSTANT } from "../../constants/enumeration";
-import { onBackKeyDown } from "../../services/utils";
 import Loading from "./loading"
 
 class packageIframe extends React.Component {
@@ -18,7 +17,6 @@ class packageIframe extends React.Component {
 	componentDidMount(){
 		const { token } = this.props
 		if(token) localStorage.setItem("hasLoginIn", true)
-        document.removeEventListener("backbutton", onBackKeyDown, false);
 		document.addEventListener("deviceready", this.listenBackButton, false);
 		const iframe = this.iframe, self = this;
         if (iframe.attachEvent) {

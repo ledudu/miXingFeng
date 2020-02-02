@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 import reducer from "./ducks";
 import { updateToken } from "./ducks/login";
 import Routers from './router';
+import { checkToShowPlayController } from "./logic/common"
 import { alertDialog } from "./services/utils"
 import "./services/JPush";
 import "./services/native";
@@ -63,28 +64,7 @@ window.goRoute = ( self, path ) => {
 		return
 	}
 	logger.info("window.goRoute inner func", window.location.href)
-	setTimeout(() => {
-		const urlHash =  window.location.href.split("#/")[1]
-		const arr = ["search_position", "login", "nickname_page", "type_shell", "user_agreement", "service_list", "privacy"]
-		let notDisplay = false
-		if(urlHash && !/main/gi.test(urlHash)){
-			arr.forEach(item => {
-				if(item === urlHash){
-					notDisplay = true
-				}
-			})
-			if(notDisplay){
-				$("#root .container .main-content").css("height", "100vh")
-				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
-			} else {
-				$("#root .container .main-content").css("height", "calc(100vh - 60px)")
-				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
-			}
-		} else {
-			$("#root .container .main-content").css("height", "100vh")
-			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
-		}
-	})
+	checkToShowPlayController()
 	return self.props.history.push(path);
 }
 

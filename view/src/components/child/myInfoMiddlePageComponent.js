@@ -1,12 +1,11 @@
 import React, { Fragment } from 'react';
 import { List, Badge } from 'antd-mobile';
 import NavBar from "./navbar";
-import { onBackKeyDown, openBrowserLink } from "../../services/utils";
+import { openBrowserLink } from "../../services/utils";
 
 export default class MyInfoMiddlePageComponent extends React.Component {
 
     componentDidMount(){
-        document.removeEventListener("backbutton", onBackKeyDown, false);
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 

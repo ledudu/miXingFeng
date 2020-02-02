@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
 import { loginApp, dealtWithLoginIn} from "../logic/login";
-import { onBackKeyDown } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import { reconnectSocket } from "../logic/common"
 import { updateIsFromLoginPage } from "../ducks/login"
@@ -42,7 +41,6 @@ class Login extends Component {
 	}
 
     componentDidMount(){
-        document.removeEventListener("backbutton", onBackKeyDown, false);
 		document.addEventListener("deviceready", this.listenBackButton, false);
 		const { username, password } = this.props;
 		this.setState({

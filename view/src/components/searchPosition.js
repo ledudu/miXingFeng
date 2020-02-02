@@ -203,7 +203,7 @@ class SearchPosition extends Component {
 						<i className="fa fa-search" aria-hidden="true"></i>
                     </div>
                 </div>
-                <div className="record-list-container search-position-container">
+                <div className="search-position-container">
 					{isSearching
 					? searchString && <div className="searching">正在查询...</div>
 					: <div className="search-position-content">

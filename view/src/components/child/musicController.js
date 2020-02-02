@@ -52,7 +52,7 @@ class MusicController extends React.Component{
 				if(urlHash !== "search_online_music") window.goRoute(null, "search_online_music")
 				break
 			case "onlineMusicSearchALl":
-				if(urlHash !== "onlineMusicSearchALl") window.goRoute(null, "onlineMusicSearchALl")
+				if(urlHash !== "onlineMusicSearchALl") window.goRoute(null, "search_all")
 				break
 			default:
 				break
@@ -101,7 +101,7 @@ class MusicController extends React.Component{
 					<svg width="32" height="32" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
 						<circle r="50" cx="50" cy="50" fill="transparent" className="progress-background"></circle>
 						<circle r="50" cx="50" cy="50" fill="transparent" ref={ref => window.circleControlRef = ref}
-							strokeDasharray={314.1592653589793} strokeDashoffset={142.47214515199587}
+							strokeDasharray={314.1592653589793} strokeDashoffset={314.1592653589793}
 							className="progress-bar"></circle>
     				</svg>
 					{

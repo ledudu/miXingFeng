@@ -7,7 +7,7 @@ import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
 import { retrieveLastLoginTime, signInApp, signed, downloadAdPic } from "../logic/sign";
 import { retrieveOthers, getUserPosition, getLocation, previewNew, getGreeting, autoLogin, reconnectAndSend, requestPositionPermission, checkOnlinePersons } from "../logic/common";
-import { updateDirectShowSignPage, updateAdNumber, updateFromResume } from "../ducks/sign";
+import { updateDirectShowSignPage, updateFromResume } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
@@ -335,8 +335,8 @@ class Sign extends Component {
 	}
 
     onBackKeyDownSign = () => {
-        let self = this;
-        let { showUpdateConfirm } = this.state;
+        const self = this;
+        const { showUpdateConfirm } = this.state;
         if(!showUpdateConfirm){
             onBackKeyDown();
         } else {

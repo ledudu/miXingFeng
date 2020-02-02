@@ -3,8 +3,7 @@ import { connect } from "react-redux";
 import { List, Button, Badge } from 'antd-mobile';
 import NavBar from "./child/navbar";
 import { logoutApp } from "../logic/common/index";
-import { exitApp } from "../services/utils";
-import { onBackKeyDown } from "../services/utils";
+import { exitApp } from "../services/utils"
 import { updateDirectShowSignPage } from "../ducks/sign";
 import { updateHideNavBar, updateSavedCurrentRoute, updateIsFromSystemSetup } from "../ducks/common"
 
@@ -13,7 +12,6 @@ class SystemSetup extends React.Component {
 	componentDidMount(){
 		$dispatch(updateHideNavBar(false))
 		$dispatch(updateDirectShowSignPage(true))
-        document.removeEventListener("backbutton", onBackKeyDown, false);
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 

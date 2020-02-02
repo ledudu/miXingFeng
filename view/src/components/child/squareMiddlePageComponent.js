@@ -1,11 +1,10 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import NavBar from "./navbar";
-import { onBackKeyDown, openBrowserLink } from "../../services/utils";
+import { openBrowserLink } from "../../services/utils";
 
 export default class SquareMiddlePageComponent extends React.Component {
 
     componentDidMount(){
-        document.removeEventListener("backbutton", onBackKeyDown, false);
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 

@@ -2,10 +2,10 @@
 	"name": "miXingFeng",
 	"version": "3.0.0",
 	"homepage": "./",
+	"author": "zhoushoujian",
 	"license": "MIT",
 	"scripts": {
 		"start": "cd view && npm run dev",
-		"react": "cd view && npm run dev",
 		"build": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build && cd view && npm run build",
 		"buildD": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build & cd view && npm run buildDebug",
 		"runAndroid": "cordova prepare && cordova run android",

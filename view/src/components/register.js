@@ -2,13 +2,11 @@ import React, { Component } from 'react';
 import { Button } from "antd-mobile";
 import { registerUsername} from "../logic/login";
 import NavBar from "./child/navbar";
-import { onBackKeyDown } from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 
 export default class Register extends Component {
 
     componentDidMount(){
-        document.removeEventListener("backbutton", onBackKeyDown, false);
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 

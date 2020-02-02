@@ -10,38 +10,19 @@ LOGGER_LEVEL.map(item => {
 			return;
 		} else {
 			return new Promise(res => {
-				let extend = "";
+				buffer = JSON.stringify(formatDataType(buffer), function(key, value){
+					return formatDataType(value)
+				}, 4)
+				let extend = [];
 				if (args.length) {
-					extend = args.map(s => JSON.stringify(s, function (p, o) {
-						if (typeof o === 'function') {
-							return Function.prototype.toString.call(o)
-						} else if (Object.prototype.toString.call(o) === '[object Error]'){
-							return (o.stack || o.toString())
-						} else {
-							try {
-								for (var k in o) {
-									var v = o[k];
-									o[k] = v instanceof Function ? Function.prototype.toString.call(v) : v instanceof Error ? (v.stack || v.toString()) : v;
-								}
-							} catch(err){
-								console.warn("logger happened an error", err)
-							}
-							if(JSON.stringify(o) === "{}"){
-								console.warn("value can't be stringify", o)
-								return (`${o.toString()} => {}`)
-							} else {
-								return o;
-							}
-						}
-					}, 4));
-					if (extend) {
-						extend = `  [ext] ${extend}`;
+					extend = args.map(item => dealWithItems(item));
+					if (extend.length) {
+						extend = `  [ext] ${extend.join("")}`;
 					}
 				}
-				console[item](`[${getTime()}] [${item.toUpperCase()}] `, buffer, extend);
-				let data = Object.prototype.toString.call(buffer) === '[object Object]' ? JSON.stringify(buffer) : buffer;
-				let content = data + extend + "\n";
-				let rawData = `[${getTime()}] [${item.toUpperCase()}]` + content;
+				const content = `${buffer}` + `${extend}` + "\r\n";
+				const rawData = `[${getTime()}] [${item.toUpperCase()}] ${content}`;
+				console[item](rawData)
 				if(item === 'error' && !window.config.debug){
 					var xhr = new XMLHttpRequest();
 					xhr.open('POST', 'http://94.191.67.225:8000/get_error_log', true);
@@ -69,17 +50,67 @@ LOGGER_LEVEL.map(item => {
 	}
 })
 
+function dealWithItems(item){
+    try{
+        return JSON.stringify(item,function(key, value){
+            return formatDataType(value)
+        }, 4)
+    } catch (err){
+        return Object.prototype.toString.call(item)
+    }
+}
+
+function formatDataType(value){
+    let formatedOnes = ""
+    try {
+        switch(Object.prototype.toString.call(value)){
+            case '[object Number]':
+            case '[object String]':
+            case '[object Undefined]':
+            case '[object Null]':
+            case '[object Boolean]':
+                formatedOnes = value
+                break;
+            case '[object Object]':
+            case '[object Array]':
+                for (let i in value) {
+                    if(value.hasOwnProperty(i)){
+                        value[i] = formatDataType(value[i])
+                    }
+                }
+                formatedOnes = value
+                break;
+            case '[object Function]':
+                formatedOnes = Function.prototype.toString.call(value)
+                break;
+            case '[object Error]':
+                formatedOnes = value.stack || value.toString()
+                break;
+            case '[object Symbol]':
+                formatedOnes = value.toString()
+                break;
+            default:
+                formatedOnes = Object.prototype.toString.call(value)
+                break;
+        }
+    } catch (err) {
+        console.log("formatDataType err", err)
+        formatedOnes = {}
+    }
+    return formatedOnes
+}
+
 function activate() {
-  flag = false;
-  let data = list.shift();
+	flag = false;
+	let data = list.shift();
 	return createAndWriteFile(data, 'sign_log.log', 'log')
 		.then(() => new Promise(res => {
-        	list.length ? activate() : flag = true;
-        	res();
-    }).catch(err => {
-        flag = true;
-        console.error('An error happened when execute createAndWriteFile', err);
-    }));
+			list.length ? activate() : flag = true;
+			res();
+		}).catch(err => {
+			flag = true;
+			console.error('An error happened when execute createAndWriteFile', err);
+		}));
 }
 
 function createAndWriteFile(data = "", filename, column) {

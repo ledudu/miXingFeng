@@ -882,11 +882,17 @@ export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, 
 
 export const getMusicCurrentPlayProcess = () => {
 	clearInterval(window.currentTimeInterval)
+	let lastMusicSeekTime = 0
 	window.currentTimeInterval = setInterval(() => {
 		try {
 			const { soundInstance } = $getState().fileServer
 			if(soundInstance && soundInstance.seek && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
-				$dispatch(updateCurrentSongTime(soundInstance.seek()))
+				const currentMusicSeekTime = soundInstance.seek()
+				if(lastMusicSeekTime !== currentMusicSeekTime){
+					musicPlayingProgressFunc()
+					$dispatch(updateCurrentSongTime(currentMusicSeekTime))
+					lastMusicSeekTime = currentMusicSeekTime
+				}
 			}
 		} catch(err){
 			clearInterval(window.currentTimeInterval)
@@ -898,34 +904,16 @@ export const getMusicCurrentPlayProcess = () => {
 export const musicPlayingProgressFunc = () => {
 	const { currentPlayingSongDuration } = $getState().fileServer
 	if(!currentPlayingSongDuration || currentPlayingSongDuration === NaN) return
-	const intervalTimerNumber = parseInt( currentPlayingSongDuration / CONSTANT.strokeDashoffset * 1000)
-	logger.info("musicPlayingProgressFunc intervalTimerNumber", intervalTimerNumber)
-	let lastSongTime = 0, intervalTimerNumberInteger = Math.ceil(intervalTimerNumber), i=0
-	window.musicPlayingProgressTimer = setInterval(function () {
-		setTimeout(() => {
-			const { currentSongTime } = $getState().fileServer
-			if(currentSongTime === 0) return  // 刚开始播放,正在缓冲音乐,不要计时
-			if(i < intervalTimerNumberInteger) {
-				i++
-			} else {
-				if(currentSongTime === lastSongTime) return  // 播放过程中如果正在缓冲,不要计时
-				lastSongTime = currentSongTime
-			}
-			if (window.circleControlRef.style.strokeDashoffset > 0) {
-				window.circleControlRef.style.strokeDashoffset -= 1
-			} else {
-				window.circleControlRef.style.strokeDashoffset = 314
-				clearInterval(window.musicPlayingProgressTimer)
-			}
-		})
-	}, intervalTimerNumber)
+	if (window.circleControlRef.style.strokeDashoffset > 0) {
+		window.circleControlRef.style.strokeDashoffset -= (CONSTANT.strokeDashoffset / currentPlayingSongDuration)
+	} else {
+		window.circleControlRef.style.strokeDashoffset = 314
+	}
 }
 
 export const pauseMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
-	logger.info("music pause currentPlayingSong", currentPlayingSong, "window.musicPlayingProgressTimer", window.musicPlayingProgressTimer)
-	clearInterval(window.musicPlayingProgressTimer)
-	clearInterval(window.currentTimeInterval)
+	logger.info("music pause currentPlayingSong", currentPlayingSong)
 	soundInstance.pause(soundInstanceId);
 	$dispatch(updateSoundPlaying(false))
 }
@@ -933,8 +921,6 @@ export const pauseMusic = () => {
 export const resumeMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music resume currentPlayingSong", currentPlayingSong)
-	getMusicCurrentPlayProcess()
-	musicPlayingProgressFunc()
 	soundInstance.play(soundInstanceId)
 	$dispatch(updateSoundPlaying(true))
 }
@@ -942,14 +928,13 @@ export const resumeMusic = () => {
 export const stopMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music stop currentPlayingSong", currentPlayingSong)
-	clearInterval(window.musicPlayingProgressTimer)
 	if(soundInstance && soundInstanceId) soundInstance.stop(soundInstanceId)
 	$dispatch(updateSoundPlaying(false))
 }
 
 export const playMusic = (filePath, filenameOrigin, duration, original, musicDataList, pageType) => {
 	try {
-		const { pauseWhenOver, playByOrder, soundInstance, soundInstanceId, playByRandom } = $getState().fileServer;
+		const { pauseWhenOver, soundInstance, soundInstanceId } = $getState().fileServer;
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
 		logger.info("music play filenameOrigin", filenameOrigin)
 		if(soundInstance && soundInstanceId){
@@ -969,11 +954,17 @@ export const playMusic = (filePath, filenameOrigin, duration, original, musicDat
 			rate: 1.0,
 			html5: true,
 			onend: function() {
+				const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
 				logger.info("onend playByOrder", playByOrder)
+				musicPlayingProgressFunc()
 				if(playByOrder){
-					autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original)
+					setTimeout(() => {
+						autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original)
+					}, 1500)
 				} else if(playByRandom){
-					autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original)
+					setTimeout(() => {
+						autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original)
+					}, 1500)
 				} else if(pauseWhenOver){
 					$dispatch(updateSoundPlaying(false))
 					clearInterval(window.currentTimeInterval)
@@ -986,7 +977,6 @@ export const playMusic = (filePath, filenameOrigin, duration, original, musicDat
 		if(window.circleControlRef){
 			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
 			window.circleControlRef.style.strokeWidth = "8px"
-			musicPlayingProgressFunc()
 		}
 	} catch(err){
 		$dispatch(updateSoundPlaying(false))
@@ -1068,7 +1058,6 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 			return
 		}
 		getMusicCurrentPlayProcess()
-		clearInterval(window.musicPlayingProgressTimer)
 		logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
 		if(!soundPlaying){
 			if(!currentPlayingSong){
@@ -1099,4 +1088,29 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 	} catch (err){
 		logger.error("checkStatus err", err)
 	}
+}
+
+export const checkToShowPlayController = () => {
+	setTimeout(() => {
+		const urlHash =  window.location.href.split("#/")[1]
+		const arr = ["search_position", "login", "nickname_page", "type_shell", "user_agreement", "service_list", "privacy"]
+		let notDisplay = false
+		if(urlHash && !/main/gi.test(urlHash)){
+			arr.forEach(item => {
+				if(item === urlHash){
+					notDisplay = true
+				}
+			})
+			if(notDisplay){
+				$("#root .container .main-content").css("height", "100vh")
+				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+			} else {
+				$("#root .container .main-content").css("height", "calc(100vh - 60px)")
+				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+			}
+		} else {
+			$("#root .container .main-content").css("height", "100vh")
+			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+		}
+	})
 }

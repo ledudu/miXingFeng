@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { DatePicker, List, Picker, WingBlank, Button, ActionSheet } from 'antd-mobile';
 import NavBar from "./child/navbar";
 import { getPhotoFunc, saveUserInfoFunc, showHeadPic } from "../logic/myInfo";
-import { onBackKeyDown } from "../services/utils";
 import address from "../services/address";
 
 const sexData = [
@@ -33,7 +32,6 @@ class UserProfile extends React.Component {
 		this.setState({
 			headPicAddress
 		})
-        document.removeEventListener("backbutton", onBackKeyDown, false);
 		document.addEventListener("deviceready", this.listenBackButton, false);
     }
 
