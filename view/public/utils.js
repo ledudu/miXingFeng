@@ -1,6 +1,7 @@
 let LOGGER_LEVEL = ["debug", "info", "warn", "error"],
 	list = [],
-	flag = true;
+	flag = true,
+	loopTimes = 0
 
 window.logger = {};
 LOGGER_LEVEL.map(item => {
@@ -9,8 +10,9 @@ LOGGER_LEVEL.map(item => {
 			console.log(`[${getTime()}] [DEBUG]`, buffer, ...args);
 			return;
 		} else {
+			loopTimes = 0
 			return new Promise(res => {
-				buffer = JSON.stringify(formatDataType(buffer), function(key, value){
+				buffer = JSON.stringify(buffer, function(key, value){
 					return formatDataType(value)
 				}, 4)
 				let extend = [];
@@ -52,7 +54,8 @@ LOGGER_LEVEL.map(item => {
 
 function dealWithItems(item){
     try{
-        return JSON.stringify(item,function(key, value){
+		const dist = deepcopy(item);
+        return JSON.stringify(dist, function(key, value){
             return formatDataType(value)
         }, 4)
     } catch (err){
@@ -61,9 +64,11 @@ function dealWithItems(item){
 }
 
 function formatDataType(value){
+	loopTimes++
     let formatedOnes = ""
     try {
-        switch(Object.prototype.toString.call(value)){
+		const valueType = Object.prototype.toString.call(value)
+        switch(valueType){
             case '[object Number]':
             case '[object String]':
             case '[object Undefined]':
@@ -72,17 +77,39 @@ function formatDataType(value){
                 formatedOnes = value
                 break;
             case '[object Object]':
-            case '[object Array]':
-                for (let i in value) {
-                    if(value.hasOwnProperty(i)){
-                        value[i] = formatDataType(value[i])
-                    }
-                }
-                formatedOnes = value
-                break;
-            case '[object Function]':
-                formatedOnes = Function.prototype.toString.call(value)
-                break;
+			case '[object Array]':
+				for (let i in value) {
+					try {
+						if(value.hasOwnProperty && value.hasOwnProperty(i)){
+							try {
+								if(loopTimes > 999) {
+									value[i] = Object.prototype.toString.call(value[i])
+								} else {
+									value[i] = formatDataType(value[i])
+								}
+							} catch(err){
+								value[i] = valueType
+							}
+						} else {
+							try {
+								value[i] = Object.prototype.toString.call(value[i])
+							} catch(err){
+								value[i] = valueType
+							}
+						}
+					} catch (err){
+						value[i] = valueType
+					}
+				}
+				formatedOnes = value
+				break;
+			case '[object Function]':
+				try {
+					formatedOnes = Function.prototype.toString.call(value)
+				} catch (err){
+					formatedOnes = valueType
+				}
+				break;
             case '[object Error]':
                 formatedOnes = value.stack || value.toString()
                 break;
