@@ -49,7 +49,7 @@ class SearchAll extends Component{
 			lastSearchAllMusicResult
 		})
 		return 	<SearchResourceComponent
-					navbarText="综合搜索"
+					navbarText="全局搜索"
 					placeholder='搜索'
 					type="searchAll"
 					self={this}
