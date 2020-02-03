@@ -76,26 +76,18 @@ function formatDataType(value){
             case '[object Boolean]':
                 formatedOnes = value
                 break;
-            case '[object Object]':
+			case '[object Object]':
 			case '[object Array]':
 				for (let i in value) {
 					try {
 						if(value.hasOwnProperty && value.hasOwnProperty(i)){
-							try {
-								if(loopTimes > 999) {
-									value[i] = Object.prototype.toString.call(value[i])
-								} else {
-									value[i] = formatDataType(value[i])
-								}
-							} catch(err){
-								value[i] = valueType
+							if(loopTimes > 999) {
+								value[i] = Object.prototype.toString.call(value[i])
+							} else {
+								value[i] = formatDataType(value[i])
 							}
 						} else {
-							try {
-								value[i] = Object.prototype.toString.call(value[i])
-							} catch(err){
-								value[i] = valueType
-							}
+							value[i] = Object.prototype.toString.call(value[i])
 						}
 					} catch (err){
 						value[i] = valueType
@@ -104,21 +96,31 @@ function formatDataType(value){
 				formatedOnes = value
 				break;
 			case '[object Function]':
-				try {
-					formatedOnes = Function.prototype.toString.call(value)
-				} catch (err){
-					formatedOnes = valueType
-				}
+				console.warn("we don't recommend to print function directly")
+				formatedOnes = Function.prototype.toString.call(value)
 				break;
-            case '[object Error]':
-                formatedOnes = value.stack || value.toString()
-                break;
-            case '[object Symbol]':
-                formatedOnes = value.toString()
-                break;
-            default:
-                formatedOnes = Object.prototype.toString.call(value)
-                break;
+			case '[object Error]':
+				formatedOnes = value.stack || value.toString()
+				break;
+			case '[object Symbol]':
+				console.warn("we don't recommend to print Symbol directly")
+				formatedOnes = value.toString()
+				break;
+			case '[object Set]':
+				console.warn("we don't recommend to print Set directly")
+				formatedOnes = [...value]
+				break;
+			case '[object Map]':
+				console.warn("we don't recommend to print Map directly")
+				const obj = {}
+				for (let [key, item] of value) {
+					obj[key] = item
+				}
+				formatedOnes = obj
+				break;
+			default:
+				formatedOnes = Object.prototype.toString.call(value)
+				break;
         }
     } catch (err) {
         console.log("formatDataType err", err)

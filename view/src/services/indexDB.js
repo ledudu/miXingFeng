@@ -10,9 +10,8 @@ request.onsuccess = function (event) {
 
 request.onupgradeneeded = function (event) {
 	db = event.target.result;
-	let objectStore;
 	if (!db.objectStoreNames.contains('person')) {
-		objectStore = db.createObjectStore('file', { keyPath: 'filenameOrigin' });
+		db.createObjectStore('file', { keyPath: 'filenameOrigin' });
 		// objectStore.createIndex('username', 'username', {
 		// 	unique: false
 		// });

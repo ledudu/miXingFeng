@@ -39,7 +39,7 @@ window.alert = (text) => {
 	}
 }
 window.alertDebug = (text) => {
-	// comment this function content in production
+	// don't comment this function content in production
 	if(window.isCordova){
 		// window.plugins.toast.showShortCenter(text)
 		alertDialog(text)

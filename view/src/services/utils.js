@@ -257,7 +257,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
                         function (fileEntry) {
                             const fileTransfer = new FileTransfer();
 							let progressPercent = 0, throttleTimer=null, firstTime = true, cancelDownload = false
-                            fileTransfer.onprogress = function (e) {
+                            fileTransfer.onprogress = async function (e) {
 								if(!filename) return
                                 if (e.lengthComputable) {
                                     const progressLine = e.loaded / e.total;
@@ -265,6 +265,30 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 									if(throttleTimer) return;
 									if(firstTime){
 										firstTime = false;
+										const { username } = $getState().login
+										const downloadingFileOrigin = `downloading_${filenameOrigin}`
+										const downloadingDataToSaveIndexedDBObj = {
+											filename,
+											username,
+											fileSize,
+											uploadUsername,
+											date: Date.now(),
+											filenameOrigin: downloadingFileOrigin,
+											status: "downloading",
+											progress: "已取消",
+											filePath: fileUrl,
+										}
+										if(fromMusic){
+											downloadingDataToSaveIndexedDBObj.isMusic = true
+											downloadingDataToSaveIndexedDBObj.duration = options.duration
+											downloadingDataToSaveIndexedDBObj.id = options.fileId || "downloading"  //只有下载到本地的共享音乐才有id，且id只能是downloaded
+											downloadingDataToSaveIndexedDBObj.original = options.original
+											// await removeMusicDataFromIndexDB(downloadingFileOrigin)
+											addMusicDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
+										} else {
+											// await removeDataFromIndexDB(downloadingFileOrigin)
+											addDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
+										}
 										updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
 										// 这里的filenameOrigin到后面会改变，是为了区分正在下载和已下载
 										// 取消下载，移除下载
@@ -285,6 +309,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 																downloadingFileItems.splice(index, 1)
 																window.eventEmit.$emit("downloadingFileItems", downloadingFileItems)
 																$dispatch(updateDownloadingFileItems(downloadingFileItems))
+																removeDataFromIndexDB(param[1])
 															}
 														}
 													} else if(param[0] === "music"){
@@ -293,6 +318,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 																downloadingMusicItems.splice(index, 1)
 																window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 																$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+																removeMusicDataFromIndexDB(param[1])
 															}
 														}
 													}
@@ -318,38 +344,31 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 										window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
 										if(needSaveToDownloadBox){
 											const { username } = $getState().login
+											const downloadingFileOrigin = `downloading_${filenameOrigin}`
 											const downloadedFileOrigin = `downloaded_${filenameOrigin}`
-											const dataToSaveIndexedDBObj = {
+											const downloadedDataToSaveIndexedDBObj = {
 												filename,
 												username,
 												fileSize,
 												uploadUsername,
 												date: Date.now(),
-												filenameOrigin: downloadedFileOrigin
+												filenameOrigin: downloadedFileOrigin,
+												status: "downloaded"
 											}
 											let addDataFromIndexDBPromise = Promise.resolve()
 											if(fromMusic){
-												dataToSaveIndexedDBObj.isMusic = true
-												dataToSaveIndexedDBObj.filePath = `cdvfile://localhost/sdcard/miXingFeng/music/${downloadedFileOrigin}`
-												dataToSaveIndexedDBObj.duration = options.duration
-												dataToSaveIndexedDBObj.id = options.fileId || "downloaded"  //只有下载到本地的共享音乐才有id，且id只能是downloaded
-												dataToSaveIndexedDBObj.original = options.original
-												const getFieldFromIndexDB = await readMusicDataFromIndexDB(downloadedFileOrigin)
-												if(getFieldFromIndexDB !== "未获得数据记录"){
-													// 错误兜底，同时log这个错误
-													alertDebug(`music已存在${downloadedFileOrigin}`)
-													logger.error("saveFileToLocal music dataToSaveIndexedDBObj", dataToSaveIndexedDBObj)
-													await removeMusicDataFromIndexDB(downloadedFileOrigin)
-												}
-												addDataFromIndexDBPromise = addMusicDataFromIndexDB(dataToSaveIndexedDBObj)
+												downloadedDataToSaveIndexedDBObj.isMusic = true
+												downloadedDataToSaveIndexedDBObj.filePath = `cdvfile://localhost/sdcard/miXingFeng/music/${downloadedFileOrigin}`
+												downloadedDataToSaveIndexedDBObj.duration = options.duration
+												downloadedDataToSaveIndexedDBObj.id = options.fileId || "downloaded"
+												downloadedDataToSaveIndexedDBObj.original = options.original
+												await removeMusicDataFromIndexDB(downloadingFileOrigin)
+												// await removeMusicDataFromIndexDB(downloadedFileOrigin)
+												addDataFromIndexDBPromise = addMusicDataFromIndexDB(downloadedDataToSaveIndexedDBObj)
 											} else {
-												const getFieldFromIndexDB = await readDataFromIndexDB(downloadedFileOrigin)
-												if(getFieldFromIndexDB !== "未获得数据记录"){
-													alertDebug(`file已存在${downloadedFileOrigin}`)
-													logger.error("saveFileToLocal file dataToSaveIndexedDBObj", dataToSaveIndexedDBObj)
-													await removeDataFromIndexDB(downloadedFileOrigin)
-												}
-												addDataFromIndexDBPromise = addDataFromIndexDB(dataToSaveIndexedDBObj)
+												await removeDataFromIndexDB(downloadingFileOrigin)
+												// await removeDataFromIndexDB(downloadedFileOrigin)
+												addDataFromIndexDBPromise = addDataFromIndexDB(downloadedDataToSaveIndexedDBObj)
 											}
 
 											addDataFromIndexDBPromise
@@ -358,7 +377,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 														alert(`${filename}下载完成`)
 														const { downloadingFileItems, downloadingMusicItems, fileList, downloadedMusicList } = $getState().fileServer
 														if(fromMusic){
-															downloadedMusicList.push(dataToSaveIndexedDBObj)
+															downloadedMusicList.push(downloadedDataToSaveIndexedDBObj)
 															window.eventEmit.$emit("downloadMusicFinished", downloadedMusicList)
 															$dispatch(updateDownloadedMusicList(downloadedMusicList))
 															for(let index in downloadingMusicItems){
@@ -371,17 +390,12 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 															}
 														} else {
 															window.eventEmit.$emit("downloadFinished")
-															// readAllDataFromIndexDB()
-															// 	.then((indexDBData) => {
-															// 		indexDBData.forEach((item1) => {
-																		fileList.forEach((item) => {
-																			if(item.filename === filename){
-																				item.downloaded = true
-																			}
-																		})
-																	// })
-																	$dispatch(updateFileList(fileList));
-																// })
+															fileList.forEach((item) => {
+																if(item.filename === filename){
+																	item.downloaded = true
+																}
+															})
+															$dispatch(updateFileList(fileList));
 															for(let index in downloadingFileItems){
 																if(downloadingFileItems[index].filenameOrigin === `downloading_${filenameOrigin}`){
 																	downloadingFileItems.splice(index, 1)

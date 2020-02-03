@@ -6,13 +6,23 @@ import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
 import { retrieveLastLoginTime, signInApp, signed, downloadAdPic } from "../logic/sign";
-import { retrieveOthers, getUserPosition, getLocation, previewNew, getGreeting, autoLogin, reconnectAndSend, requestPositionPermission, checkOnlinePersons } from "../logic/common";
+import {
+	retrieveOthers,
+	getUserPosition,
+	getLocation,
+	previewNew,
+	getGreeting,
+	autoLogin,
+	reconnectAndSend,
+	requestPositionPermission,
+	checkOnlinePersons
+} from "../logic/common";
 import { updateDirectShowSignPage, updateFromResume } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
-import { updateFileList, updateMusicList, updateDownloadedMusicList } from "../ducks/fileServer";
+import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems  } from "../ducks/fileServer";
 import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc } from "../ducks/common"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
@@ -136,8 +146,7 @@ class Sign extends Component {
 				if(isSignedUp){
 					signed();
 				}
-			} else {
-				//  从别的页面切到这个页面不会进入这个else的逻辑
+			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
 				if(!isFromLoginPage){
 					// get file list
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))
@@ -167,13 +176,19 @@ class Sign extends Component {
 							})
 							if (!array.length) return;
 							$dispatch(updateMusicList(array));
-							let downloadedMusicArr = []
+							let downloadedMusicArr = [], downloadingMusicArr = []
 							const indexDBData = await readAllMusicDataFromIndexDB()
 							indexDBData.forEach(item => {
-								downloadedMusicArr.push(item)
+								if(!item.status || item.status === "downloaded"){
+									downloadedMusicArr.push(item)
+								} else if(item.status === "downloading"){
+									downloadingMusicArr.push(item)
+								}
 							})
 							downloadedMusicArr = _.orderBy(downloadedMusicArr, ['date'], ['asc'])
+							downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
 							$dispatch(updateDownloadedMusicList(downloadedMusicArr))
+							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
 						})
 
 					if (window.isCordova) {

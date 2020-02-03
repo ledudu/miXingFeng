@@ -9,7 +9,7 @@ import { updateToken } from "../ducks/login"
 import { saveFileToLocal, updateDownloadingStatus } from "../services/utils"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { openDownloadedFile, removeFileFromDownload, removeDuplicateObjectList, removePrefixFromFileOrigin } from "../logic/common"
-import { updateLastFileSearchResult, updateLastSearchAllFileResult, updateDownloadingFileItems } from "../ducks/fileServer"
+import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
 let wrapProps;
@@ -44,30 +44,30 @@ class FileManage extends React.Component {
 		window.eventEmit.$on("fileRemoved", () => {
 			this.getDataFromIndexDB()
 		})
-		// window.eventEmit.$on("clearAllFiles", () => {
-		// 	const { indexDBData }  = this.state
-		// 	const self = this;
-		// 	if(!this.clearAllFilesTime){
-		// 		this.clearAllFilesTime = true
-		// 		confirm(`提示`, `确定要删除所有文件吗`, "确定", () => {
-		// 			self.setState({
-		// 				indexDBData: []
-		// 			}, () => {
-		// 				self.clearAllFilesTime = false
-		// 				if(indexDBData.length){
-		// 					alert("删除成功")
-		// 				} else {
-		// 					alert("没有文件需要被清理")
-		// 				}
-		// 			})
-		// 			indexDBData.forEach(item => {
-		// 				removeFileFromDownload(item.filenameOrigin, "file")
-		// 			})
-		// 		}, () => {
-		// 			self.clearAllFilesTime = false
-		// 		})
-		// 	}
-		// })
+		window.eventEmit.$on("clearAllFiles", () => {
+			const { indexDBData }  = this.state
+			const self = this;
+			if(!window.clearAllFilesTime){
+				window.clearAllFilesTime = true
+				confirm(`提示`, `确定要删除所有文件吗`, "确定", () => {
+					self.setState({
+						indexDBData: []
+					}, () => {
+						window.clearAllFilesTime = false
+						if(indexDBData.length){
+							alert("删除成功")
+						} else {
+							alert("没有文件需要被清理")
+						}
+					})
+					indexDBData.forEach(item => {
+						removeFileFromDownload(removePrefixFromFileOrigin(item.filenameOrigin), "file")
+					})
+				}, () => {
+					window.clearAllFilesTime = false
+				})
+			}
+		})
 	}
 
 	componentWillReceiveProps(nextProps){
@@ -86,13 +86,16 @@ class FileManage extends React.Component {
 	componentWillUnmount(){
 		window.eventEmit.$off("downloadFinished")
 		window.eventEmit.$off("fileDownloading")
-		// window.eventEmit.$off("clearAllFiles")
+		window.eventEmit.$off("clearAllFiles")
 		window.eventEmit.$off("fileRemoved")
 	}
 
 	getDataFromIndexDB = async (notRefresh) => {
 		const { fileDataList=[] } = this.props;
 		let indexDBData = await readAllDataFromIndexDB()
+		indexDBData = indexDBData.filter(item => {
+			return (!item.status || item.status === "downloaded")
+		})
 		indexDBData.forEach((item1, index1) => {
 			fileDataList.forEach((item2, index2) => {
 				if(removePrefixFromFileOrigin(item1.filenameOrigin) === item2.filenameOrigin){
@@ -118,7 +121,7 @@ class FileManage extends React.Component {
 			} else if(original === "fileShare" || original === "fileSearch"){
 				const indexDBData = await readAllDataFromIndexDB()
 				indexDBData.some((item) => {
-					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin) && (!item.status || item.status === "downloaded")){
 						firstItem = "打开"
 						isFileFinished = true
 						return true
@@ -303,7 +306,7 @@ class FileManage extends React.Component {
 		}
 		const indexDBData = await readAllDataFromIndexDB()
 		indexDBData.some((item) => {
-			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
+			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin && (!item.status || item.status === "downloaded")){
 				isDownload = true
 				this.openFileFunc(filename, filenameOriginOld)
 				return true

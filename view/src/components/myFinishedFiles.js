@@ -23,13 +23,7 @@ class MyFinishedFiles extends React.Component {
 	}
 
 	clearAllFiles = () => {
-		// if(!this.clearAllFilesTime){
-		// 	this.clearAllFilesTime = true
-		// 	window.eventEmit.$emit("clearAllFiles")
-		// 	setTimeout(() => {
-		// 		this.clearAllFilesTime = false
-		// 	}, 500)
-		// }
+		window.eventEmit.$emit("clearAllFiles")
 	}
 
     render() {
@@ -37,7 +31,7 @@ class MyFinishedFiles extends React.Component {
 		return (
 			<div className="my-download-container">
 				<NavBar centerText="文件" backToPreviousPage={this.backToMainPage}
-					// rightText="清空" rightTextFunc={this.clearAllFiles}
+					rightText="清空" rightTextFunc={this.clearAllFiles}
 				/>
 				<div className="my-download-content">
 					<div className="downloading-file-container">
