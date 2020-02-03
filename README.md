@@ -43,6 +43,13 @@ android {
 Cordova包装你的HTML/JavaScript app到原生app容器中，可以让你访问每个平台设备的功能。这些功能通过统一的JavaScript API提供，让你轻松的编写一组代码运行在几乎市面上的所有手机和平板上，并可以发布到相应的app商城中。  
 ![cordova pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/cordova.png)  
 
+# 关于签名
+使用Keytool生成自己的密钥,并把密码写入build.json  
+提示：debug包不需要签名  
+```shell
+keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myapp.keystore
+```
+
 # 功能特性  
 1. 注册登录  
 2. 签到和查询签到记录  
