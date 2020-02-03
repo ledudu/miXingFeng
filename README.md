@@ -1,7 +1,7 @@
 # 觅星峰
 
 # 简介
-使用cordova开发的音乐播放器,提供签到,文件共享和音乐共享,还可以搜索网易云,qq音乐和酷狗音乐,上传具备秒传性质,h5和安卓设备已测试通过
+使用cordova开发的音乐播放器,提供签到,文件共享和音乐共享,还可以搜索网易云,qq音乐和酷狗音乐,上传具备秒传性质,h5和安卓设备已测试通过  
 
 # 特别感谢
 ````网易云音乐api:````: [Binaryify/NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi)  
@@ -37,6 +37,7 @@ android {
 </code>
 
 # 关于cordova
+Cordova包装你的HTML/JavaScript app到原生app容器中，可以让你访问每个平台设备的功能。这些功能通过统一的JavaScript API提供，让你轻松的编写一组代码运行在几乎市面上的所有手机和平板上，并可以发布到相应的app商城中。  
 ![cordova pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/cordova.png)  
 
 # 功能特性  

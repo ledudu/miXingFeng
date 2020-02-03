@@ -82,7 +82,8 @@
 			"cordova-plugin-badge": {},
 			"cordova-plugin-inappbrowser": {},
 			"cordova-plugin-headsetdetection": {},
-			"cordova-plugin-local-notifications-appstr": {}
+			"cordova-plugin-local-notifications-appstr": {},
+			"cordova-plugin-fastrde-md5": {}
 		}
 	}
 }

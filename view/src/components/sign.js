@@ -54,8 +54,8 @@ class Sign extends Component {
 		this.state = {
 			skipTime: adsTime || 4,
 			progress: 0,
-			appSize: 0,
-			appTotalSize: 0,
+			appSize: 100,
+			appTotalSize: 100,
 			showProgress: false,
 			fileTransfer: {},
 			showUpdateConfirm: false,
@@ -421,10 +421,7 @@ class Sign extends Component {
 	}
 
 	checkUpdate = (fileUrl, appName, MD5) => {
-		let self = this;
-		self.setState({
-			showProgress: true
-		})
+		const self = this;
 		return new Promise(function (res) {
 			window.resolveLocalFileSystemURL(
 				window.cordova.file.externalApplicationStorageDirectory,
@@ -442,7 +439,8 @@ class Sign extends Component {
 							// 此处采用mint-ui的Progress组件
 							const fileTransfer = new FileTransfer();
 							self.setState({
-								showUpdateConfirm: true
+								showUpdateConfirm: true,
+								showProgress: true
 							});
 							//监听下载进度
 							let progressPercent = 0;
