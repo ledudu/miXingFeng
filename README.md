@@ -1,10 +1,7 @@
 # 觅星峰
 
 # 简介
-可签到,上传下载和打开文件,上传下载收藏和播放音乐  
-可搜索上传的文件,也可搜索收藏和播放网易云,qq音乐和酷狗音乐  
-上传文件和音乐具备秒传系统
-可运行在h5和安卓,限于一些条件,没办法在ios真机上调试,理论上可适配ios安装包  
+使用cordova开发的音乐播放器,提供签到,文件共享和音乐共享,还可以搜索网易云,qq音乐和酷狗音乐,上传具备秒传性质,h5和安卓设备已测试通过
 
 # 特别感谢
 ````网易云音乐api:````: [Binaryify/NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi)  
@@ -80,13 +77,15 @@ android {
 34. 支持搜索共享文件和共享音乐  
 35. 支持综合搜索  
 36. 从服务端下载广告  
+37. 音乐播放器底部控制条"
+38. 完善安卓日志系统"
 
 # 效果图预览  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
 
 # 更新:  
-[changelog](https://github.com/zhoushoujian/miXingFeng/blob/master/CHANGELOG.MD)
+[changelog](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/CHANGELOG.MD)
 
 # 前端架构师和nodejs后端架构师需要具备的能力
 [文档](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/constructor)
@@ -189,10 +188,10 @@ android {
 # 测试
 ````文件：````  
 入口： 分享列表，正在下载，已下载，搜索文件，综合搜索  
-场景：正常上传，秒传，正在下载，已下载，删除，打开，查看更多，push通知  
+场景：正常上传，秒传，正在下载，取消下载，重新下载，已下载，删除，打开，查看更多，push通知  
 ````音乐````  
 入口：分享列表，正在下载，已下载，搜索分享音乐，搜索在线音乐（网易云，qq音乐，酷狗音乐），综合搜索，收藏  
-场景： 正常上传，秒传，正在下载，已下载，删除，收藏，播放，暂停，播放上一首，播放下一首，单曲播放，单曲循环，顺序播放，随机播放，查看更多，push通知  
+场景： 正常上传，秒传，正在下载，取消下载，重新下载，已下载，删除，收藏，播放，暂停，播放上一首，播放下一首，单曲播放，单曲循环，顺序播放，随机播放，查看更多，push通知  
 其他：切出音乐页面可以自动播放下一首  
   
 # 关于音乐
