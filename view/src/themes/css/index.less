@@ -50,6 +50,7 @@ code {
 				font-size: 18px;
 				border-top: 1px solid rgba(128,128,128, 0.1);
 				padding-bottom: 5px;
+				cursor: pointer;
 				.song-pic{
 					text-transform: uppercase;
 					border: 2px solid #81AFED;
@@ -111,6 +112,11 @@ code {
 					display: flex;
 					justify-content: center;
 					align-items: center;
+					&:active{
+						background-color: rgb(128, 128, 128, 0.5);
+						color: #fff;
+						transition: all .8s;
+					}
 				}
 				.play-or-pause{
 					position: relative;
