@@ -106,20 +106,55 @@ export const downloadAdPic = () => {
 				const adsName = result.filename
 				const isWiFiNetwork = window.getNetType() === "当前为Wi-Fi环境，更新无需移动流量" ? "yes" : "no"
 				logger.info("downloadAdPic timer adsName", adsName, 'isWiFiNetwork', isWiFiNetwork, 'adUrl', adUrl)
-				return saveFileToLocal(adsName, adUrl, 'adPics')
-					.then(() => {
-						localStorage.setItem("adsName", adsName)
-						localStorage.setItem("isWiFiNetwork", isWiFiNetwork)
-					})
-					.catch(err => {
-						alertDebug("setTimeout saveFileToLocal ad pic err")
-						logger.error("setTimeout saveFileToLocal ad pic err", err)
-					})
+				window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
+					fs.root.getDirectory('miXingFeng', {
+						create: true
+					}, function (dirEntry) {
+						dirEntry.getDirectory("adPics", {
+							create: true
+						}, function (subDirEntry) {
+							//持久化数据保存
+							subDirEntry.getFile(
+								adsName, {create: true, exclusive: false},
+								function (fileEntry) {
+									const fileTransfer = new FileTransfer();
+									let progressPercent = 0
+									fileTransfer.onprogress = async function (e) {
+										if (e.lengthComputable) {
+											const progressLine = e.loaded / e.total;
+											progressPercent = (progressLine * 100).toFixed(0);
+										}
+									};
+									fileTransfer.download(
+										encodeURI(adUrl),
+										fileEntry.nativeURL,
+										async function (entry) {
+											if (progressPercent >= 1) {
+												localStorage.setItem("adsName", adsName)
+												localStorage.setItem("isWiFiNetwork", isWiFiNetwork)
+											}
+										},
+										function (error) {
+											alertDebug("setTimeout saveFileToLocal ad pic err")
+											logger.error("setTimeout saveFileToLocal ad pic err", error.stack || error.toString())
+										}
+									);
+								},
+								function (error) {
+									window.logger.error("获取文件失败", error.stack||error.toString());
+									alert("获取文件失败")
+								}
+						)}, function (error) {
+							alert("文件系统加载失败！")
+							window.logger.error(`文件系统加载失败！`, error);
+						})
+					});
+				})
 			})
 			.catch((err) => {
 				alertDebug("setTimeout download ad pic err")
-				console.log("setTimeout download ad pic err ", err)
-				logger.error("setTimeout download ad pic err", err.stack || err.toString())
+				console.error("setTimeout download ad pic err ", err)
+				if(err) logger.error("setTimeout download ad pic err", err.stack || err.toString())
 			})
 	}, 30*1000)
 }
