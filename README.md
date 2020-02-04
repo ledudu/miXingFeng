@@ -93,16 +93,13 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 
 # 效果图预览  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)  
-![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
+[更多](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
 
 # 更新:  
 [更新日志](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/CHANGELOG.MD)
 
 # 前端架构师和nodejs后端架构师需要具备的能力
 [文档](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/constructor)
-
-# 在Iphone模拟器上测试的部分功能
-[视频](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/iphone.mp4)
 
 # 秒传系统的设计(群组方向)：
 
