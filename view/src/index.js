@@ -20,9 +20,11 @@ import './themes/css/index.less';
 
 //apply Reducer
 const middleware = [thunk];
-middleware.push(createLogger({
-    collapsed: false,
-}));
+if(window.config.debug){
+	middleware.push(createLogger({
+		collapsed: false,
+	}));
+}
 const store = createStore(reducer, compose(applyMiddleware(...middleware)));
 window.store = store;
 window.$dispatch = store.dispatch;
