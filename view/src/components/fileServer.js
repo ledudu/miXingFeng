@@ -126,7 +126,7 @@ class FileServer extends React.Component {
 			if(checkResult === "上传成功"){
 				$dispatch(updateFileSubmitStatus("上传"))
 				this.startToUpload = false;
-				return  alert('上传成功')
+				return  alert('秒传成功')
 			}
 			if(checkResult === "没有匹配"){
 				const formData = new FormData();

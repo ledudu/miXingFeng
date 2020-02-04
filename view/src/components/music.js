@@ -126,7 +126,7 @@ class Music extends React.Component {
 			if(checkResult === "上传成功") {
 				this.startToUpload = false;
 				$dispatch(updateMusicSubmitStatus("上传"))
-				return  alert('上传成功')
+				return  alert('秒传成功')
 			}
 			if(checkResult === "没有匹配"){
 				this.setState({
