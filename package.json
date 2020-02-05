@@ -6,11 +6,11 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "cd view && npm run dev",
-		"build": "cp -r /Users/admin/Documents/project/miXingFeng/view/public /Users/admin/Documents/project/miXingFeng/view/build && cd view && npm run build",
-		"buildD": "cp -r /Users/admin/Documents/project/miXingFeng/view/public /Users/admin/Documents/project/miXingFeng/view/build & cd view && npm run buildDebug",
+		"build": "cp -R /Users/admin/Documents/project/miXingFeng/view/public/* /Users/admin/Documents/project/miXingFeng/view/build && cd view && npm run build",
+		"buildD": "cp -R /Users/admin/Documents/project/miXingFeng/view/public/* /Users/admin/Documents/project/miXingFeng/view/build & cd view && npm run buildDebug",
 		"runAndroid": "cordova prepare && cordova run android",
-		"buildRelease": "yarn build && rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -r /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --release --prod --keystore='myapp.keystore' --alias=myapp --storePassword=zhoushoujian --password=zhoushoujian",
-		"buildDebug": "yarn buildD &&  rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -r /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --debug",
+		"buildRelease": "yarn build && rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -R /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --release --prod --keystore='myapp.keystore' --alias=myapp --storePassword=zhoushoujian --password=zhoushoujian",
+		"buildDebug": "yarn buildD &&  rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -R /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --debug",
 		"hcp:build": "cordova-hcp build "
 	},
 	"dependencies": {
