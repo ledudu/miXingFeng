@@ -97,12 +97,12 @@ class Sign extends Component {
 							try {
 								window.navigator.splashscreen.hide();
 								setTimeout(() => {
-									$(".ads-container").fadeIn("fast");
+									$(".ads-container").fadeIn('fast');
 									$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
 									$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
 									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
 									this.getAdsConfig();
-								}, 50)
+								}, 10)
 							} catch (err) {
 								if(window.logger){
 									window.logger.error("splashscreen err", err.stack || err.toString())

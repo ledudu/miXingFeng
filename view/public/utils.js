@@ -174,9 +174,6 @@ function createAndWriteFile(data = "", filename, column) {
 				}, onErrorLoadFs);
 			}, onErrorGetDir);
 		}, onErrorGetDir);
-	}, onErrorLoadFs)
-	.catch(err => {
-		console.error("写入日志时发生了错误", err)
 	})
 }
 

@@ -932,9 +932,17 @@ export const stopMusic = () => {
 	$dispatch(updateSoundPlaying(false))
 }
 
-export const playMusic = (filePath, filenameOrigin, duration, original, musicDataList, pageType) => {
+export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename) => {
 	try {
 		const { pauseWhenOver, soundInstance, soundInstanceId } = $getState().fileServer;
+		if(pageType === CONSTANT.musicOriginal.musicFinished){
+			const fileExist = await checkFileExistOrNot(removePrefixFromFileOrigin(filenameOrigin), "music")
+			if(!fileExist) {
+				alertDialog(`${filename}已被删除`)
+				removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+				return
+			}
+		}
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
 		logger.info("music play filenameOrigin", filenameOrigin)
 		if(soundInstance && soundInstanceId){
@@ -1020,7 +1028,7 @@ function playAnotherSong(anotherSongInfo, original, musicDataList, type, others)
 			}
 		}
 	} else {
-		playMusic(anotherSongInfo.filePath, anotherSongInfo.filenameOrigin, anotherSongInfo.duration, original, musicDataList)
+		playMusic(anotherSongInfo.filePath, anotherSongInfo.filenameOrigin, anotherSongInfo.duration, original, musicDataList, $getState().fileServer.musicPageType, anotherSongInfo.filename)
 	}
 }
 
@@ -1062,7 +1070,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 		if(!soundPlaying){
 			if(!currentPlayingSong){
 				// first play case
-				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
 			} else {
 				// pause case
 				if(filenameOrigin === currentPlayingSong){
@@ -1071,7 +1079,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 					// stop current song and switch to another song case and then initial play current time
 					$dispatch(updateCurrentSongTime(0))
 					stopMusic()
-					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
 				}
 			}
 		} else {
@@ -1079,7 +1087,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 				// stop current song and switch to another song case and initial play current time
 				$dispatch(updateCurrentSongTime(0))
 				stopMusic()
-				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType)
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
 			} else {
 				// pause current song
 				pauseMusic()
@@ -1112,5 +1120,30 @@ export const checkToShowPlayController = () => {
 			$("#root .container .main-content").css("height", "100vh")
 			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 		}
+	})
+}
+
+export const checkFileExistOrNot = (filenameOrigin, folder) => {
+	return new Promise(function (res) {
+		window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
+			fs.root.getDirectory('miXingFeng', {
+				create: true
+			}, function (dirEntry) {
+				dirEntry.getDirectory(folder, {
+					create: true
+				}, function (subDirEntry) {
+					//持久化数据保存
+					subDirEntry.getFile(
+						filenameOrigin, {create: false, exclusive: true},
+						function (fileEntry) {
+							logger.info("file is already exist, filenameOrigin", filenameOrigin)
+							res(true)
+						}, () => {
+							logger.info("file is not exist at all, filenameOrigin", filenameOrigin)
+							res(false)
+						});
+				}, (err) => {logger.error("load file fail", err); res(false)});
+			}, (err) => {logger.error("load file directory fail", err); res(false)});
+		}, (err) => {logger.error("load file system fail", err); res(false)});
 	})
 }
