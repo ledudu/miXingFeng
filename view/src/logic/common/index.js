@@ -459,11 +459,11 @@ export const reconnectAndSend = (log="websocket interval check") => {
 	try {
 		if(window.isCordova){
 			const isBackground = cordova.plugins && cordova.plugins.backgroundMode && cordova.plugins.backgroundMode.isActive();
-			logger.info('isBackground', isBackground);
+			logger.debug('isBackground', isBackground);
 		}
-		logger.info("websocket heart beat reconnectAndSend readyState ping", window.ws.readyState, "log", log)
+		logger.debug("websocket heart beat reconnectAndSend readyState ping", window.ws.readyState, "log", log)
 		if(window.ws.readyState !== 1){
-			logger.warn("reconnectAndSend window.ws.readyState !== 1", log)
+			logger.debug("reconnectAndSend window.ws.readyState !== 1", log)
 			reconnectSocket(`heart beat: ${log}`)
 		} else {
 			let message = Object.assign({},{ type:'check-connect', userId: window.localStorage.getItem("userId"), data: "ping", date: Date.now() });
@@ -509,7 +509,7 @@ export const reconnectSocket = (logInfo) => {
 	const userId = window.localStorage.getItem("userId")
 	if(window.ws && window.ws.close) window.ws.close(1000)
 	if(window.websocketHeartBeatInterval) clearInterval(window.websocketHeartBeatInterval)
-	logger.warn("正在重新建立websocket连接...", logInfo);
+	logger.debug("正在重新建立websocket连接...", logInfo);
 	window.ws = new WebSocket(window.config.debug ? `ws://${window.config.host}:${window.config.socketPort}` : `wss://${window.config.socketUrl}`);
 	window.ws.onopen = () => openWS(window.ws.readyState, userId);
 	window.ws.onmessage = (data) => incomingMessage(data);
@@ -535,7 +535,7 @@ export const incomingMessage = async (data) => {
 		data = JSON.parse(data.data);
 		switch(data.type){
 			case "pong":
-				logger.info('incomingMessage pong', data);
+				logger.debug('incomingMessage pong', data);
 				receiveServerSocketPong = true;
 				subjectModel.notifyObserver(observer1)
 				break;

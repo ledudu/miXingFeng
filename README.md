@@ -12,8 +12,10 @@
 ```shell
 $ git clone https://github.com/zhoushoujian/miXingFeng.git  
 $ npm install -g cordova@8.0.0  
+$ // 在项目根目录新建一个www的文件夹，否则cordova不识别这是一个cordova项目  
 $ cordova platform add android@7.1.4  
 $ cordova platform add ios //如果不是mac,请不要运行这条命令  
+$ cordova plugin add cordova-plugin-fastrde-md5@0.2.0 --force
 $ cd view  
 $ npm i  
 ```
@@ -22,7 +24,12 @@ $ npm i
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
 
 # 注意
-推荐使用cordova8.0.0,cordova-android7.1.4,cordova-plugin-jcore1.3.1,jpush-phonegap-plugin3.7.3,cordova-plugin-local-notifications-appstr0.9.3,否则cordova-plugin-android-permissions, cordova-plugin-background-mode和JPush可能不工作,甚至会影响整个app稳定性  
+推荐使用  
+cordova8.0.0,cordova-android7.1.4,  
+cordova-plugin-jcore1.3.1,  
+jpush-phonegap-plugin3.7.3,  
+cordova-plugin-local-notifications-appstr0.9.3,  
+否则cordova-plugin-android-permissions, cordova-plugin-background-mode和JPush可能不工作,甚至会影响整个app稳定性  
 
 ````AndroidStudio打包出现"xxx" is not translated in "zh" (Chinese):````
 To ignore this in a gradle build add this to the android section of your build file:

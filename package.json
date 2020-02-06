@@ -6,15 +6,15 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "cd view && npm run dev",
-		"build": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build && cd view && npm run build",
-		"buildD": "xcopy /e /i /y D:\\my_site\\miXingFeng\\view\\public D:\\my_site\\miXingFeng\\view\\build & cd view && npm run buildDebug",
+		"build": "cp -R /Users/admin/Documents/project/miXingFeng/view/public/* /Users/admin/Documents/project/miXingFeng/view/build && cd view && npm run build",
+		"buildD": "cp -R /Users/admin/Documents/project/miXingFeng/view/public/* /Users/admin/Documents/project/miXingFeng/view/build & cd view && npm run buildDebug",
 		"runAndroid": "cordova prepare && cordova run android",
-		"buildRelease": "yarn build && del /f /s /q D:\\my_site\\miXingFeng\\www\\* && xcopy /e /i /y  D:\\my_site\\miXingFeng\\view\\build\\* D:\\my_site\\miXingFeng\\www && cordova prepare && cordova build android --release --prod --keystore='myapp.keystore' --alias=myapp --storePassword=zhoushoujian --password=zhoushoujian",
-		"buildDebug": "yarn buildD &&  del /f /s /q D:\\my_site\\miXingFeng\\www\\* && xcopy /e /i /y  D:\\my_site\\miXingFeng\\view\\build\\* D:\\my_site\\miXingFeng\\www && cordova prepare && cordova build android --debug",
+		"buildRelease": "yarn build && rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -R /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --release --prod --keystore='myapp.keystore' --alias=myapp --storePassword=zhoushoujian --password=zhoushoujian",
+		"buildDebug": "yarn buildD &&  rm -rf /Users/admin/Documents/project/miXingFeng/www/* && cp -R /Users/admin/Documents/project/miXingFeng/view/build/* /Users/admin/Documents/project/miXingFeng/www && cordova prepare && cordova build android --debug",
 		"hcp:build": "cordova-hcp build "
 	},
 	"dependencies": {
-		"cordova-android": "^7.1.4",
+		"cordova-android": "7.1.4",
 		"cordova-hot-code-push-plugin": "^1.5.3",
 		"cordova-plugin-android-permissions": "^1.0.2",
 		"cordova-plugin-app-version": "^0.1.9",
@@ -30,12 +30,12 @@
 		"cordova-plugin-geolocation": "^4.0.1",
 		"cordova-plugin-headsetdetection": "^3.0.0",
 		"cordova-plugin-inappbrowser": "^3.1.0",
-		"cordova-plugin-jcore": "^1.3.1",
-		"cordova-plugin-local-notifications-appstr": "^0.9.3",
+		"cordova-plugin-jcore": "1.3.1",
+		"cordova-plugin-local-notifications-appstr": "0.9.3",
 		"cordova-plugin-network-information": "^2.0.1",
 		"cordova-plugin-whitelist": "1",
 		"cordova-plugin-x-toast": "^2.7.2",
-		"jpush-phonegap-plugin": "^3.7.3"
+		"jpush-phonegap-plugin": "3.7.3"
 	},
 	"devDependencies": {
 		"cordova-plugin-camera": "^4.1.0",
@@ -82,8 +82,8 @@
 			"cordova-plugin-badge": {},
 			"cordova-plugin-inappbrowser": {},
 			"cordova-plugin-headsetdetection": {},
-			"cordova-plugin-local-notifications-appstr": {},
-			"cordova-plugin-fastrde-md5": {}
+			"cordova-plugin-fastrde-md5": {},
+			"cordova-plugin-local-notifications-appstr": {}
 		}
 	}
 }
