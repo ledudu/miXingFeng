@@ -19,6 +19,7 @@ $ cordova plugin add cordova-plugin-fastrde-md5@0.2.0 --force
 $ cd view  
 $ npm i  
 ```
+````注意:```` 打包安卓或ios需要安装对应的开发环境，这里不在多说，网上的教程有很多。  
 
 # 技术栈
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
