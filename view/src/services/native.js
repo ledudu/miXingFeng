@@ -62,7 +62,6 @@ function onDeviceReady(){
 			}
 			setTimeout(() => reconnectAndSend('resume reconnect check'), 200)
 			window.permissions.checkPermission(permissions.ACCESS_FINE_LOCATION, function (status) {
-				logger.info("checkPermission status", status)
 				if (status.hasPermission && localStorage.getItem('usePosition') === 'no') {
 					localStorage.setItem("usePosition", "yes")
 					$dispatch(updateAllowGetPosition(true))

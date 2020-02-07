@@ -22,6 +22,7 @@ const APP_UPDATING = "common/appUpdating"
 const APP_SIZE = "common/appSize"
 const IS_FROM_SYSTEM_SETUP = "common/isFromSystemSetup"
 const AD_PIC_SRC = "common/adPicSrc"
+const LOADED_IN_WIFI = "common/loadedInWifi"
 
 // initialSate
 const initialState = () => ({
@@ -79,7 +80,8 @@ const initialState = () => ({
 	appUpdating: false,
 	appSize: 0,
 	isFromSystemSetup: false,
-	adPicSrc: `./ads/ad0.png`
+	adPicSrc: `./ads/ad0.png`,
+	loadedInWifi: ""
 });
 
 // Reducer
@@ -176,6 +178,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case AD_PIC_SRC:
 			return Object.assign({}, state, {
 				adPicSrc: action.data
+			});
+		case LOADED_IN_WIFI:
+			return Object.assign({}, state, {
+				loadedInWifi: action.data
 			});
 		default:
 			return state;
@@ -290,5 +296,10 @@ export const updateIsFromSystemSetup = data => ({
 
 export const updateAdPicSrc = data => ({
 	type: AD_PIC_SRC,
+	data
+})
+
+export const updateLoadedInWifi = data => ({
+	type: LOADED_IN_WIFI,
 	data
 })

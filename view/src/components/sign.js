@@ -23,7 +23,7 @@ import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems  } from "../ducks/fileServer";
-import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc } from "../ducks/common"
+import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc, updateLoadedInWifi } from "../ducks/common"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
 
@@ -31,12 +31,12 @@ class Sign extends Component {
 
 	constructor(props) {
 		super(props);
-		const { adsTime, adNumber, isFromSignPage, fromResume, adPicSrc } = this.props;
+		const { adsTime, adNumber, isFromSignPage, fromResume, adPicSrc, loadedInWifi } = this.props;
 		if(isFromSignPage) $dispatch(updateIsFromSignPage(false))
 		// 如果在localStorage里有相应的值说明广告下载好了
 		const adsName = localStorage.getItem("adsName")
 		const isWiFiNetwork = localStorage.getItem("isWiFiNetwork")
-		let loadedInWifi = "", adPicSrcState = adPicSrc
+		let loadedInWifiState = loadedInWifi, adPicSrcState = adPicSrc
 		if(adsName && isWiFiNetwork && fromResume){
 			if(fromResume) $dispatch(updateFromResume(false))
 			localStorage.removeItem("adsName")
@@ -46,10 +46,13 @@ class Sign extends Component {
 				downloadAdPic()
 			}
 			if(isWiFiNetwork === "yes"){
-				loadedInWifi = "已wifi预加载"
+				loadedInWifiState = "已wifi预加载"
+			} else {
+				loadedInWifiState = ""
 			}
 			adPicSrcState = `/storage/emulated/0/miXingFeng/adPics/${adsName}`
 			$dispatch(updateAdPicSrc(adPicSrcState))
+			$dispatch(updateLoadedInWifi(loadedInWifiState))
 		}
 		this.state = {
 			skipTime: adsTime || 4,
@@ -60,7 +63,7 @@ class Sign extends Component {
 			fileTransfer: {},
 			showUpdateConfirm: false,
 			checkingPackage: false,
-			loadedInWifi,
+			loadedInWifi: loadedInWifiState,
 			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.png`
 		}
 	}

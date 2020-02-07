@@ -824,6 +824,10 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 	} else {
 		const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
 		willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
+		if(original === CONSTANT.musicOriginal.musicFinished){
+			willSavedSong.filePath = willSavedSong.fileUrl
+			delete willSavedSong.fileUrl
+		}
 		musicCollection.push(willSavedSong)
 	}
 	const dataObj = {

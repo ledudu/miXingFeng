@@ -44,8 +44,8 @@ android {
 }
 </code>
 
-# 下载地址
-[下载](http://129.226.77.79:2000/Images/app-release.apk)
+# 安卓安装包
+[下载地址](http://129.226.77.79:2000/Images/app-release.apk)
 
 # 关于cordova
 Cordova包装你的HTML/JavaScript app到原生app容器中，可以让你访问每个平台设备的功能。这些功能通过统一的JavaScript API提供，让你轻松的编写一组代码运行在几乎市面上的所有手机和平板上，并可以发布到相应的app商城中。  
@@ -105,9 +105,6 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 
 # 更新:  
 [更新日志](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/CHANGELOG.MD)
-
-# 前端架构师和nodejs后端架构师需要具备的能力
-[文档](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/constructor)
 
 # 秒传系统的设计(群组方向)：
 

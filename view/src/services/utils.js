@@ -359,6 +359,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 											if(fromMusic){
 												downloadedDataToSaveIndexedDBObj.isMusic = true
 												downloadedDataToSaveIndexedDBObj.filePath = `cdvfile://localhost/sdcard/miXingFeng/music/${downloadedFileOrigin}`
+												downloadedDataToSaveIndexedDBObj.fileUrl = fileUrl
 												downloadedDataToSaveIndexedDBObj.duration = options.duration
 												downloadedDataToSaveIndexedDBObj.id = options.fileId || "downloaded"
 												downloadedDataToSaveIndexedDBObj.original = options.original
