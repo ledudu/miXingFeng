@@ -51,15 +51,17 @@ class About extends React.Component {
 		Toast.loading('正在检查更新', CONSTANT.toastLoadingTime, () => {});
         axios.get(HTTP_URL.checkUpdate)
             .then(response => {
-                window.logger.info(`response`, response.data)
-                if(!response.data){
+				const result = response.data
+                if(!result){
 					Toast.hide();
+					Toast.success('已是最新版本', CONSTANT.toastTime);
                     return;
-                }
-                const remoteAppVersion = response.data.version,
-					appSize = response.data.appSize,
-					MD5 = response.data.MD5,
-                    newAppVersionContent = response.data.content
+				}
+				if(result.disableUpdate) return Toast.success('已是最新版本', CONSTANT.toastTime);
+                const remoteAppVersion = result.version,
+					appSize = result.appSize,
+					MD5 = result.MD5,
+                    newAppVersionContent = result.content
                 window.logger.info(`remote appVersion, ${remoteAppVersion}`);
 				window.logger.info(`local appVersion, ${appVersion}`);
 				if(remoteAppVersion > appVersion){

@@ -166,7 +166,7 @@ class Music extends React.Component {
 									if (xhr.responseText.response === "illegal_filetype") {
 										alert(`不支持的文件后缀名: ${filename.split('.').pop()}`);
 									} else if (xhr.responseText.response === "illegal_filename") {
-										alert('非法的文件名');
+										alert('文件名不得含有%或#');
 									} else if (xhr.responseText.response === "more_than_100mb") {
 										alert('文件大小超过100MB');
 									} else {

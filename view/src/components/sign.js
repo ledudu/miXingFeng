@@ -384,10 +384,11 @@ class Sign extends Component {
 		return axios.get(HTTP_URL.checkUpdate)
 			.then(response => {
 				if(!response.data){
-					return;
+					return
 				}
-				let result = response.data;
-				let remoteAppVersion = result.version,
+				const result = response.data;
+				if(result.disableUpdate) return logger.info('disableUpdate')
+				const remoteAppVersion = result.version,
 					appSize = result.appSize,
 					MD5 = result.MD5,
 					newAppVersionContent = result.content,

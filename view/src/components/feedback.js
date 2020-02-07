@@ -72,7 +72,7 @@ class Feedback extends React.Component {
 						})
 				}
 				if(uploadLog && window.isCordova){
-					new Promise((res, rej) => {
+					new Promise((res) => {
 						window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
 							fs.root.getDirectory('miXingFeng', {
 								create: true
@@ -94,7 +94,7 @@ class Feedback extends React.Component {
 												alertDebug("An error has occurred: Code = " + error.code);
 												logger.error("upload error source " + error.source);
 												logger.error("upload error target " + error.target);
-												rej()
+												res()
 											}
 											let filename1 = filename.split(".")
 											filename1.pop();
