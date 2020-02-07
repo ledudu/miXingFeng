@@ -693,7 +693,8 @@ const mapStateToProps = state => {
 		fromResume: state.sign.fromResume,
 		isFromSignPage: state.common.isFromSignPage,
 		isFromSystemSetup: state.common.isFromSystemSetup,
-		adPicSrc: state.common.adPicSrc
+		adPicSrc: state.common.adPicSrc,
+		loadedInWifi: state.common.loadedInWifi
 	};
 };
 
