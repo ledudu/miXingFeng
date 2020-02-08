@@ -245,6 +245,44 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 		window.open(fileUrl)
 		return;
 	}
+	const fileTransfer = new FileTransfer();
+	let progressPercent = 0, throttleTimer=null, firstTime = true, cancelDownload = false
+	// 取消下载，移除下载
+	if(needSaveToDownloadBox){
+		window.eventEmit.$once(`FileTransfer-${filenameOrigin}`, (type, param) => {
+			logger.info("saveFileToLocal FileTransfer type", type, "param", param)
+			if(type === "abort"){
+				logger.info('saveFileToLocal cancel download')
+				cancelDownload = true;
+				fileTransfer.abort()
+			}
+			if(param){
+				setTimeout(() => {
+					// window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
+					const { downloadingFileItems, downloadingMusicItems } = $getState().fileServer
+					if(param[0] === "file"){
+						for(let index in downloadingFileItems){
+							if(downloadingFileItems[index].filenameOrigin === param[1]){
+								downloadingFileItems.splice(index, 1)
+								window.eventEmit.$emit("downloadingFileItems", downloadingFileItems)
+								$dispatch(updateDownloadingFileItems(downloadingFileItems))
+								removeDataFromIndexDB(param[1])
+							}
+						}
+					} else if(param[0] === "music"){
+						for(let index in downloadingMusicItems){
+							if(downloadingMusicItems[index].filenameOrigin === param[1]){
+								downloadingMusicItems.splice(index, 1)
+								window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
+								$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+								removeMusicDataFromIndexDB(param[1])
+							}
+						}
+					}
+				}, 1100)
+			}
+		})
+	}
 	return new Promise(function (res, rej) {
 		logger.info("saveFileToLocal filenameOrigin", filenameOrigin)
         window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
@@ -258,8 +296,6 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
                     subDirEntry.getFile(
                         filenameOrigin, {create: true, exclusive: false},
                         function (fileEntry) {
-                            const fileTransfer = new FileTransfer();
-							let progressPercent = 0, throttleTimer=null, firstTime = true, cancelDownload = false
                             fileTransfer.onprogress = async function (e) {
 								if(!filename) return
                                 if (e.lengthComputable) {
@@ -293,41 +329,6 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 											addDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
 										}
 										updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
-										// 这里的filenameOrigin到后面会改变，是为了区分正在下载和已下载
-										// 取消下载，移除下载
-										window.eventEmit.$on(`FileTransfer-${filenameOrigin}`, (type, param) => {
-											logger.info("saveFileToLocal FileTransfer type", type, "param", param)
-											if(type === "abort"){
-												logger.info('saveFileToLocal cancel download')
-												cancelDownload = true;
-												fileTransfer.abort()
-											}
-											if(param){
-												setTimeout(() => {
-													// window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
-													const { downloadingFileItems, downloadingMusicItems } = $getState().fileServer
-													if(param[0] === "file"){
-														for(let index in downloadingFileItems){
-															if(downloadingFileItems[index].filenameOrigin === param[1]){
-																downloadingFileItems.splice(index, 1)
-																window.eventEmit.$emit("downloadingFileItems", downloadingFileItems)
-																$dispatch(updateDownloadingFileItems(downloadingFileItems))
-																removeDataFromIndexDB(param[1])
-															}
-														}
-													} else if(param[0] === "music"){
-														for(let index in downloadingMusicItems){
-															if(downloadingMusicItems[index].filenameOrigin === param[1]){
-																downloadingMusicItems.splice(index, 1)
-																window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
-																$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
-																removeMusicDataFromIndexDB(param[1])
-															}
-														}
-													}
-												}, 1100)
-											}
-										})
 									} else {
 										throttleTimer = setTimeout(() => {
 											clearTimeout(throttleTimer)
