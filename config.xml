@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.szhou.mixingfeng" version="3.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:gap="http://phonegap.com/ns/1.0">
+<widget id="com.szhou.mixingfeng" version="3.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:gap="http://phonegap.com/ns/1.0">
     <name>觅星峰</name>
     <description>
         觅星峰
@@ -125,7 +125,7 @@
     <plugin name="cordova-plugin-app-version" spec="^0.1.9" />
     <plugin name="cordova-plugin-device" spec="^2.0.3" />
 	<plugin name="jpush-phonegap-plugin" spec="^3.7.3">
-       <variable name="APP_KEY" value="put your key" />
+        <variable name="APP_KEY" value="put your key" />
         <variable name="CHANNEL" value="developer-default" />
     </plugin>
     <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
