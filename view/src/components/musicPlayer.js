@@ -11,7 +11,7 @@ import {
 	updateLastMusicSearchResult,
 	updateLastSearchAllMusicResult,
 } from "../ducks/fileServer";
-import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus } from "../services/utils";
+import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority } from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
 	calcSize,
@@ -363,12 +363,12 @@ class MusicPlayer extends React.Component {
 
 	saveMusicToLocal = (filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal) => {
 		const { downloadingMusicItems, downloadedMusicList } = this.props;
-		let isDownload = false, musicDownloaded=false
+		let isDownloading = false, musicDownloaded=false
 		filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
 		// 先判断音乐是否正在下载，再判断音乐是否已下载
 		downloadingMusicItems.some((item) => {
 			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
-				isDownload = true
+				isDownloading = true
 				confirm(`提示`, `${filename}正在下载`, "去查看", () => {
 					window.goRoute(null, "/my_finished_musics")
 				})
@@ -386,10 +386,17 @@ class MusicPlayer extends React.Component {
 				return false
 			}
 		})
-		if(!isDownload && !musicDownloaded){
-			alert(`开始下载${filename}`)
-			updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
-			saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal})
+		if(!isDownloading && !musicDownloaded){
+			return checkFileWritePriority()
+				.then(bool => {
+					if(bool){
+						alert(`开始下载${filename}`)
+						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
+						saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal})
+					} else {
+						return alertDialog("请授予文件读写权限，否则不能下载音乐", "", "知道了", requestFileWritePriority)
+					}
+				})
 		}
 	}
 

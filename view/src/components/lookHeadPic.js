@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
 import { showHeadPic } from "../logic/myInfo";
-import { saveFileToLocal , alert } from "../services/utils";
+import { alert } from "../services/utils";
 
 
 class LookHeadPic extends React.Component {

@@ -3,8 +3,8 @@ import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
 import { calcSize } from "../logic/common";
-import { addDataFromIndexDB, readAllDataFromIndexDB,readDataFromIndexDB, removeDataFromIndexDB } from "./indexDB"
-import { addMusicDataFromIndexDB, readMusicDataFromIndexDB, removeMusicDataFromIndexDB } from "./indexDBMusic"
+import { addDataFromIndexDB, removeDataFromIndexDB } from "./indexDB"
+import { addMusicDataFromIndexDB, removeMusicDataFromIndexDB } from "./indexDBMusic"
 
 export const alert = (text) => {
 	if(window.isCordova){
@@ -14,12 +14,15 @@ export const alert = (text) => {
 	}
 }
 
-export const alertDialog = (title, text, button="确定") => {
+export const alertDialog = (title, text, button="确定", cb) => {
 	Modal.alert(title, text, [
 		{
 			text: button,
 			onPress: () => {
 				window.logger.info(`alertDialog confirm enter`);
+				if(cb instanceof Function){
+					cb()
+				}
 			}
 		},
 	]);
@@ -442,7 +445,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 							alert("获取文件失败")
                             rej()
                         }
-                );
+                	);
                 },function (error) {
 					alert("文件系统加载失败！")
                     window.logger.error(`文件系统加载失败！`, error);
@@ -528,4 +531,52 @@ export const openBrowserLink = (link) => {
 	} else {
 		window.open(link)
 	}
+}
+
+export const checkFileWritePriority = () => {
+	return new Promise(res => {
+		if(window.isCordova){
+			window.permissions.checkPermission(permissions.WRITE_EXTERNAL_STORAGE, function (status) {
+				if(status.hasPermission){
+					res(true)
+				} else {
+					logger.info("saveFileToLocal WRITE_EXTERNAL_STORAGE", status);
+					res(false)
+				}
+			})
+		} else {
+			res(true)
+		}
+	})
+}
+
+export const requestFileWritePriority = () => {
+	return new Promise(res => {
+		if(window.isCordova){
+			window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
+				fs.root.getDirectory('miXingFeng', {
+					create: true
+				}, function (dirEntry) {
+					dirEntry.getDirectory("tmp",
+						{create: true},
+						function (subDirEntry) {
+							//持久化数据保存
+							subDirEntry.getFile(
+								"tmp",
+								{create: true, exclusive: false},
+								function (fileEntry) {
+									res()
+								},
+								function (error) {
+									res()
+								}
+							)
+						}
+					)
+				})
+			})
+		} else {
+			res()
+		}
+	})
 }

@@ -4,7 +4,7 @@ import { HTTP_URL } from "../../constants/httpRoute";
 import { retrieveOthers } from "../common/index";
 import { updateToken } from "../../ducks/login";
 import { updateSignUpStatus, updateLastSignUpTime, updateSignedFlag } from "../../ducks/sign";
-import { networkErr, saveFileToLocal } from "../../services/utils"
+import { networkErr } from "../../services/utils"
 
 export const retrieveLastLoginTime = () => {
 	const { token } = window.$getState().login;

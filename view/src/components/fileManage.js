@@ -3,10 +3,9 @@ import { connect } from "react-redux"
 import { ActionSheet } from 'antd-mobile'
 import MINE from "mime-types"
 import { calcSize } from "../logic/common"
-import { networkErr, confirm } from "../services/utils"
+import { networkErr, confirm, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority } from "../services/utils"
 import { HTTP_URL } from "../constants/httpRoute"
 import { updateToken } from "../ducks/login"
-import { saveFileToLocal, updateDownloadingStatus } from "../services/utils"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { openDownloadedFile, removeFileFromDownload, removeDuplicateObjectList, removePrefixFromFileOrigin } from "../logic/common"
 import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
@@ -315,18 +314,26 @@ class FileManage extends React.Component {
 			}
 		})
 		if(!isDownload){
-			if(retry){
-				alert(`重新下载${filename}`)
-			} else {
-				alert(`开始下载${filename}`)
-			}
-			updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin)
-			saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false)
+			return checkFileWritePriority()
+				.then(bool => {
+					if(bool){
+						if(retry){
+							alert(`重新下载${filename}`)
+						} else {
+							alert(`开始下载${filename}`)
+						}
+						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin)
+						saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false)
+					} else {
+						return alertDialog("请授予文件读写权限，否则不能下载文件", "", "知道了", requestFileWritePriority)
+					}
+				})
 		}
 	}
 
 	removeDownloadItem = (filename, filenameOrigin) => {
         confirm('提示', `确定要移除下载${filename}吗`, "确定", () => {
+			logger.info("removePrefixFromFileOrigin(filenameOrigin)", removePrefixFromFileOrigin(filenameOrigin))
 			window.eventEmit.$emit(`FileTransfer-${removePrefixFromFileOrigin(filenameOrigin)}`, 'abort', ["file", filenameOrigin])
 		})
 	}

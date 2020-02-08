@@ -1,5 +1,5 @@
 import { HTTP_URL } from "../../constants/httpRoute";
-import { networkErr, alert, saveFileToLocal } from "../../services/utils";
+import { networkErr, alert, saveFileToLocal, checkFileWritePriority, requestFileWritePriority } from "../../services/utils";
 import { updateSetSex, updateSetBirthday, updateSetHeadPic, updateSetAddress, updateSetHeadPicName, updateReplaceHeadPic } from "../../ducks/myInfo";
 import { Toast  } from 'antd-mobile';
 import { CONSTANT } from "../../constants/enumeration";
@@ -166,5 +166,12 @@ export const saveHeadPicToLocal = (headPicAddress, username, logInfo="") => {
 	logger.info(`${logInfo} setHeadPicName`, setHeadPicName)
 	window.$dispatch(updateSetHeadPicName(setHeadPicName));
 	let headPicAddressFull = window.serverHost + "/" + headPicAddress
-	saveFileToLocal(setHeadPicName, headPicAddressFull, 'avatar');
+	return checkFileWritePriority()
+		.then(bool => {
+			if(bool){
+				saveFileToLocal(setHeadPicName, headPicAddressFull, 'avatar');
+			} else {
+				return alertDialog("请授予文件读写权限，否则不能下载头像", "", "知道了", requestFileWritePriority)
+			}
+		})
 }
