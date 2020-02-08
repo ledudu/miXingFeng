@@ -20,7 +20,7 @@ import './themes/css/index.less';
 
 //apply Reducer
 const middleware = [thunk];
-if(window.config.debug){
+if(window.config && window.config.dev){
 	middleware.push(createLogger({
 		collapsed: false,
 	}));
@@ -42,12 +42,13 @@ window.alert = (text) => {
 }
 window.alertDebug = (text) => {
 	// don't comment this function content in production
-	if(window.isCordova){
-		// window.plugins.toast.showShortCenter(text)
-		alertDialog(text)
-
-	} else {
-		Toast.info(text, 2, null, false);
+	if(window.config && window.config.dev){
+		if(window.isCordova){
+			// window.plugins.toast.showShortCenter(text)
+			alertDialog(text)
+		} else {
+			Toast.info(text, 2, null, false);
+		}
 	}
 	logger.info('alertDebug', text)
 }
