@@ -62,10 +62,6 @@ class SystemSetup extends React.Component {
 		window.goRoute(this, "/notification");
 	}
 
-	gotoFeedbackPage = () => {
-		window.goRoute(this, "/feedback");
-	}
-
 	gotoAboutPage = () => {
         window.goRoute(this, "/about");
     }
@@ -91,9 +87,6 @@ class SystemSetup extends React.Component {
 						<List.Item style={{height: "60px"}} onClick={this.notification} className="special-badge" arrow="horizontal" >
 							<span style={{ marginLeft: 12 }}>通知和权限</span>
 						</List.Item>
-						<List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.gotoFeedbackPage}>
-                        	<span style={{ marginLeft: 12 }}>评价反馈</span>
-                        </List.Item>
 						<List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.gotoAboutPage} >
                         	<span style={{ marginLeft: 12 }}>关于</span>
 							&nbsp;&nbsp;

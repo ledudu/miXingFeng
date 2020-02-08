@@ -23,7 +23,10 @@ class MyInfo extends React.Component {
 		this.setState({
 			headPicAddress
 		})
-        document.addEventListener("deviceready", this.listenBackFunc);
+		document.addEventListener("deviceready", this.listenBackFunc);
+		if(this.signatureRef.offsetHeight < 80){
+			this.signatureRef.style.display = 'none'
+		}
     }
 
     listenBackFunc = () => {
@@ -49,7 +52,11 @@ class MyInfo extends React.Component {
 
     gotoGamePage = () => {
 		window.goRoute(this, "/my_games");
-    }
+	}
+
+	gotoFeedbackPage = () => {
+		window.goRoute(this, "/feedback");
+	}
 
     gotoUserProfile = () => {
 		window.goRoute(this, "/user_profile");
@@ -107,7 +114,7 @@ class MyInfo extends React.Component {
                 <div className="user-menu">
                     <List>
                         <List.Item arrow="horizontal" onClick={this.searchColumn}>
-							<i className="fa fa-history" aria-hidden="true"></i>
+							<i className="fa fa-search" aria-hidden="true"></i>
 							<span style={{ marginLeft }}>搜索</span>
                         </List.Item>
                     </List>
@@ -131,7 +138,6 @@ class MyInfo extends React.Component {
                         	<span style={{ marginLeft }}>昵称</span>
                         </List.Item>
 					</List>
-                    <div className="interval"></div>
                     <List>
                         <List.Item arrow="horizontal" onClick={this.gotoGamePage}>
 							<i className="fa fa-gamepad" aria-hidden="true"></i>
@@ -139,6 +145,12 @@ class MyInfo extends React.Component {
                         </List.Item>
 					</List>
 					<div className="interval"></div>
+					<List>
+                        <List.Item arrow="horizontal" onClick={this.gotoFeedbackPage}>
+							<i className="fa fa-send-o" aria-hidden="true"></i>
+                        	<span style={{ marginLeft }}>反馈</span>
+                        </List.Item>
+					</List>
 					<List>
 						<List.Item arrow="horizontal" onClick={this.gotoSystemSetup} >
                         	<Badge dot style={{display: setSystemSetupDot}}>
@@ -148,9 +160,9 @@ class MyInfo extends React.Component {
                         </List.Item>
                     </List>
                 </div>
-                {window.innerHeight > 580 && <div className="signature-show-container">
+                <div className="signature-show-container" ref={ref => this.signatureRef = ref}>
                     <div className="signature-show">{signature}</div>
-                </div>}
+                </div>
             </div>
         );
     }
