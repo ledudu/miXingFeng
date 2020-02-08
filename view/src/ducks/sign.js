@@ -9,6 +9,7 @@ const ONLINE_PERSONS_NAME = "sign/onlinePersonsName";
 const DIRECT_SHOW_SIGN_PAGE = "sign/directShowSignPage";
 const AD_NUMBER = "sign/adNumber";
 const FROM_RESUME = "sign/fromResume"
+const JUST_OPEN_APP = "sign/justOpenApp"
 
 // initialSate
 const initialState = () => ({
@@ -22,6 +23,7 @@ const initialState = () => ({
 	directShowSignPage: false,
 	adNumber: 0,
 	fromResume: false,
+	justOpenApp: true
 });
 
 // Reducer
@@ -66,6 +68,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case FROM_RESUME:
 			return Object.assign({}, state, {
 				fromResume: action.data
+			});
+		case JUST_OPEN_APP:
+			return Object.assign({}, state, {
+				justOpenApp: action.data
 			});
 		default:
 			return state;
@@ -118,5 +124,10 @@ export const updateAdNumber = data => ({
 
 export const updateFromResume = data => ({
 	type: FROM_RESUME,
+	data
+})
+
+export const updateJustOpenApp = data => ({
+	type: JUST_OPEN_APP,
 	data
 })

@@ -17,7 +17,7 @@ import {
 	requestPositionPermission,
 	checkOnlinePersons
 } from "../logic/common";
-import { updateDirectShowSignPage, updateFromResume } from "../ducks/sign";
+import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
@@ -71,7 +71,7 @@ class Sign extends Component {
 	async componentDidMount() {
 		try {
 			const { skipTime } = this.state
-			const { directShowSignPage, alwaysShowAdsPage, username, isFromLoginPage, isSignedUp, setSystemSetupDot, fromResume, isFromSystemSetup } = this.props;
+			const { directShowSignPage, alwaysShowAdsPage, username, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup } = this.props;
 			checkOnlinePersons()
 			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
@@ -105,6 +105,11 @@ class Sign extends Component {
 									$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
 									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
 									this.getAdsConfig();
+									if(justOpenApp){
+										setTimeout(() => {
+											document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
+										}, 5000);
+									}
 								}, 10)
 							} catch (err) {
 								if(window.logger){
@@ -138,11 +143,6 @@ class Sign extends Component {
 			}
 			getGreeting();  // go to this page from other page
 			document.addEventListener("deviceready", this.listenBackKeyDown);
-			if(!setSystemSetupDot && !directShowSignPage){
-				setTimeout(() => {
-					document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
-				}, 5000);
-			}
 			if(!window.logger) window.logger = console;
 			// if no network when launch app, username will be empty string
 			if(username && !isFromLoginPage){
@@ -150,7 +150,8 @@ class Sign extends Component {
 					signed();
 				}
 			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
-				if(!isFromLoginPage){
+				if(justOpenApp){
+					$dispatch(updateJustOpenApp(false))
 					// get file list
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))
 						.then(async function(response) {
@@ -206,7 +207,8 @@ class Sign extends Component {
 						retrieveOthers();  //retrieve others status
 						retrieveLastLoginTime();  //get last sign time
 					}
-				} else {
+				}
+				if(isFromLoginPage){
 					retrieveOthers();
 					retrieveLastLoginTime();
 					window.$dispatch(updateIsFromLoginPage(false));
@@ -687,7 +689,6 @@ const mapStateToProps = state => {
 		isFromLoginPage: state.login.isFromLoginPage,
 		isSignedUp: state.sign.isSignedUp,
 		logOutFlag: state.login.logOutFlag,
-		setSystemSetupDot: state.myInfo.setSystemSetupDot,
 		alwaysShowAdsPage: state.common.alwaysShowAdsPage,
 		allowGetPosition: state.common.allowGetPosition,
 		adNumber: state.sign.adNumber,
@@ -695,7 +696,8 @@ const mapStateToProps = state => {
 		isFromSignPage: state.common.isFromSignPage,
 		isFromSystemSetup: state.common.isFromSystemSetup,
 		adPicSrc: state.common.adPicSrc,
-		loadedInWifi: state.common.loadedInWifi
+		loadedInWifi: state.common.loadedInWifi,
+		justOpenApp: state.sign.justOpenApp,
 	};
 };
 
