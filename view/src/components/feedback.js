@@ -33,15 +33,13 @@ class Feedback extends React.Component {
 		if(!feedbackContent) return alert("请描述您遇到的问题或建议")
         arr.push(new Date().format("yyyy-MM-dd hh:mm:ss"));
 		arr.push(feedbackContent);
-		let fileExtname = ""
+		let extname = ""
 		if(hasPic){
-			const extname = files[0]['file']['name'].split('.').pop()
-			if(extname){
-				fileExtname = extname
-			}
+			extname = files[0]['file']['name'].split('.').pop()
 		}
-        let {username} = window.$getState().login;
-		let data = Object.assign({}, { username }, { feedbackContent: arr }, {extname: fileExtname})
+		const {username} = window.$getState().login;
+		const needUploadLog = uploadLog && window.isCordova
+		const data = Object.assign({}, { username }, { feedbackContent: arr }, {extname, needUploadLog})
 		// 提交反馈的文字内容
 		if(!this.startToSubmit){
 			this.startToSubmit = true
@@ -52,6 +50,7 @@ class Feedback extends React.Component {
 				return response.data.result.filename
 			})
 			.then((filename) => {
+				if(!filename) return
 				if(hasPic){
 					// 提交反馈截图
 					const fd = new FormData()
@@ -62,7 +61,7 @@ class Feedback extends React.Component {
 					}
 					fd.append('files', files[0]['file'])
 					fd.append("type", 'feedbackImage');
-					fd.append("filename", filename);
+					fd.append("filename",  `${filename}.${extname}`);
 					axios.post(HTTP_URL.uploadFile, fd, config)
 						.then((result) => {
 							logger.info("upload feedback pic result", result.data.result)
@@ -71,7 +70,7 @@ class Feedback extends React.Component {
 							return Promise.reject(err)
 						})
 				}
-				if(uploadLog && window.isCordova){
+				if(needUploadLog){
 					new Promise((res) => {
 						window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
 							fs.root.getDirectory('miXingFeng', {
@@ -96,18 +95,12 @@ class Feedback extends React.Component {
 												logger.error("upload error target " + error.target);
 												res()
 											}
-											let filename1 = filename.split(".")
-											filename1.pop();
-											filename1 = filename1.join("")
-											logger.info("upload log filename1", filename1)
+											logger.info("upload log filename", filename)
 											const options = new FileUploadOptions();
 											options.fileKey = "file";
-											options.fileName = filename1;
+											options.fileName = filename;
 											options.mimeType = "text/plain";
-											// options.headers = {
-											// 	Connection: "close"
-											// }
-											var params = {};
+											const params = {};
     										params.value1 = "put your params here";
     										options.params = params;
 											const ft = new FileTransfer();
