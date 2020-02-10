@@ -108,19 +108,6 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 		}
 	})
 
-	// 因为网易云音乐和qq音乐播放链接不定期过期，所以在登录的时候统一获取最新的播放链接
-	if(savedNetEaseCloudMusic.length){
-		fetchNewestOnlineMusicLinks(HTTP_URL.getNetEaseCloudMusicLinksByIds, savedNetEaseCloudMusic, favoriteSongs)
-	}
-
-	if(savedQQMusic.length){
-		fetchNewestOnlineMusicLinks(HTTP_URL.getQQMusicLinksByIds, savedQQMusic, favoriteSongs)
-	}
-
-	if(savedKuGouMusic.length){
-		fetchNewestOnlineMusicLinks(HTTP_URL.getKuGouMusicLinksByIds, savedKuGouMusic, favoriteSongs)
-	}
-
 	document.addEventListener('deviceready',function(){
 		window.$dispatch(updateDeviceInfo(device))
 		logger.info('device', device);
@@ -295,22 +282,3 @@ export const resetPasswordFunc = (self) => {
 		})
 }
 
-function fetchNewestOnlineMusicLinks(url, ids, favoriteSongs){
-	axios.post(url, {ids})
-		.then((res) => {
-			const response = res.data.result.response
-			if(response === "ids_must_be_an_array_and_not_empty"){
-				alertDebug("ids不能为空")
-			} else {
-				for(let id in response){
-					favoriteSongs.some(item => {  // 使用some的一大优势是可以跳出循环，减少循环次数，尤其是数组很大或者多层嵌套循环的时候，非常有用
-						if(String(item.id) === String(id)){
-							item.filePath = response[id]
-							return true
-						}
-					})
-				}
-				$dispatch(updateMusicCollection(favoriteSongs));
-			}
-		})
-}

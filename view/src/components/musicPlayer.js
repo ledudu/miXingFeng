@@ -105,7 +105,7 @@ class MusicPlayer extends React.Component {
 			+ ':' + (seconds.toString().length < 2 ? '0'+seconds : seconds );
 	}
 
-	showMenu = (filename, fileSize, fileId, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload) => {
+	showMenu = (filename, fileSize, fileId, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
 		try {
 			const {
 				pauseWhenOver,
@@ -170,7 +170,7 @@ class MusicPlayer extends React.Component {
 					const filePath = musicDataList[currentFileIndex]['filePath']
 					switch(buttonIndex){
 						case 0:
-							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay)
+							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId)
 							break;
 						case 1:
 							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null)
@@ -470,12 +470,12 @@ class MusicPlayer extends React.Component {
 				{
 					musicDataList.map((item, index) =>
 						<div className="music-list" key={item.filenameOrigin}>
-							<div className="music-content" onClick={() => checkStatus(item.filePath, item.filename, item.filenameOrigin, item.uploadUsername, item.fileSize, item.duration, item.original, original, musicDataList, pageType, item.payPlay)} >
+							<div className="music-content" onClick={() => checkStatus(item.filePath, item.filename, item.filenameOrigin, item.uploadUsername, item.fileSize, item.duration, item.original, original, musicDataList, pageType, Number(item.payPlay), item.id)} >
 								<div className="num">{index + 1}</div>
 								<div className="music-info">
 									<div className={`info ${item.saved ? 'song-saved' : ""}`}>
 										<div className="filename">{this.getFilenameWithoutExt(item.filename)}</div>
-										{item.payPlay ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
+										{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
 										{item.saved && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 										{
 											(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished) && (
@@ -512,7 +512,7 @@ class MusicPlayer extends React.Component {
 							</div>
 							{
 								original !== CONSTANT.musicOriginal.musicDownloading
-								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.id, item.filenameOrigin, item.uploadUsername, item.duration, item.original, item.payPlay, item.payDownload)}>
+								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.id, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id)}>
 										<div className="dot"></div>
 										<div className="dot"></div>
 										<div className="dot"></div>

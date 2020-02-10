@@ -7,6 +7,7 @@ export const CONSTANT = {
 		netEaseCloud: "netEaseCloud",
 		qqMusic: "qqMusic",
 		kuGouMusic: "kuGouMusic",
+		kuWoMusic: "kuWoMusic",
 		musicSearch: "musicSearch",  //本地搜索的音乐
 		musicShare: "musicShare",
 		savedSongs: "savedSongs",

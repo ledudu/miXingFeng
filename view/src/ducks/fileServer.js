@@ -21,6 +21,7 @@ const PLAY_BY_RANDOM = "fileServer/playByRandom"
 const LAST_NET_EASE_CLOUD_SEARCH_RESULT = "fileServer/lastNetEaseCloudSearchResult"
 const LAST_QQ_MUSIC_SEARCH_RESULT = "fileServer/lastQQMusicSearchResult"
 const LAST_KU_GOU_MUSIC_SEARCH_RESULT = "fileServer/lastKuGouMusicSearchResult"
+const LAST_KU_WO_MUSIC_SEARCH_RESULT = "fileServer/lastKuWoMusicSearchResult"
 const LAST_ONLINE_MUSIC_SEARCH_STRING = "fileServer/lastOnlineMusicSearchString"
 const LAST_FILE_SEARCH_RESULT = "fileServer/lastFileSearchResult"
 const LAST_FILE_SEARCH_STRING = "fileServer/lastFileSearchString"
@@ -29,17 +30,20 @@ const LAST_MUSIC_SEARCH_STRING = "fileServer/lastMusicSearchString"
 const NO_MORE_NET_EASE_CLOUD_RESULT = "fileServer/noMoreNetEaseCloudResults"
 const NO_MORE_QQ_MUSIC_RESULT = "fileServer/noMoreQQMusicResults"
 const NO_MORE_KU_GOU_MUSIC_RESULT = "fileServer/noMoreKuGouMusicResults"
+const NO_MORE_KU_WO_MUSIC_RESULT = "fileServer/noMoreKuWoMusicResults"
 const LAST_SEARCH_ALL_SEARING_STRING = "fileServer/lastSearchAllSearchString"
 const LAST_SEARCH_ALL_FILE_RESULT = "fileServer/lastSearchAllFileResult"
 const LAST_SEARCH_ALL_MUSIC_RESULT = "fileServer/lastSearchAllMusicResult"
 const LAST_SEARCH_ALL_NET_EASE_CLOUD_RESULT = "fileServer/lastSearchAllNetEaseCloudResult"
 const LAST_SEARCH_ALL_QQ_MUSIC_SEARCH_RESULT = "fileServer/lastSearchAllQQMusicSearchResult"
 const LAST_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULT = "fileServer/lastSearchAllKuGouMusicSearchResult"
+const LAST_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULT = "fileServer/lastSearchAllKuWoMusicSearchResult"
 const NO_MORE_SEARCH_ALL_FILE_RESULTS = "fileServer/noMoreSearchAllFileResults"
 const NO_MORE_SEARCH_ALL_MUSIC_RESULTS = "fileServer/noMoreSearchAllMusicResults"
 const NO_MORE_SEARCH_ALL_NET_EASE_CLOUD_RESULTS = "fileServer/noMoreSearchAllNetEaseCloudResults"
 const NO_MORE_SEARCH_ALL_QQ_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllQQMusicResults"
 const NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllKuGouMusicResults"
+const NO_MORE_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllKuWoMusicResults"
 const DOWNLOADED_MUSIC_LIST = "fileServer/downloadedMusicList"
 const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
 const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
@@ -83,6 +87,7 @@ const initialState = () => ({
 	lastNetEaseCloudSearchResult: [],
 	lastQQMusicSearchResult: [],
 	lastKuGouMusicSearchResult: [],
+	lastKuWoMusicSearchResult: [],
 	lastOnlineMusicSearchString: "",
 	lastFileSearchResult: [],
 	lastFileSearchString: "",
@@ -91,17 +96,20 @@ const initialState = () => ({
 	noMoreNetEaseCloudResults: false,
 	noMoreQQMusicResults: false,
 	noMoreKuGouMusicResults: false,
+	noMoreKuWoMusicResults: false,
 	lastSearchAllSearchString: "",
 	lastSearchAllFileResult: [],
 	lastSearchAllMusicResult: [],
 	lastSearchAllNetEaseCloudResult: [],
 	lastSearchAllQQMusicSearchResult: [],
 	lastSearchAllKuGouMusicSearchResult: [],
+	lastSearchAllKuWoMusicSearchResult: [],
 	noMoreSearchAllFileResults: false,
 	noMoreSearchAllMusicResults: false,
 	noMoreSearchAllNetEaseCloudResults: false,
 	noMoreSearchAllQQMusicResults: false,
 	noMoreSearchAllKuGouMusicResults: false,
+	noMoreSearchAllKuWoMusicResults: false,
 	downloadedMusicList: [],
 	currentPlayingSongOriginal: "",
 	currentPlayingSongDuration: "",
@@ -155,6 +163,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {lastQQMusicSearchResult: action.data});
 		case LAST_KU_GOU_MUSIC_SEARCH_RESULT:
 			return Object.assign({}, state, {lastKuGouMusicSearchResult: action.data});
+		case LAST_KU_WO_MUSIC_SEARCH_RESULT:
+			return Object.assign({}, state, {lastKuWoMusicSearchResult: action.data});
 		case LAST_ONLINE_MUSIC_SEARCH_STRING:
 			return Object.assign({}, state, {lastOnlineMusicSearchString: action.data});
 		case LAST_FILE_SEARCH_RESULT:
@@ -171,6 +181,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {noMoreQQMusicResults: action.data});
 		case NO_MORE_KU_GOU_MUSIC_RESULT:
 			return Object.assign({}, state, {noMoreKuGouMusicResults: action.data});
+		case NO_MORE_KU_WO_MUSIC_RESULT:
+			return Object.assign({}, state, {noMoreKuWoMusicResults: action.data});
 		case LAST_SEARCH_ALL_SEARING_STRING:
 			return Object.assign({}, state, {lastSearchAllSearchString: action.data});
 		case LAST_SEARCH_ALL_FILE_RESULT:
@@ -183,6 +195,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {lastSearchAllQQMusicSearchResult: action.data});
 		case LAST_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULT:
 			return Object.assign({}, state, {lastSearchAllKuGouMusicSearchResult: action.data})
+		case LAST_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULT:
+			return Object.assign({}, state, {lastSearchAllKuWoMusicSearchResult: action.data})
 		case NO_MORE_SEARCH_ALL_FILE_RESULTS:
 			return Object.assign({}, state, {noMoreSearchAllFileResults: action.data});
 		case NO_MORE_SEARCH_ALL_MUSIC_RESULTS:
@@ -193,6 +207,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {noMoreSearchAllQQMusicResults: action.data});
 		case NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS:
 			return Object.assign({}, state, {noMoreSearchAllKuGouMusicResults: action.data});
+		case NO_MORE_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULTS:
+			return Object.assign({}, state, {noMoreSearchAllKuWoMusicResults: action.data});
 		case DOWNLOADED_MUSIC_LIST:
 			return Object.assign({}, state, {downloadedMusicList: action.data});
 		case CURRENT_PLAYING_SONG_ORIGINAL:
@@ -317,6 +333,11 @@ export const updateLastKuGouMusicSearchResult = data => ({
 	data
 })
 
+export const updateLastKuWoMusicSearchResult = data => ({
+	type: LAST_KU_WO_MUSIC_SEARCH_RESULT,
+	data
+})
+
 export const updateLastOnlineMusicSearchString= data => ({
 	type: LAST_ONLINE_MUSIC_SEARCH_STRING,
 	data
@@ -357,6 +378,11 @@ export const updateNoMoreKuGouMusicResults = data => ({
 	data
 })
 
+export const updateNoMoreKuWoMusicResults = data => ({
+	type: NO_MORE_KU_WO_MUSIC_RESULT,
+	data
+})
+
 export const updateLastSearchAllSearchString = data => ({
 	type: LAST_SEARCH_ALL_SEARING_STRING,
 	data
@@ -387,6 +413,11 @@ export const updateLastSearchAllKuGouMusicSearchResult = data => ({
 	data
 })
 
+export const updateLastSearchAllKuWoMusicSearchResult = data => ({
+	type: LAST_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULT,
+	data
+})
+
 export const updateNoMoreSearchAllFileResults = data => ({
 	type: NO_MORE_SEARCH_ALL_FILE_RESULTS,
 	data
@@ -409,6 +440,11 @@ export const updateNoMoreSearchAllQQMusicResults = data => ({
 
 export const updateNoMoreSearchAllKuGouMusicResults = data => ({
 	type: NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS,
+	data
+})
+
+export const updateNoMoreSearchAllKuWoMusicResults = data => ({
+	type: NO_MORE_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULTS,
 	data
 })
 

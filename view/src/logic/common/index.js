@@ -439,8 +439,8 @@ export const autoLogin = function(token){
 
 export const calcSize = (size) => {
 	let formatSize = "";
-	if(!size || typeof(size) !== 'number'){
-		logger.error("calcSize param is not a number size", size)
+	if(!size) return "未知"
+	if(typeof(size) !== 'number'){
 		return String(size)
 	}
 	if(size > 1073741824){
@@ -936,7 +936,7 @@ export const stopMusic = () => {
 	$dispatch(updateSoundPlaying(false))
 }
 
-export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename) => {
+export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal) => {
 	try {
 		const { pauseWhenOver, soundInstance, soundInstanceId } = $getState().fileServer;
 		if(pageType === CONSTANT.musicOriginal.musicFinished){
@@ -959,7 +959,41 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		$dispatch(updateCurrentPlayingSongDuration(duration))
 		$dispatch(updateCurrentPlayingSongOriginal(original))
 		if(pageType) $dispatch(updateMusicPageType(pageType))
-		filePath = removePrefixFromFileOrigin(filePath)
+		if(!filePath){
+			let getFilePath = ""
+			switch(songOriginal){
+				case CONSTANT.musicOriginal.netEaseCloud:
+					getFilePath = HTTP_URL.getNetEaseCloudMusicLinksByIds
+					break;
+				case CONSTANT.musicOriginal.qqMusic:
+					getFilePath = HTTP_URL.getQQMusicLinksByIds
+					break;
+				case CONSTANT.musicOriginal.kuGouMusic:
+					getFilePath = HTTP_URL.getKuGouMusicLinksByIds
+					break;
+				case CONSTANT.musicOriginal.kuWoMusic:
+					getFilePath = HTTP_URL.getKuWoMusicLinksByIds
+					break;
+				default:
+					break;
+			}
+			if(getFilePath){
+				const result = await axios.post(getFilePath, { ids: [musicId] })
+				const {response} = result.data.result
+				filePath = response[musicId]
+				// 下面会直接改变redux里的数据
+				for(let item of musicDataList){
+					if(item.filenameOrigin === filenameOrigin){
+						item.filePath = filePath
+						if(original === CONSTANT.musicOriginal.netEaseCloud){
+							item.fileSize = response.fileSize
+						}
+					}
+				}
+			} else {
+				return alert("歌曲异常,请尝试播放其他歌曲")
+			}
+		}
 		const soundInstanceModel = new Howl({
 			src: [filePath],
 			loop: !pauseWhenOver,
@@ -1032,7 +1066,7 @@ function playAnotherSong(anotherSongInfo, original, musicDataList, type, others)
 			}
 		}
 	} else {
-		playMusic(anotherSongInfo.filePath, anotherSongInfo.filenameOrigin, anotherSongInfo.duration, original, musicDataList, $getState().fileServer.musicPageType, anotherSongInfo.filename)
+		playMusic(anotherSongInfo.filePath, anotherSongInfo.filenameOrigin, anotherSongInfo.duration, original, musicDataList, $getState().fileServer.musicPageType, anotherSongInfo.filename, anotherSongInfo.id, anotherSongInfo.original)
 	}
 }
 
@@ -1046,7 +1080,7 @@ export const getRandomFileIndex = (currentMusicFilenameOriginalArr, currentFileI
 	}
 }
 
-export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay) => {
+export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId) => {
 	try {
 		if(payPlay) return alert("尊重版权,人人有责")
 		const { soundPlaying, currentPlayingSong, downloadingMusicItems } = $getState().fileServer;
@@ -1074,7 +1108,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 		if(!soundPlaying){
 			if(!currentPlayingSong){
 				// first play case
-				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal)
 			} else {
 				// pause case
 				if(filenameOrigin === currentPlayingSong){
@@ -1083,7 +1117,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 					// stop current song and switch to another song case and then initial play current time
 					$dispatch(updateCurrentSongTime(0))
 					stopMusic()
-					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
+					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal)
 				}
 			}
 		} else {
@@ -1091,7 +1125,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 				// stop current song and switch to another song case and initial play current time
 				$dispatch(updateCurrentSongTime(0))
 				stopMusic()
-				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename)
+				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal)
 			} else {
 				// pause current song
 				pauseMusic()

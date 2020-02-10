@@ -26,6 +26,7 @@ class SearchAll extends Component{
 			lastSearchAllNetEaseCloudResult,
 			lastSearchAllQQMusicSearchResult,
 			lastSearchAllKuGouMusicSearchResult,
+			lastSearchAllKuWoMusicSearchResult,
 			lastSearchAllSearchString,
 			lastSearchAllFileResult,
 			lastSearchAllMusicResult,
@@ -33,6 +34,12 @@ class SearchAll extends Component{
 			fileList
 		} = this.props;
 		const lastSearchResult = []
+		lastSearchResult.push({
+			lastSearchAllFileResult
+		})
+		lastSearchResult.push({
+			lastSearchAllMusicResult
+		})
 		lastSearchResult.push({
 			lastNetEaseCloudSearchResult: lastSearchAllNetEaseCloudResult
 		})
@@ -43,10 +50,7 @@ class SearchAll extends Component{
 			lastKuGouMusicSearchResult: lastSearchAllKuGouMusicSearchResult
 		})
 		lastSearchResult.push({
-			lastSearchAllFileResult
-		})
-		lastSearchResult.push({
-			lastSearchAllMusicResult
+			lastKuWoMusicSearchResult: lastSearchAllKuWoMusicSearchResult
 		})
 		return 	<SearchResourceComponent
 					navbarText="全局搜索"
@@ -66,6 +70,7 @@ const mapStateToProps = state => {
 		lastSearchAllNetEaseCloudResult: state.fileServer.lastSearchAllNetEaseCloudResult,
 		lastSearchAllQQMusicSearchResult: state.fileServer.lastSearchAllQQMusicSearchResult,
 		lastSearchAllKuGouMusicSearchResult: state.fileServer.lastSearchAllKuGouMusicSearchResult,
+		lastSearchAllKuWoMusicSearchResult: state.fileServer.lastSearchAllKuWoMusicSearchResult,
 		lastSearchAllSearchString: state.fileServer.lastSearchAllSearchString,
 		lastSearchAllFileResult: state.fileServer.lastSearchAllFileResult,
 		lastSearchAllMusicResult: state.fileServer.lastSearchAllMusicResult,

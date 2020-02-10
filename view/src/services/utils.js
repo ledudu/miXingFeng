@@ -249,7 +249,7 @@ export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploa
 	let progressPercent = 0, throttleTimer=null, firstTime = true, cancelDownload = false
 	// 取消下载，移除下载
 	if(needSaveToDownloadBox){
-		window.eventEmit.$once(`FileTransfer-${filenameOrigin}`, (type, param) => {
+		window.eventEmit.$on(`FileTransfer-${filenameOrigin}`, (type, param) => {
 			logger.info("saveFileToLocal FileTransfer type", type, "param", param)
 			if(type === "abort"){
 				logger.info('saveFileToLocal cancel download')

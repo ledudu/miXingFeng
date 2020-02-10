@@ -22,8 +22,8 @@ class SearchOnlineMusic extends Component{
 	}
 
 	render(){
-		const { lastNetEaseCloudSearchResult, lastQQMusicSearchResult, lastKuGouMusicSearchResult, lastOnlineMusicSearchString } = this.props;
-		const lastSearchResult = []
+		const { lastNetEaseCloudSearchResult, lastQQMusicSearchResult, lastKuGouMusicSearchResult, lastKuWoMusicSearchResult, lastOnlineMusicSearchString } = this.props;
+		const lastSearchResult = ["", ""]
 		lastSearchResult.push({
 			lastNetEaseCloudSearchResult
 		})
@@ -32,6 +32,9 @@ class SearchOnlineMusic extends Component{
 		})
 		lastSearchResult.push({
 			lastKuGouMusicSearchResult
+		})
+		lastSearchResult.push({
+			lastKuWoMusicSearchResult
 		})
 		return 	<SearchResourceComponent
 					navbarText="搜索在线音乐"
@@ -49,6 +52,7 @@ const mapStateToProps = state => {
 		lastNetEaseCloudSearchResult: state.fileServer.lastNetEaseCloudSearchResult,
 		lastQQMusicSearchResult: state.fileServer.lastQQMusicSearchResult,
 		lastKuGouMusicSearchResult: state.fileServer.lastKuGouMusicSearchResult,
+		lastKuWoMusicSearchResult: state.fileServer.lastKuWoMusicSearchResult,
 		lastOnlineMusicSearchString: state.fileServer.lastOnlineMusicSearchString,
 	};
 };
