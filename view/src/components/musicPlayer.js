@@ -121,6 +121,7 @@ class MusicPlayer extends React.Component {
 				currentPlayingSong,
 				pageType
 			} = this.props
+			const self = this
 			const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
 			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -170,7 +171,7 @@ class MusicPlayer extends React.Component {
 					const filePath = musicDataList[currentFileIndex]['filePath']
 					switch(buttonIndex){
 						case 0:
-							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId)
+							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId, self)
 							break;
 						case 1:
 							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null)
@@ -286,12 +287,12 @@ class MusicPlayer extends React.Component {
 						case 6:
 							logger.info("播放上一首 currentFileIndex", currentFileIndex)
 							// 更新dom到store,用于在其他页面直接点击播放上一首
-							playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null)
+							playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 							break;
 						case 7:
 							logger.info("播放下一首 currentFileIndex", currentFileIndex)
 							// 更新dom到store
-							playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null)
+							playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 							break;
 						case 8:
 							if(original === CONSTANT.musicOriginal.musicFinished){
@@ -313,7 +314,7 @@ class MusicPlayer extends React.Component {
 								//  为了唯一的辨别每一个音乐，觅星峰服务器上的音乐md5由客户端随机生成，是不可靠的
 								//  所以在保存觅星峰服务器上的音乐时，保存的文件名特意为以上格式，
 								//  如果将要下载的音乐信息和已下载的音乐名称相同，则认为这个音乐已经下载了
-								this.saveMusicToLocal(filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal)
+								this.saveMusicToLocal(filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId)
 							}
 							break;
 						case 9:
@@ -361,22 +362,25 @@ class MusicPlayer extends React.Component {
 		}
 	}
 
-	saveMusicToLocal = (filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal) => {
+	saveMusicToLocal = (filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId) => {
+		const { musicDataList } = this.state
 		const { downloadingMusicItems, downloadedMusicList } = this.props;
-		let isDownloading = false, musicDownloaded=false
+		let isDownloading = false, musicDownloaded=false, self = this
 		filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
 		// 先判断音乐是否正在下载，再判断音乐是否已下载
-		downloadingMusicItems.some((item) => {
-			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
-				isDownloading = true
-				confirm(`提示`, `${filename}正在下载`, "去查看", () => {
-					window.goRoute(null, "/my_finished_musics")
-				})
-				return true
-			} else {
-				return false
-			}
-		})
+		if(window.isCordova){
+			downloadingMusicItems.some((item) => {
+				if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
+					isDownloading = true
+					confirm(`提示`, `${filename}正在下载`, "去查看", () => {
+						window.goRoute(null, "/my_finished_musics")
+					})
+					return true
+				} else {
+					return false
+				}
+			})
+		}
 		downloadedMusicList.some((item) => {
 			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
 				musicDownloaded = true
@@ -392,7 +396,7 @@ class MusicPlayer extends React.Component {
 					if(bool){
 						alert(`开始下载${filename}`)
 						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
-						saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal})
+						saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal, musicId, musicDataList, self})
 					} else {
 						return alertDialog("请授予文件读写权限，否则不能下载音乐", "", "知道了", requestFileWritePriority)
 					}
@@ -470,7 +474,7 @@ class MusicPlayer extends React.Component {
 				{
 					musicDataList.map((item, index) =>
 						<div className="music-list" key={item.filenameOrigin}>
-							<div className="music-content" onClick={() => checkStatus(item.filePath, item.filename, item.filenameOrigin, item.uploadUsername, item.fileSize, item.duration, item.original, original, musicDataList, pageType, Number(item.payPlay), item.id)} >
+							<div className="music-content" onClick={() => checkStatus(item.filePath, item.filename, item.filenameOrigin, item.uploadUsername, item.fileSize, item.duration, item.original, original, musicDataList, pageType, Number(item.payPlay), item.id, this)} >
 								<div className="num">{index + 1}</div>
 								<div className="music-info">
 									<div className={`info ${item.saved ? 'song-saved' : ""}`}>

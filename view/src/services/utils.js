@@ -2,7 +2,7 @@
 import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
-import { calcSize } from "../logic/common";
+import { calcSize, checkFilePath } from "../logic/common";
 import { addDataFromIndexDB, removeDataFromIndexDB } from "./indexDB"
 import { addMusicDataFromIndexDB, removeMusicDataFromIndexDB } from "./indexDBMusic"
 
@@ -240,7 +240,11 @@ export const stopPropagation = (e) => {
 	}
 }
 
-export const saveFileToLocal = (filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
+export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
+	if(fromMusic){
+		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, options.self)
+		if(!fileUrl) return
+	}
 	if(!window.isCordova) {
 		window.open(fileUrl)
 		return;

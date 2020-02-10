@@ -290,7 +290,7 @@ class FileManage extends React.Component {
 		let isDownload = false
 		const filenameOriginOld = filenameOrigin
 		filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
-		if(!retry){
+		if(!retry && window.isCordova){
 			downloadingFileItems.some((item) => {
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
 					isDownload = true
