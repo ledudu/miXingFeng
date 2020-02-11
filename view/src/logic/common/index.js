@@ -946,6 +946,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
 				return
 			}
+			filePath = removePrefixFromFileOrigin(filePath)
 		}
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
 		logger.info("music play filenameOrigin", filenameOrigin)
@@ -959,13 +960,20 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		$dispatch(updateCurrentPlayingSongDuration(duration))
 		$dispatch(updateCurrentPlayingSongOriginal(original))
 		if(pageType) $dispatch(updateMusicPageType(pageType))
-		filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, self)
-		if(!filePath) return
+		if(pageType !== CONSTANT.musicOriginal.musicFinished){
+			filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, self)
+			if(!filePath) return
+		}
 		const soundInstanceModel = new Howl({
 			src: [filePath],
 			loop: !pauseWhenOver,
 			rate: 1.0,
 			html5: true,
+			onloaderror: function(id, error){
+				$dispatch(updateSoundPlaying(false))
+				logger.error("playMusic onloaderror", error)
+				alertDialog("歌曲播放异常,请尝试其他歌曲")
+			},
 			onend: function() {
 				const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
 				logger.info("onend playByOrder", playByOrder)
@@ -1188,8 +1196,8 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			self.forceUpdate()
 			return filePath
 		} else {
-			logger.warn("get no filePath")
-			alert("歌曲异常,请尝试其他歌曲 songOriginal", songOriginal)
+			logger.warn("get no filePath songOriginal", )
+			alertDialog("歌曲异常,请尝试其他歌曲")
 			return false
 		}
 	} else {

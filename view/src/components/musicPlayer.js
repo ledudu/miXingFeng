@@ -489,6 +489,8 @@ class MusicPlayer extends React.Component {
 												?	<div className="qq-music-source-flag">QQ音乐</div>
 												: 	item.original === CONSTANT.musicOriginal.kuGouMusic
 												?	<div className="ku-gou-music-source-flag">酷狗音乐</div>
+												:	item.original === CONSTANT.musicOriginal.kuWoMusic
+												?	<div className="ku-wo-music-source-flag">酷我音乐</div>
 												:	null
 											)
 										}
