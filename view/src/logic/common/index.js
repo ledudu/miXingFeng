@@ -828,6 +828,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 			willSavedSong.filePath = willSavedSong.fileUrl
 			delete willSavedSong.fileUrl
 		}
+		delete willSavedSong.getFilePath
 		musicCollection.push(willSavedSong)
 	}
 	const dataObj = {
@@ -862,7 +863,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 		})
 }
 
-export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e) => {
+export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
 	if(currentFileIndex === -1) return
 	if(!currentFileIndex){
@@ -873,7 +874,7 @@ export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalA
 	return playAnotherSong(previousSongInfo, original, musicDataList, null, {type: 'playPreviousSong', currentFileIndex, currentMusicFilenameOriginalArr}, self)
 }
 
-export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e) => {
+export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
 	if(currentFileIndex === -1) return
 	if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
@@ -884,13 +885,19 @@ export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, 
 	return playAnotherSong(nextSongInfo, original, musicDataList, null, {type: 'playNextSong', currentFileIndex, currentMusicFilenameOriginalArr}, self)
 }
 
-export const getMusicCurrentPlayProcess = () => {
+let retryTime=0
+export const getMusicCurrentPlayProcess = (retry) => {
 	clearInterval(window.currentTimeInterval)
 	let lastMusicSeekTime = 0
+	if(retry) {
+		retryTime++
+	} else {
+		retryTime=0
+	}
 	window.currentTimeInterval = setInterval(() => {
 		try {
 			const { soundInstance } = $getState().fileServer
-			if(soundInstance && soundInstance.seek && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
+			if(soundInstance && typeof(soundInstance.seek) === "function" && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
 				const currentMusicSeekTime = soundInstance.seek()
 				if(lastMusicSeekTime !== currentMusicSeekTime){
 					musicPlayingProgressFunc()
@@ -899,8 +906,14 @@ export const getMusicCurrentPlayProcess = () => {
 				}
 			}
 		} catch(err){
-			clearInterval(window.currentTimeInterval)
-			logger.error("checkStatus soundInstance.seek() err", err.stack || err.toString())
+			alertDebug(`soundInstance.seek() er ${err.stack || err.toString()}`)
+			if(retryTime >= 6){
+				retryTime=0
+				clearInterval(window.currentTimeInterval)
+			} else {
+				getMusicCurrentPlayProcess(true)
+			}
+			logger.warn("checkStatus soundInstance.seek() err", err.stack || err.toString())
 		}
 	}, 1000)
 }
@@ -961,8 +974,19 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		$dispatch(updateCurrentPlayingSongOriginal(original))
 		if(pageType) $dispatch(updateMusicPageType(pageType))
 		if(pageType !== CONSTANT.musicOriginal.musicFinished){
-			filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, self)
-			if(!filePath) return
+			let needGetNewestPath = true
+			musicDataList.some((item) => {
+				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+					if(item.getNewestPath){
+						needGetNewestPath = false
+						return true
+					}
+				}
+			})
+			if(needGetNewestPath || songOriginal === CONSTANT.musicOriginal.netEaseCloud){
+				filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, self)
+				if(!filePath) return
+			}
 		}
 		const soundInstanceModel = new Howl({
 			src: [filePath],
@@ -1019,7 +1043,7 @@ export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original, s
 			currentFileIndex = getRandomFileIndex(currentMusicFilenameOriginalArr, currentFileIndex)
 		}
 		const nextSongInfo = musicDataList[currentFileIndex]
-		playAnotherSong(nextSongInfo, original, musicDataList, type, self)
+		playAnotherSong(nextSongInfo, original, musicDataList, type, null, self)
 	} catch(err){
 		alert("歌曲文件异常, 暂停播放");
 		logger.error("play onEnd err", err)
@@ -1035,9 +1059,9 @@ function playAnotherSong(anotherSongInfo, original, musicDataList, type, others,
 			return autoPlayNextOne(type, anotherSongInfo.filenameOrigin, musicDataList, original, self)
 		} else if(others){
 			if(others.type === "playPreviousSong"){
-				return playPreviousSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList)
+				return playPreviousSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 			} else if(others.type === "playNextSong"){
-				return playNextSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList)
+				return playNextSong(others.currentFileIndex, others.currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 			}
 		}
 	} else {
@@ -1078,7 +1102,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 			})
 			return
 		}
-		getMusicCurrentPlayProcess()
+		getMusicCurrentPlayProcess(false)
 		logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
 		if(!soundPlaying){
 			if(!currentPlayingSong){
@@ -1188,6 +1212,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			for(let item of musicDataList){
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
 					item.filePath = filePath
+					item.getNewestPath = true
 					if(songOriginal === CONSTANT.musicOriginal.netEaseCloud){
 						item.fileSize = response.fileSize
 					}

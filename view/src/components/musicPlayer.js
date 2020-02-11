@@ -50,7 +50,7 @@ class MusicPlayer extends React.Component {
 
 		const { original } = this.props
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
-			getMusicCurrentPlayProcess()
+			getMusicCurrentPlayProcess(false)
 		}
 
 		window.eventEmit.$on("musicRemoved", (musicDataList) => {

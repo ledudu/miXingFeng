@@ -94,7 +94,7 @@ class MusicController extends React.Component{
 
 				</div>
 				<div className="fa fa-step-backward play-previous"
-					onClick={(e) => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
+					onClick={(e) => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
 
 				</div>
 				<div className="play-or-pause">
@@ -111,7 +111,7 @@ class MusicController extends React.Component{
 					}
 				</div>
 				<div className="fa fa-step-forward play-next"
-					onClick={(e) => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
+					onClick={(e) => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
 
 				</div>
 			</div>
