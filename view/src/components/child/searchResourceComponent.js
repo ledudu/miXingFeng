@@ -412,23 +412,6 @@ class SearchResourceComponent extends Component {
 		return (
 			<Fragment>
 				{
-					lastSearchResult[2]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
-						<div className="interval-line first-line"></div>
-						<div className="online-music-header">网易云</div>
-						<MusicPlayer musicDataList={lastSearchResult[2]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} />
-						<div className="online-music-more-btn" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
-							{!noMoreNetEaseCloudResults && <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i>}
-							{
-								(moreNetEaseCloudSearch && !noMoreNetEaseCloudResults)
-								?	<span className="searching-text">正在查询...</span>
-								:	noMoreNetEaseCloudResults
-								?	null
-								:	<span className="more-results-text">更多结果</span>
-							}
-						</div>
-					</div>
-				}
-				{
 					lastSearchResult[3]['lastQQMusicSearchResult'].length !==0 && <div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">QQ音乐</div>
@@ -439,6 +422,23 @@ class SearchResourceComponent extends Component {
 								(moreQQMusicSearch && !noMoreQQMusicResults)
 								?	<span className="searching-text">正在查询...</span>
 								:	noMoreQQMusicResults
+								?	null
+								:	<span className="more-results-text">更多结果</span>
+							}
+						</div>
+					</div>
+				}
+				{
+					lastSearchResult[2]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
+						<div className="interval-line first-line"></div>
+						<div className="online-music-header">网易云</div>
+						<MusicPlayer musicDataList={lastSearchResult[2]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} />
+						<div className="online-music-more-btn" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
+							{!noMoreNetEaseCloudResults && <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i>}
+							{
+								(moreNetEaseCloudSearch && !noMoreNetEaseCloudResults)
+								?	<span className="searching-text">正在查询...</span>
+								:	noMoreNetEaseCloudResults
 								?	null
 								:	<span className="more-results-text">更多结果</span>
 							}
