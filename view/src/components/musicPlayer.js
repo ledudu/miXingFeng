@@ -48,9 +48,9 @@ class MusicPlayer extends React.Component {
 		Howler.volume(0.8);
 		this.checkSongSaved()
 
-		const { original } = this.props
+		const { original, soundInstance } = this.props
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
-			getMusicCurrentPlayProcess(false)
+			if(soundInstance) getMusicCurrentPlayProcess(false)
 		}
 
 		window.eventEmit.$on("musicRemoved", (musicDataList) => {

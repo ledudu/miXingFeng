@@ -897,14 +897,16 @@ export const getMusicCurrentPlayProcess = (retry) => {
 	window.currentTimeInterval = setInterval(() => {
 		try {
 			const { soundInstance } = $getState().fileServer
-			if(soundInstance && typeof(soundInstance.seek) === "function" && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
-				const currentMusicSeekTime = soundInstance.seek()
-				if(lastMusicSeekTime !== currentMusicSeekTime){
-					musicPlayingProgressFunc()
-					$dispatch(updateCurrentSongTime(currentMusicSeekTime))
-					lastMusicSeekTime = currentMusicSeekTime
+			setTimeout(() => {
+				if(soundInstance && typeof(soundInstance.seek) === "function" && typeof(soundInstance.seek()) === "number" && soundInstance.seek() !== NaN && soundInstance.seek() !== 0){
+					const currentMusicSeekTime = soundInstance.seek()
+					if(lastMusicSeekTime !== currentMusicSeekTime){
+						musicPlayingProgressFunc()
+						$dispatch(updateCurrentSongTime(currentMusicSeekTime))
+						lastMusicSeekTime = currentMusicSeekTime
+					}
 				}
-			}
+			}, 50)
 		} catch(err){
 			alertDebug(`soundInstance.seek() er ${err.stack || err.toString()}`)
 			if(retryTime >= 6){
@@ -1019,6 +1021,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		const soundInstanceModelId = soundInstanceModel.play();
 		$dispatch(updateSoundInstance(soundInstanceModel))
 		$dispatch(updateSoundInstanceId(soundInstanceModelId))
+		getMusicCurrentPlayProcess(false)
 		if(window.circleControlRef){
 			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
 			window.circleControlRef.style.strokeWidth = "8px"
@@ -1102,7 +1105,8 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 			})
 			return
 		}
-		getMusicCurrentPlayProcess(false)
+		const { soundInstance } = $getState().fileServer
+		if(soundInstance) getMusicCurrentPlayProcess(false)
 		logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
 		if(!soundPlaying){
 			if(!currentPlayingSong){
