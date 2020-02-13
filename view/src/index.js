@@ -76,9 +76,14 @@ window.getRoute = () => {
 }
 
 axios.interceptors.request.use(function (config) {
-    const { token } = window.$getState().login
+	const { token } = window.$getState().login
     if (token) {
 		config.headers.Authorization = token;
+	}
+	if(config.method === "get"){
+		config.url += `&userId=${localStorage.getItem('userId')}`
+	} else if(config.method === "post"){
+		config.data.userId = localStorage.getItem('userId')
 	}
     return config;
 }, function (err) {
