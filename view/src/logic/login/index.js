@@ -91,21 +91,9 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 		saveHeadPicToLocal(userProfile.user_pic, result.username, 'loginApp');
 	}
 	window.localStorage.setItem("tk", result.token);
-	const original = window.localStorage.getItem("userId");
-	const newOne = result.username
-	window.localStorage.setItem("userId", newOne);
-	const data = { original, newOne }
-	const savedNetEaseCloudMusic = [];
-	const savedQQMusic = []
-	const savedKuGouMusic = []
+
 	favoriteSongs.forEach(item => {
-		if(item.original === CONSTANT.musicOriginal.netEaseCloud){
-			savedNetEaseCloudMusic.push(item.id)
-		} else if(item.original === CONSTANT.musicOriginal.qqMusic){
-			savedQQMusic.push(item.id)
-		} else if(item.original === CONSTANT.musicOriginal.kuGouMusic){
-			savedKuGouMusic.push(item.id)
-		}
+		delete item.getNewestPath
 	})
 
 	document.addEventListener('deviceready',function(){
@@ -123,6 +111,10 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 			})
 	},false);
 
+	const original = window.localStorage.getItem("userId");
+	const newOne = result.username
+	window.localStorage.setItem("userId", newOne);
+	const data = { original, newOne }
 	if(that){
 		if(window.isCordova){
 			let dataSaved = Object.assign({}, {"username": newOne}, {"token": result.token});

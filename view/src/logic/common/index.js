@@ -828,7 +828,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 			willSavedSong.filePath = willSavedSong.fileUrl
 			delete willSavedSong.fileUrl
 		}
-		delete willSavedSong.getFilePath
+		delete willSavedSong.getNewestPath
 		musicCollection.push(willSavedSong)
 	}
 	const dataObj = {
