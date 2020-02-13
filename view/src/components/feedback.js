@@ -115,7 +115,7 @@ class Feedback extends React.Component {
 			})
             .catch(err => {
 				this.startToSubmit = false
-                return networkErr(err);
+                return networkErr(err, `submitFeedback feedback data ${data}`);
 			})
 			.finally(() => {
 				//window.goRoute(this, "/system_setup");

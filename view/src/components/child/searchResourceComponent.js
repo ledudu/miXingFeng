@@ -277,9 +277,11 @@ class SearchResourceComponent extends Component {
 
 	fetchOnlineSongs = (query, netEaseCloudType, qqMusicType, kuGouMusicType, kuWoMusicType) => {
 		if(!query) return;
+		logger.info("SearchResourceComponent fetchOnlineSongs query", query)
 		return axios.get(HTTP_URL.getOnlineMusicLists.format({query}))
 			.then((response) => {
 				const result = response.data.result.response;
+				logger.info("SearchResourceComponent fetchOnlineSongs result", result)
 				this.setState({
 					isSearching: false
 				})
@@ -342,14 +344,16 @@ class SearchResourceComponent extends Component {
 		if(!lastSearchString) {
 			return this.dispatchOnlineSongResults(original)
 		}
+		logger.info("SearchResourceComponent showMoreSearchResult original, lastSearchString", original, lastSearchString)
 		return axios.get(fetchMoreMusicUrl.format({query: lastSearchString}))
 			.then((response) => {
 				const result = response.data.result.response;
+				logger.info("SearchResourceComponent showMoreSearchResult original, result", original, result)
 				this.dispatchOnlineSongResults(original, result)
 			})
 			.catch(err => {
 				this.dispatchOnlineSongResults(original)
-				return networkErr(err);
+				return networkErr(err, `showMoreSearchResult axios ${original}`);
 			})
 	}
 

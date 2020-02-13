@@ -31,7 +31,6 @@ export const HTTP_URL = {
 	"getLoginRecord": hostname + "/get_login_record?username={username}&token={token}",
 	"thirdLogin": hostname + "/mini_program_login?code={code}&env={env}&fromApp={fromApp}",
 	"uploadRegistrationID": hostname + "/upload_registration_id",
-	"startToSing": hostname + "/Musics/{song}",
 	"saveSong": hostname + "/save_song",
 	"delFile": hostname + "/del_file",
 	"checkFileMD5": hostname + "/check_file_md5",

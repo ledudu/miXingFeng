@@ -77,16 +77,23 @@ window.getRoute = () => {
 
 axios.interceptors.request.use(function (config) {
 	const { token } = window.$getState().login
+	const userId = localStorage.getItem('userId')
+	logger.info("axios.interceptors.request userId", userId)
     if (token) {
 		config.headers.Authorization = token;
 	}
 	if(config.method === "get"){
-		config.url += `&userId=${localStorage.getItem('userId')}`
+		if(/[?]/.test(config.url)){
+			config.url += `?userId=${userId}`
+		} else {
+			config.url += `&userId=${userId}`
+		}
 	} else if(config.method === "post"){
-		config.data.userId = localStorage.getItem('userId')
+		config.data.userId = userId
 	}
     return config;
 }, function (err) {
+	logger.error("axios.interceptors.request err", err)
     return Promise.reject(err);
 })
 axios.interceptors.response.use(

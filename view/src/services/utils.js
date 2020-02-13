@@ -46,8 +46,11 @@ export const confirm = function(title, text, button="确定", cb, cancelFunc=fal
 	]);
 }
 
-export const networkErr = function(err){
-	logger.info("networkErr", window.getRoute())
+export const networkErr = function(err, originTip){
+	logger.error("networkErr window.getRoute()", window.getRoute())
+	if(originTip){
+		logger.error("networkErr originTip", originTip)
+	}
 	if(err === undefined){
 		logger.warn("network err 请检查网络连接")
 		return Toast.fail("请检查网络连接", CONSTANT.toastTime);

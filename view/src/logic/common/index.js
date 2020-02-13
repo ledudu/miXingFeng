@@ -958,6 +958,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			const fileExist = await checkFileExistOrNot(removePrefixFromFileOrigin(filenameOrigin), "music")
 			if(!fileExist) {
 				alertDialog(`${filename}已被删除`)
+				logger.warn("playMusic 已被删除 filePath, filenameOrigin", filePath, filenameOrigin)
 				removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
 				return
 			}
@@ -981,8 +982,8 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
 					if(item.getNewestPath){
 						needGetNewestPath = false
-						return true
 					}
+					return true
 				}
 			})
 			if(needGetNewestPath || songOriginal === CONSTANT.musicOriginal.netEaseCloud){
@@ -996,13 +997,20 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			rate: 1.0,
 			html5: true,
 			onloaderror: function(id, error){
-				$dispatch(updateSoundPlaying(false))
-				logger.error("playMusic onloaderror", error)
+				stopMusic()
+				musicDataList.some((item) => {
+					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+						delete item.getNewestPath
+						return true
+					}
+				})
+				logger.error("playMusic onloaderror error ", error)
+				logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
 				alertDialog("歌曲播放异常,请尝试其他歌曲")
 			},
 			onend: function() {
 				const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
-				logger.info("onend playByOrder", playByOrder)
+				logger.info("onend pauseWhenOver, playByOrder, playByRandom", pauseWhenOver, playByOrder, playByRandom)
 				musicPlayingProgressFunc()
 				if(playByOrder){
 					setTimeout(() => {
@@ -1027,8 +1035,9 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			window.circleControlRef.style.strokeWidth = "8px"
 		}
 	} catch(err){
-		$dispatch(updateSoundPlaying(false))
 		logger.error("play() fail err", err.stack || err.toString())
+		const { soundInstance, soundInstanceId } = $getState().fileServer
+		stopMusic()
 		alert('播放失败')
 	}
 }
@@ -1207,9 +1216,11 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 		default:
 			break;
 	}
+	logger.info("checkFilePath songOriginal, getFilePath", songOriginal, getFilePath)
 	if(getFilePath){
 		const result = await axios.post(getFilePath, { ids: [musicId] })
 		const {response} = result.data.result
+		logger.info("checkFilePath axios getFilePath response", response)
 		filePath = response.filePath
 		if(filePath){
 			// 下面会直接改变redux里的数据
@@ -1221,6 +1232,10 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 						item.fileSize = response.fileSize
 					}
 				}
+			}
+			if(!self){
+				logger.warn("checkFilePath !self songOriginal, musicDataList", songOriginal, musicDataList)
+				alertDebug("self is not defined in checkFilePath")
 			}
 			self.forceUpdate()
 			return filePath
