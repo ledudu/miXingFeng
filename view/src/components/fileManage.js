@@ -159,7 +159,7 @@ class FileManage extends React.Component {
 									removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "file")
 										.catch(error => {
 											logger.error("删除文件过程中发生了错误 isFileFinished", error.stack||error.toString());
-											networkErr(error);
+											networkErr(error, `fileManage removeFileFromDownload filename ${filename}`);
 										})
 								})
 							} else {
@@ -192,7 +192,7 @@ class FileManage extends React.Component {
 											.catch(error => {
 												this.startToDeleteOnline = false
 												logger.error("删除文件过程中发生了错误", error.stack||error.toString());
-												networkErr(error);
+												networkErr(error, `delFile dataInfo: ${dataInfo}`);
 											})
 									}
 								})

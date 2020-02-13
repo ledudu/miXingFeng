@@ -38,7 +38,7 @@ export const saveUserInfoFunc = (name, info, self) => {
             	})
             	.catch(err => {
 					self.startToSubmit = false
-					return networkErr(err);
+					return networkErr(err, `saveUserInfoFunc updateUserInfo data: ${data}`);
             	})
 		}
 }
@@ -138,7 +138,7 @@ export const searchShellCommand = (self, command) => {
 				isSearching: true
 			})
 			logger.error('err', err)
-            return networkErr(err);
+            return networkErr(err, `rpcCall data: ${data}`);
         })
 }
 

@@ -4,6 +4,7 @@ import { searchFunc } from "../logic/searchUserHistory/index";
 import NavBar from "./child/navbar";
 import { HTTP_URL } from "../constants/httpRoute";
 import AutoSuggest from "./child/autoSuggest"
+import { networkErr } from "../services/utils"
 
 class SearchUserHistory extends Component {
 	constructor(props){
@@ -116,7 +117,8 @@ class SearchUserHistory extends Component {
 					}
 				})
 				.catch(err => {
-					logger.error("getAutoSuggest error", err.stack || err.toString())
+					logger.error("SearchUserHistory getAutoSuggest error", err.stack || err.toString())
+					return networkErr(err, `SearchUserHistory signRecordTypeahead query: ${query}`);
 				})
 		}
 	}

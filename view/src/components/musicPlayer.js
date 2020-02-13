@@ -300,7 +300,7 @@ class MusicPlayer extends React.Component {
 									return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
 										.catch(error => {
 											logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
-											networkErr(error);
+											networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
 										})
 								})
 							} else {
@@ -341,13 +341,13 @@ class MusicPlayer extends React.Component {
 												alert("文件已删除!");
 												return this.updateSearchList(original, filenameOrigin)
 										    } else {
-												logger.error("HTTP_URL.saveSong result", result)
+												logger.error("HTTP_URL.delFile result", result)
 											}
 										})
 										.catch(err => {
 											this.startToDelete = false
-											logger.error("HTTP_URL.saveSong err", err)
-											networkErr(err);
+											logger.error("HTTP_URL.delFile err", err)
+											networkErr(err, `musicPlayer delFile filenameOrigin: ${filenameOrigin}`);
 										})
 								}
 							})

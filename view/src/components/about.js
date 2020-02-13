@@ -77,7 +77,7 @@ class About extends React.Component {
 				}
             })
             .catch(err => {
-                networkErr(err);
+                networkErr(err, `checkUpdate`);
             })
 	}
 

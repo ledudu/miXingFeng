@@ -22,7 +22,7 @@ class LoginRecord extends Component {
 				})
 			})
 			.catch(err => {
-				networkErr(err)
+				networkErr(err, `getLoginRecord`)
 			})
 	}
 

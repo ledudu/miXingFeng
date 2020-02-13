@@ -59,7 +59,7 @@ class SearchPosition extends Component {
 				})
 			})
 			.catch(err => {
-                networkErr(err);
+                networkErr(err, `searchPosition searchString:${searchString}`);
             })
     }
 
@@ -116,7 +116,8 @@ class SearchPosition extends Component {
 					}
 				})
 				.catch(err => {
-					logger.error("getAutoSuggest error", err.stack || err.toString())
+					logger.error("SearchPosition getAutoSuggest error", err.stack || err.toString())
+					return networkErr(err, `SearchPosition getAutoSuggest query: ${query}`);
 				})
 		}
 	}

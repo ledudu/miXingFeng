@@ -31,7 +31,7 @@ class ShowOnlinePersons extends React.Component {
 				})
 			})
 			.catch(function(error) {
-        	    networkErr(error);
+        	    networkErr(error, `checkOnlinePersons`);
         	})
     }
 

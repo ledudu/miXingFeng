@@ -21,7 +21,7 @@ export const retrieveLastLoginTime = () => {
 				window.$dispatch(updateLastSignUpTime(lastSignUpTime));
 			})
 			.catch(err => {
-                networkErr(err);
+                networkErr(err, `lastSign`);
             })
 	}
 }
@@ -78,7 +78,7 @@ export const signInApp = (that) => {
 			})
 			.catch(err => {
 				window.logger.error(`signIn, err`, err.stack||err.toString());
-				networkErr(err);
+				networkErr(err, `signInApp data: ${data}`);
 			})
 	} else {
 		window.goRoute(that, "/login");
@@ -156,6 +156,7 @@ export const downloadAdPic = () => {
 				if(err) {
 					alertDebug("setTimeout download ad pic err")
 					logger.error("setTimeout download ad pic err", err.stack || err.toString())
+					return networkErr(err, `setTimeout download ads pic`);
 				}
 			})
 	}, 30*1000)

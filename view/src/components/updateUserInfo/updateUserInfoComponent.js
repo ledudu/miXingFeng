@@ -79,7 +79,7 @@ class UpdateUserInfoComponent extends React.Component {
             	})
             	.catch(err => {
 					this.startToSubmit = false
-            	    return networkErr(err);
+            	    return networkErr(err, `updateUserInfo data: ${data}`);
             	})
 		}
     }

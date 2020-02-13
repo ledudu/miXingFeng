@@ -294,7 +294,7 @@ class SearchResourceComponent extends Component {
 				this.setState({
 					isSearching: false
 				})
-				return networkErr(err);
+				return networkErr(err, `fetchOnlineSongs ${query}`);
 			})
 	}
 

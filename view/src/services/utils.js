@@ -63,7 +63,7 @@ export const networkErr = function(err, originTip){
 			logger.warn("networkErr" , err)
 		} else {
 			alertDebug("请检查网络连接: " + JSON.stringify(err));
-			logger.warn("networkErr" , JSON.stringify(err))
+			logger.warn("networkErr" , err)
 		}
 	}
 }

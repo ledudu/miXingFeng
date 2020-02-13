@@ -128,7 +128,7 @@ class Notification extends Component {
 				}
 			})
 			.catch(err => {
-				return networkErr(err);
+				return networkErr(err, `onAllowShareMySignature`);
 			})
 		this.props.form.setFieldsValue({
 			Switch6: checked,

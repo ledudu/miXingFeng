@@ -105,7 +105,7 @@ class CheckEmail extends React.Component {
 				})
 				.catch(err => {
 					Toast.hide();
-					return networkErr(err);
+					return networkErr(err, `checkEmailValid`);
 				})
 				.finally(() => {
 					this.startToSubmit = false

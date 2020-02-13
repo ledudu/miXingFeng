@@ -66,7 +66,7 @@ export const loginApp = (that, username, password) => {
             logger.error(`login  catch`, err);
             $('#loginButton').text("登录")
             Toast.hide();
-            networkErr(err);
+            networkErr(err, `loginVerify data: ${data}`);
         })
 }
 
@@ -211,7 +211,7 @@ export const registerUsername = (that) => {
         })
         .catch(err => {
             Toast.hide();
-            networkErr(err);
+            networkErr(err, `registerUsername data: ${data}`);
         })
 }
 
@@ -267,7 +267,7 @@ export const resetPasswordFunc = (self) => {
     	})
     	.catch(err => {
     	    Toast.hide();
-    	    networkErr(err);
+    	    networkErr(err, `resetPassword data: ${data}`);
 		})
 		.finally(() => {
 			delete window.forgetPasswordToken

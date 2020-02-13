@@ -28,7 +28,7 @@ export const searchFunc = (username="", slice) => {
             return Promise.resolve(response.data.result);
         })
         .catch(err => {
-            networkErr(err);
+            networkErr(err, `searchFunc url: ${url}`);
         })
 }
 

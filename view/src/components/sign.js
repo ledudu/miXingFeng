@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from "react-redux";
 import Loadable from 'react-loadable';
-import { confirm, getAndReadFile, writeFile, onBackKeyDown, checkPreviousLogin, isEmptyFileFunc, alertDialog } from "../services/utils";
+import { confirm, getAndReadFile, writeFile, onBackKeyDown, checkPreviousLogin, isEmptyFileFunc, alertDialog, networkErr } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
@@ -171,6 +171,9 @@ class Sign extends Component {
 							})
 							$dispatch(updateFileList(array));
 						})
+						.catch(err => {
+							return networkErr(err, `sign getList fileType file`);
+						})
 
 					axios.get(HTTP_URL.getList.format({fileType: 'music'}))
 						.then(async function(response) {
@@ -193,6 +196,9 @@ class Sign extends Component {
 							downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
 							$dispatch(updateDownloadedMusicList(downloadedMusicArr))
 							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
+						})
+						.catch(err => {
+							return networkErr(err, `sign getList fileType music`);
 						})
 
 					if (window.isCordova) {

@@ -412,7 +412,7 @@ export const logoutApp = async(self) => {
 
 export const autoLogin = function(token){
 	return new Promise((res,rej) => {
-		let data = Object.assign({}, { token })
+		const data = Object.assign({}, { token })
 		return axios.post(HTTP_URL.tokenLogin, data)
 			.then((response) => {
 				let result = response.data.result;
@@ -432,7 +432,7 @@ export const autoLogin = function(token){
 			})
 			.catch(err => {
 				window.logger.error(`autoLogin err`, err);
-				networkErr(err)
+				networkErr(err, `autoLogin data: ${data}`)
 			})
 	})
 }
@@ -687,7 +687,7 @@ export const checkFileMD5Func = (filename, uploadUsername, md5, group, type) => 
 			}
 		})
 		.catch(err => {
-			return networkErr(err)
+			return networkErr(err, `checkFileMD5Func checkFileMD5Obj: ${checkFileMD5Obj}`)
 		})
 }
 
@@ -859,7 +859,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 		})
 		.catch(err => {
 			logger.error("HTTP_URL.saveSong err", err)
-			networkErr(err);
+			networkErr(err, `saveSong dataObj: ${dataObj}`);
 		})
 }
 
@@ -1219,6 +1219,9 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 	logger.info("checkFilePath songOriginal, getFilePath", songOriginal, getFilePath)
 	if(getFilePath){
 		const result = await axios.post(getFilePath, { ids: [musicId] })
+			.catch(err => {
+				return networkErr(err, `checkFilePath getFilePath: ${getFilePath} musicId: ${musicId}`);
+			})
 		const {response} = result.data.result
 		logger.info("checkFilePath axios getFilePath response", response)
 		filePath = response.filePath
