@@ -82,13 +82,7 @@ axios.interceptors.request.use(function (config) {
     if (token) {
 		config.headers.Authorization = token;
 	}
-	if(config.method === "get"){
-		if(/[?]/.test(config.url)){
-			config.url += `?userId=${userId}`
-		} else {
-			config.url += `&userId=${userId}`
-		}
-	} else if(config.method === "post"){
+	if(config.method === "post"){
 		config.data.userId = userId
 	}
     return config;
