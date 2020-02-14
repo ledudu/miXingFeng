@@ -12,6 +12,7 @@ export const alert = (text) => {
 	} else {
 		Toast.info(text, 2, null, false);
 	}
+	logger.info("window.plugins.toast.showShortCenter alert text", text)
 }
 
 export const alertDialog = (title, text, button="确定", cb) => {
@@ -19,7 +20,7 @@ export const alertDialog = (title, text, button="确定", cb) => {
 		{
 			text: button,
 			onPress: () => {
-				window.logger.info(`alertDialog confirm enter`);
+				window.logger.info(`alertDialog confirm enter title, text`, title, text);
 				if(cb instanceof Function){
 					cb()
 				}
@@ -31,7 +32,7 @@ export const alertDialog = (title, text, button="确定", cb) => {
 export const confirm = function(title, text, button="确定", cb, cancelFunc=false){
 	Modal.alert(title, text, [
 		{ text: '取消', onPress: () => {
-			window.logger.info(`confirm cancel`);
+			window.logger.info(`confirm cancel title, text`, title, text);
 			if(cancelFunc){
 				cancelFunc();
 			}
@@ -39,7 +40,7 @@ export const confirm = function(title, text, button="确定", cb, cancelFunc=fal
 		{
 			text: button,
 			onPress: () => {
-				window.logger.info(`confirm enter`);
+				window.logger.info(`confirm enter title, text`, title, text);
 				return new Promise((resolve) => resolve(cb()))
 			}
 		},
@@ -248,6 +249,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, options.self)
 		if(!fileUrl) return
 	}
+	logger.info("saveFileToLocal fileUrl, filenameOrigin", fileUrl, filenameOrigin)
 	if(!window.isCordova) {
 		window.open(fileUrl)
 		return;
@@ -286,12 +288,13 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 							}
 						}
 					}
+					logger.info("saveFileToLocal param, downloadingMusicItems", param, downloadingMusicItems)
 				}, 1100)
 			}
 		})
 	}
 	return new Promise(function (res, rej) {
-		logger.info("saveFileToLocal filenameOrigin", filenameOrigin)
+		logger.info("saveFileToLocal prepare to download filenameOrigin", filenameOrigin)
         window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
 			fs.root.getDirectory('miXingFeng', {
 				create: true
@@ -310,6 +313,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 									progressPercent = (progressLine * 100).toFixed(0);
 									if(throttleTimer) return;
 									if(firstTime){
+										logger.info("saveFileToLocal start to download onprogress firstTime filenameOrigin", filenameOrigin)
 										firstTime = false;
 										const { username } = $getState().login
 										const downloadingFileOrigin = `downloading_${filenameOrigin}`
@@ -352,6 +356,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 									logger.info("saveFileToLocal filename", filename, 'fileUrl', fileUrl, 'folder', folder)
 									if(!filename) return res()
                                     if (progressPercent >= 1) {
+										logger.info("saveFileToLocal download complete wait for next to success filenameOrigin", filenameOrigin)
 										window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
 										if(needSaveToDownloadBox){
 											const { username } = $getState().login
@@ -417,6 +422,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 																}
 															}
 														}
+														logger.info("saveFileToLocal download complete success filenameOrigin", filenameOrigin)
 													}, 1010)
 												})
 												.catch(err => {
@@ -432,15 +438,17 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 										// window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
 										if(cancelDownload){
 											window.logger.info(`error callback cancel download`);
+											logger.info("saveFileToLocal download 已取消 filenameOrigin", filenameOrigin)
 											updateDownloadingStatus(filename, '已取消', uploadUsername, fileSize, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
 										} else {
 											window.logger.error(`下载失败`, error, 'fileUrl', fileUrl);
 											if(error.body === "Not Found"){
-												window.logger.error("文件已删除");
+												window.logger.error("saveFileToLocal download 文件已删除 filenameOrigin", filenameOrigin);
 												alert("文件已删除")
 												return;
 											}
 											alert(`${filename}下载失败`)
+											window.logger.error("saveFileToLocal download 下载失败 filenameOrigin", filenameOrigin);
 											updateDownloadingStatus(filename, '失败', uploadUsername, fileSize, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
 										}
 									}, 1010)
@@ -497,6 +505,7 @@ export const updateDownloadingStatus = (filename, result, uploadUsername, fileSi
 		downloadingFileItems.push(obj)
 		window.eventEmit.$emit("downloadingFileItems", downloadingFileItems)
 	}
+	logger.info("updateDownloadingStatus fromMusic, obj", fromMusic, obj)
 }
 
 export const throttle = (fn, t) => {

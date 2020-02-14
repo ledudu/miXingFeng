@@ -729,7 +729,7 @@ export const calcFileMD5 = (file) => {
 				loadNext();
 			} else {
 				const MD5Value = spark.end()
-				logger.info('SparkMD5 computed hash', MD5Value); // Compute hash
+				logger.info('calcFileMD5 SparkMD5 computed hash', MD5Value); // Compute hash
 				return resolve({
 					MD5Value,
 					MD5ValueError: null
@@ -965,7 +965,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			filePath = removePrefixFromFileOrigin(filePath)
 		}
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
-		logger.info("music play filenameOrigin", filenameOrigin)
+		logger.info("playMusic music play filenameOrigin", filenameOrigin)
 		if(soundInstance && soundInstanceId){
 			soundInstance.unload()
 		}
@@ -1035,8 +1035,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			window.circleControlRef.style.strokeWidth = "8px"
 		}
 	} catch(err){
-		logger.error("play() fail err", err.stack || err.toString())
-		const { soundInstance, soundInstanceId } = $getState().fileServer
+		logger.error("play() fail err", err && err.stack || err.toString())
 		stopMusic()
 		alert('播放失败')
 	}
@@ -1058,7 +1057,7 @@ export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original, s
 		playAnotherSong(nextSongInfo, original, musicDataList, type, null, self)
 	} catch(err){
 		alert("歌曲文件异常, 暂停播放");
-		logger.error("play onEnd err", err)
+		logger.error("autoPlayNextOne play onEnd err", err)
 	}
 }
 
@@ -1067,6 +1066,7 @@ function playAnotherSong(anotherSongInfo, original, musicDataList, type, others,
 	stopMusic()
 	if(anotherSongInfo.payPlay) {
 		alert("尊重版权,人人有责")
+		logger.info("playAnotherSong 尊重版权,人人有责 anotherSongInfo", anotherSongInfo)
 		if(type){
 			return autoPlayNextOne(type, anotherSongInfo.filenameOrigin, musicDataList, original, self)
 		} else if(others){
@@ -1087,6 +1087,7 @@ export const getRandomFileIndex = (currentMusicFilenameOriginalArr, currentFileI
 		logger.warn("getRandomFileIndex repeat randomFileIndex", randomFileIndex, 'currentFileIndex', currentFileIndex)
 		return getRandomFileIndex(currentMusicFilenameOriginalArr, currentFileIndex)
 	} else {
+		logger.info("getRandomFileIndex randomFileIndex", randomFileIndex)
 		return randomFileIndex
 	}
 }
@@ -1102,9 +1103,11 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 					filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
 					if(item.progress === "失败" || item.progress === "已取消"){
 						alert(`重新下载${filename}`)
+						logger.info("checkStatus 重新下载 item.progress, filenameOrigin", item.progress, filenameOrigin)
 						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, true, duration)
 						saveFileToLocal(filenameOrigin, filePath, "music", filename, uploadUsername, true, fileSize, true, {duration, songOriginal})
 					} else {
+						logger.info("checkStatus abort download filenameOrigin", filenameOrigin)
 						window.eventEmit.$emit(`FileTransfer-${filenameOrigin}`, 'abort')
 					}
 					return true
@@ -1116,7 +1119,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 		}
 		const { soundInstance } = $getState().fileServer
 		if(soundInstance) getMusicCurrentPlayProcess(false)
-		logger.info("music checkStatus currentPlayingSong", currentPlayingSong)
+		logger.info("music checkStatus currentPlayingSong, soundPlaying, filenameOrigin", currentPlayingSong, soundPlaying, filenameOrigin)
 		if(!soundPlaying){
 			if(!currentPlayingSong){
 				// first play case
@@ -1243,7 +1246,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			self.forceUpdate()
 			return filePath
 		} else {
-			logger.warn("get no filePath songOriginal", )
+			logger.warn("get no filePath songOriginal, musicId, response", songOriginal, musicId, response)
 			alertDialog("歌曲异常,请尝试其他歌曲")
 			return false
 		}

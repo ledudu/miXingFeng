@@ -49,7 +49,7 @@ function onDeviceReady(){
 					$dispatch(updateAdPicSrc(`./ads/ad${adNumber}.png`))
 				}
 				$dispatch(updateBackToDesktopTime(0))
-				$dispatch(updateAdsTime(4))
+				$dispatch(updateAdsTime(3))
 				logger.info('time(minutes)', parseInt((Date.now() - backToDesktopTime) / 60000), 'going to ads page')
 				$dispatch(updateDirectShowSignPage(false))
 				$dispatch(updateHideNavBar(true))
