@@ -5,6 +5,9 @@ const TOKEN = "login/token";
 const IS_FROM_LOGIN_PAGE = "login/isFromLoginPage";
 const LOG_OUT_Flag = 'login/logOutFlag';
 const HAS_FORGET_PASSWORD = "login/hasForgetPassword"
+const REGISTER_FROM_LOGIN = "login/registerFromLogin"
+const FORGET_PASSWORD_TOKEN = "login/forgetPasswordToken"
+const FORGET_PASSWORD_TOKEN_ORIGIN = "login/forgetPasswordTokenOrigin"
 
 // initialSate
 const initialState = () => ({
@@ -13,7 +16,10 @@ const initialState = () => ({
 	token: "",
 	isFromLoginPage: false,
 	logOutFlag: false,
-	hasForgetPassword: false
+	hasForgetPassword: false,
+	registerFromLogin: false,
+	forgetPasswordToken: "",
+	forgetPasswordTokenOrigin: "",
 });
 
 // Reducer
@@ -42,6 +48,18 @@ export default function reducer(state = initialState(), action = {}) {
 		case HAS_FORGET_PASSWORD:
 			return Object.assign({}, state, {
 				hasForgetPassword: action.data
+			});
+		case REGISTER_FROM_LOGIN:
+			return Object.assign({}, state, {
+				registerFromLogin: action.data
+			});
+		case FORGET_PASSWORD_TOKEN:
+			return Object.assign({}, state, {
+				forgetPasswordToken: action.data
+			});
+		case FORGET_PASSWORD_TOKEN_ORIGIN:
+			return Object.assign({}, state, {
+				forgetPasswordTokenOrigin: action.data
 			});
 		default:
 			return state;
@@ -76,5 +94,20 @@ export const updateLogOutFlag = data => ({
 
 export const updateHasForgetPassword = data => ({
 	type: HAS_FORGET_PASSWORD,
+	data
+})
+
+export const updateRegisterFromLogin = data => ({
+	type: REGISTER_FROM_LOGIN,
+	data
+})
+
+export const updateForgetPasswordToken = data => ({
+	type: FORGET_PASSWORD_TOKEN,
+	data
+})
+
+export const updateForgetPasswordTokenOrigin = data => ({
+	type: FORGET_PASSWORD_TOKEN_ORIGIN,
 	data
 })

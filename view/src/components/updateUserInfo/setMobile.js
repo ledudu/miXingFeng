@@ -1,22 +1,39 @@
 import React from 'react';
 import { connect } from "react-redux";
 import UpdateUserInfoComponent from "./updateUserInfoComponent";
-import { updateSetMobile } from "../../ducks/myInfo";
+import { updateSetTempMobile } from "../../ducks/myInfo";
 import NavBar from "../child/navbar";
+import { updateRegisterFromLogin } from "../../ducks/login"
 
 class SetMobile extends React.Component {
 
     backToMainPage = () => {
-        window.goRoute(this, "/user_profile");
+		const { registerFromLogin } = this.props
+		if(registerFromLogin){
+			$dispatch(updateRegisterFromLogin(false))
+			window.goRoute(this, "/login")
+		} else {
+			window.goRoute(this, "/user_profile");
+		}
     }
 
     render() {
-        let { setMobile } = this.props;
+        let { setMobile, registerFromLogin } = this.props;
         setMobile = setMobile ? setMobile : "请输入手机号"
         return (
             <div>
                 <NavBar centerText='填写手机号' backToPreviousPage={this.backToMainPage} />
-                <UpdateUserInfoComponent pageTitle="填写手机号" placeholder={setMobile} infoLength={13} infoErrorTip="手机号错误，请检查" updateUserInfoDispatch={updateSetMobile} name="mobile" backToMainPage={this.backToMainPage}/>
+				<UpdateUserInfoComponent
+					pageTitle="填写手机号"
+					placeholder={setMobile}
+					infoLength={13}
+					infoErrorTip="手机号错误，请检查"
+					updateUserInfoDispatch={updateSetTempMobile}
+					name="mobile"
+					backToMainPage={this.backToMainPage}
+					self={this}
+					registerFromLogin={registerFromLogin}
+				/>
             </div>
         );
     }
@@ -24,7 +41,8 @@ class SetMobile extends React.Component {
 
 const mapStateToProps = state => {
 	return {
-		setMobile: state.myInfo.setMobile
+		setMobile: state.myInfo.setMobile,
+		registerFromLogin: state.login.registerFromLogin
 	};
 };
 

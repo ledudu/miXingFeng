@@ -128,6 +128,10 @@ const CheckEmail = MyLoadable({
 	loader: () => import("./components/updateUserInfo/checkEmail")
 })
 
+const CheckMobile = MyLoadable({
+	loader: () => import("./components/updateUserInfo/checkMobile")
+})
+
 const ForgetPassword = MyLoadable({
 	loader: () => import("./components/forgetPassword")
 })
@@ -340,6 +344,7 @@ class Routers extends Component {
 							<Route path="/nickname_page" component={NicknamePage} />
 							<Route path="/set_email" component={SetEmail} />
 							<Route path="/check_email" component={CheckEmail} />
+							<Route path="/check_mobile" component={CheckMobile} />
 							<Route path="/search_file" component={SearchFile} />
 							<Route path="/search_music" component={SearchMusic} />
 							<Route path="/search_online_music" component={SearchOnlineMusic} />

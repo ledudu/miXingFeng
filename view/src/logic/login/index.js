@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Toast } from "antd-mobile";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { alert, writeFile, alertDialog } from "../../services/utils";
-import { updatePassword, updateUsername, updateToken, updateIsFromLoginPage, updateLogOutFlag } from "../../ducks/login";
+import { updatePassword, updateUsername, updateToken, updateIsFromLoginPage, updateLogOutFlag, updateForgetPasswordToken, updateForgetPasswordTokenOrigin } from "../../ducks/login";
 import {
 	networkErr
 } from "../../services/utils";
@@ -27,8 +27,6 @@ export const loginApp = (that, username, password) => {
     let loginFlag;
     if(loginFlag) return;
     loginFlag = false;
-    window.$dispatch(updateUsername(username));
-    window.$dispatch(updatePassword(password));
     let data = Object.assign({}, { username }, { pwd: password })
     if (!username) {
         alert("用户名不能为空");
@@ -74,6 +72,7 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	$dispatch(updateUsername(result.username));
+	$dispatch(updatePassword(result.password));
 	$dispatch(updateToken(result.token));
 	$dispatch(updateSetNickname(userProfile.nickname));
 	$dispatch(updateSetMobile(userProfile.mobile));
@@ -171,12 +170,9 @@ export const registerUsername = (that) => {
 		logger.info("两次输入的密码不一致，请重新输入 pwdValueAgain", pwdValueAgain)
         alertDialog("两次输入的密码不一致，请重新输入");
         return;
-    }
-    let data = Object.assign({}, {
-        username: usernameValue
-    }, {
-        pwd: pwdValue
-    });
+	}
+	const { setTempMobile } = $getState().myInfo
+    const data = { username: usernameValue , pwd: pwdValue, mobile: setTempMobile }
     Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.registerVerify , (data))
         .then((response) => {
@@ -185,16 +181,13 @@ export const registerUsername = (that) => {
             if (response.data.result.response === "illegal_username") {
                 alert("用户名非法");
                 return;
-            } else if (response.data.result.response === "first_letter_number") {
-                alert('用户用户名首字母不能是数字');
-                return;
             } else if (response.data.result.response === "illegal_password") {
                 alert('密码非法');
                 return;
             } else if (response.data.result.response === "username_exist") {
                 alert('用户名已存在');
                 return;
-            } else if (response.data.result.response === "register_success"){
+            } else if (response.data.result.response === "modify_success"){
                 alert('注册成功')
                 document.getElementsByName("register-username")[0] && (document.getElementsByName("register-username")[0].value = "");
                 document.getElementsByName("register-password")[0] && (document.getElementsByName("register-password")[0].value = "");
@@ -216,7 +209,8 @@ export const registerUsername = (that) => {
 }
 
 export const resetPasswordFunc = (self) => {
-    const token = window.$getState().login.token || window.forgetPasswordToken
+	const { forgetPasswordToken, forgetPasswordTokenOrigin } = $getState().login
+    const token =  forgetPasswordToken || $getState().login.token
     let data = {};
     if(!token){
         return;
@@ -231,7 +225,12 @@ export const resetPasswordFunc = (self) => {
         } else if(newPwd2 !== newPwd3) {
 			return alert("两次密码不一致")
 		} else {
-            data = Object.assign({}, {newPwd: newPwd3, token});
+			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : null
+			if(origin){
+				data = Object.assign({}, {newPwd: newPwd3, token, origin});
+			} else {
+				return alert('未知来源')
+			}
         }
     }
 
@@ -253,8 +252,9 @@ export const resetPasswordFunc = (self) => {
     	        alert('身份已过期，请重新登录');
     	    } else if(response.data.result.result === "reset_success"){
 				alert('重置成功');
-				if(window.forgetPasswordToken){
-					delete window.forgetPasswordToken
+				if(forgetPasswordToken){
+					$dispatch(updateForgetPasswordToken(""))
+					$dispatch(updateForgetPasswordTokenOrigin(""))
 					$dispatch(updatePassword(""))
 					window.goRoute(self, "/login")
 				} else {
@@ -268,9 +268,6 @@ export const resetPasswordFunc = (self) => {
     	.catch(err => {
     	    Toast.hide();
     	    networkErr(err, `resetPassword data: ${data}`);
-		})
-		.finally(() => {
-			delete window.forgetPasswordToken
 		})
 }
 

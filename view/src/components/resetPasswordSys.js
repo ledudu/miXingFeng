@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import { Button } from "antd-mobile";
 import { resetPasswordFunc} from "../logic/login";
 import NavBar from "./child/navbar";
+import { updateForgetPasswordToken } from "../ducks/login"
 
 class resetPasswordSys extends Component {
 
     backToMain = () => {
-		if(window.forgetPasswordToken){
-			delete window.forgetPasswordToken
+		const { forgetPasswordToken } = $getState().login
+		if(forgetPasswordToken){
+			$dispatch(updateForgetPasswordToken(""))
 			window.goRoute(this, "/forget_password")
 		} else {
 			window.goRoute(this, "/system_setup")
@@ -41,7 +43,7 @@ class resetPasswordSys extends Component {
 					<div className="content">
         	            <input type="password" className="reset-password-password3 form" placeholder="请再次输入新密码"
         	                size="16" onKeyDown={(event) => this.resetPasswordKeyDownEvent(event)} />
-						<div className="new-password-text">新密码</div>
+						<div className="new-password-text">再次输入新密码</div>
         	        </div>
 				</div>
         	    <div className="reset-password-btn">

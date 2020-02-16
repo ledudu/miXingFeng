@@ -15,17 +15,13 @@ class SetNickname extends React.Component {
         }
     }
 
-    gotoLoginPage = () => {
-        window.goRoute(this, "/login")
-    }
-
     render() {
         let { setNickname } = this.props;
         setNickname = setNickname ? setNickname : "最多10个字";
         return (
             <div>
                 <NavBar centerText="设置昵称" backToPreviousPage={this.backToMainPage} />
-                <UpdateUserInfoComponent pageTitle="设置昵称" placeholder={setNickname} infoLength={10} infoErrorTip="昵称不允许超过10个字" updateUserInfoDispatch={updateSetNickname} name="nickname" backToMainPage={this.backToMainPage} gotoLoginPage={this.gotoLoginPage} />
+                <UpdateUserInfoComponent pageTitle="设置昵称" placeholder={setNickname} infoLength={10} infoErrorTip="昵称不允许超过10个字" updateUserInfoDispatch={updateSetNickname} name="nickname" backToMainPage={this.backToMainPage} />
             </div>
         );
     }

@@ -775,6 +775,14 @@ export const checkEmail = (email) => {
 	}
 }
 
+export const checkMobilePhone = (mobile) => {
+	if(/^[1]([3-9])[0-9]{9}$/g.test(mobile.replace(/\s/g, ""))){
+		return true
+	} else {
+		return false
+	}
+}
+
 export const checkSongSavedFunc = (musicDataList, original) => {
 	const { musicCollection } = $getState().fileServer
 	if(original !== CONSTANT.musicOriginal.savedSongs){

@@ -59,7 +59,7 @@ export default class Register extends Component {
                 <div className="input-content">
                     <div className="content">
                         <input name="register-password-again" id="register-password2" type="password" size="16" placeholder="请再次输入密码，至少包含一个数字和字母" className="form" onKeyDown={(event) => this.registerKeyDownEvent(event)} />
-						<div className="new-password-text">密码</div>
+						<div className="new-password-text">确认密码</div>
                     </div>
                 </div>
                 <div className="register-btn">

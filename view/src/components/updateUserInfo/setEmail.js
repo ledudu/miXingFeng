@@ -15,10 +15,6 @@ class SetEmail extends React.Component {
         }
     }
 
-    gotoLoginPage = () => {
-        window.goRoute(this, "/login")
-    }
-
     render() {
         let { setEmail } = this.props;
 		setEmail = setEmail ? setEmail : "请输入邮箱";
@@ -34,7 +30,6 @@ class SetEmail extends React.Component {
 					updateUserInfoDispatch={updateSetTempEmail}
 					name="email"
 					backToMainPage={this.backToMainPage}
-					gotoLoginPage={this.gotoLoginPage}
 					self={self}
 				/>
             </div>

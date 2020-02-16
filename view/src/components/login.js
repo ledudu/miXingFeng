@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { loginApp, dealtWithLoginIn} from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { reconnectSocket } from "../logic/common"
-import { updateIsFromLoginPage } from "../ducks/login"
+import { updateIsFromLoginPage, updateRegisterFromLogin } from "../ducks/login"
 
 class Login extends Component {
 
@@ -183,6 +183,11 @@ class Login extends Component {
 		});
 	}
 
+	register = () => {
+		$dispatch(updateRegisterFromLogin(true))
+		window.goRoute(this, "/set_mobile")
+	}
+
     render() {
         let { usernamePlaceholder, passwordPlaceholder, username, password, showAsPassword } = this.state;
         return (
@@ -225,9 +230,9 @@ class Login extends Component {
                         </div>
                     </div>
                     <div className="foot">
-                        <Link to="/register">
+                        <span onClick={this.register}>
                             注册用户名
-                        </Link>
+                        </span>
                         <Link to="/forget_password">
                             忘记密码
                         </Link>

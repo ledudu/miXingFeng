@@ -12,6 +12,7 @@ const SET_HEAD_PIC_NAME = "myInfo/setHeadPicName";
 const REPLACE_HEAD_PIC = "myInfo/replaceHeadPic";
 const SET_EMAIL = "myInfo/setEmail";
 const SET_TEMP_EMAIL = "myInfo/setTempEmail";
+const SET_TEMP_MOBILE = "myInfo/setTempMobile";
 
 // initialSate
 const initialState = () => ({
@@ -27,7 +28,8 @@ const initialState = () => ({
 	setHeadPicName: "",
 	replaceHeadPic: false,
 	setEmail: "",
-	setTempEmail: ""
+	setTempEmail: "",
+	setTempMobile: ""
 });
 
 // Reducer
@@ -85,6 +87,10 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {
 				setTempEmail: action.data
 			});
+		case SET_TEMP_MOBILE:
+			return Object.assign({}, state, {
+				setTempMobile: action.data
+			});
 		default:
 			return state;
 	}
@@ -141,5 +147,9 @@ export const updateSetEmail = data => ({
 })
 export const updateSetTempEmail = data => ({
 	type: SET_TEMP_EMAIL,
+	data
+})
+export const updateSetTempMobile = data => ({
+	type: SET_TEMP_MOBILE,
 	data
 })

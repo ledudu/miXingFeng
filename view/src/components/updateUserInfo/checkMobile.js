@@ -4,8 +4,8 @@ import { Toast } from "antd-mobile";
 import NavBar from "../child/navbar";
 import { networkErr } from "../../services/utils";
 import { HTTP_URL } from "../../constants/httpRoute";
-import { updateSetEmail } from "../../ducks/myInfo";
-import { updateToken, updateHasForgetPassword, updateForgetPasswordToken } from "../../ducks/login";
+import { updateSetMobile } from "../../ducks/myInfo";
+import { updateToken, updateHasForgetPassword, updateRegisterFromLogin, updateForgetPasswordToken } from "../../ducks/login";
 import { CONSTANT } from "../../constants/enumeration";
 
 const keyCode = [
@@ -14,19 +14,21 @@ const keyCode = [
 	229 //手机键盘
 ]
 
-class CheckEmail extends React.Component {
+class CheckMobile extends React.Component {
 
 	componentDidMount(){
 		this.inputValueRef1.focus()
 	}
 
     backToMainPage = () => {
-		const { forgetPasswordToken } = $getState().login
-		if(forgetPasswordToken){
+		const { registerFromLogin, forgetPasswordToken } = this.props
+		if(forgetPasswordToken){  // 忘记密码场景
 			$dispatch(updateForgetPasswordToken(""))
 			window.goRoute(this, "/forget_password");
-		} else {
-			window.goRoute(this, "/set_email");
+		} else if(registerFromLogin){  //注册场景
+			window.goRoute(this, "/set_mobile");
+		} else {  // 个人中心更改手机号场景
+			window.goRoute(this, "/set_mobile");
 		}
 	}
 
@@ -77,17 +79,17 @@ class CheckEmail extends React.Component {
 		const value3 = this.inputValueRef3.value
 		const value4 = this.inputValueRef4.value
 		const value = (value1 + value2 + value3 + value4)
-		const { username, setTempEmail, hasForgetPassword } = this.props
-		logger.info("checkEmail submit value", value)
+		const { username, setTempMobile, hasForgetPassword, registerFromLogin } = this.props
+		logger.info("CheckMobile submit value", value)
 		if(!this.startToSubmit){
 			this.startToSubmit = true
 			Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
-			axios.get(HTTP_URL.checkEmailValid.format({value, username, email: setTempEmail}))
+			axios.get(HTTP_URL.checkMobileValid.format({value, username, mobile: setTempMobile, registerFromLogin}))
 				.then((response) => {
 					Toast.hide();
 					const result = response.data.result
 					if(result.response === "modify_success"){
-						$dispatch(updateSetEmail(setTempEmail))
+						$dispatch(updateSetMobile(setTempMobile))
 						$dispatch(updateToken(result.token));
 						alert("设置成功")
 						if(hasForgetPassword){
@@ -96,8 +98,13 @@ class CheckEmail extends React.Component {
 						} else {
 							window.goRoute(this, "/user_profile")
 						}
-					} else if(result.response === "no_username_or_value"){
-						return alert("没有用户名或验证码或邮箱")
+					} else if(result.response === "check_mobile_success"){
+						$dispatch(updateRegisterFromLogin(false))
+						window.goRoute(this, "/register")
+					} else if(result.response === "illegal_mobile"){
+						return alert("手机号错误")
+					} else if(result.response === "no_username_or_value_or_mobile"){
+						return alert("没有用户名或验证码或手机号")
 					} else if(result.response === "code_wrong"){
 						return alert("验证码错误")
 					} else {
@@ -106,7 +113,7 @@ class CheckEmail extends React.Component {
 				})
 				.catch(err => {
 					Toast.hide();
-					return networkErr(err, `checkEmailValid`);
+					return networkErr(err, `checkMobileValid`);
 				})
 				.finally(() => {
 					this.startToSubmit = false
@@ -116,21 +123,16 @@ class CheckEmail extends React.Component {
 	}
 
     render() {
-		const { setTempEmail } = this.props;
         return (
             <div className="check-email-input-container">
-                <NavBar centerText="填写邮箱验证码" backToPreviousPage={this.backToMainPage} />
+                <NavBar centerText="填写手机验证码" backToPreviousPage={this.backToMainPage} />
 				<div className="check-email-input-content">
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef1 = ref} onKeyDown={(e) => this.switchNextInput(e, 1)} />
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef2 = ref} onKeyDown={(e) => this.switchNextInput(e, 2)} />
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef3 = ref} onKeyDown={(e) => this.switchNextInput(e, 3)} />
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef4 = ref} onKeyDown={(e) => this.switchNextInput(e, 4)} />
 				</div>
-				<div className="tips">提示：设置邮箱可用于找回密码, 验证码10分钟有效;
-				<br/>
-				您刚输入的邮箱：<strong>{setTempEmail}</strong>
-				<br/>
-				如果收件箱找不到邮件，请检查邮件是否被邮箱拦截。 </div>
+				<div className="tips">提示：绑定手机可用于找回密码, 验证码10分钟有效</div>
             </div>
         );
     }
@@ -138,12 +140,14 @@ class CheckEmail extends React.Component {
 
 const mapStateToProps = state => {
 	return {
-		setTempEmail: state.myInfo.setTempEmail,
+		setTempMobile: state.myInfo.setTempMobile,
 		username: state.login.username,
-		hasForgetPassword: state.login.hasForgetPassword
+		hasForgetPassword: state.login.hasForgetPassword,
+		registerFromLogin: state.login.registerFromLogin,
+		forgetPasswordToken: state.login.forgetPasswordToken
 	};
 };
 
 const mapDispatchToProps = () => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(CheckEmail);
+export default connect(mapStateToProps, mapDispatchToProps)(CheckMobile);
