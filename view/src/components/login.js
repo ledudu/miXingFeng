@@ -11,8 +11,8 @@ class Login extends Component {
     constructor(props){
         super(props);
         this.state = {
-            usernamePlaceholder: "请输入用户名",
-			passwordPlaceholder: "请输入密码",
+            usernamePlaceholder: "用户名/手机号/邮箱",
+			passwordPlaceholder: "请输入登录密码",
 			username: this.props.username || "",
 			password: this.props.password || "",
 			showAsPassword: "password"
@@ -102,12 +102,12 @@ class Login extends Component {
     blur = (elem) => {
         if(elem === 'username'){
             this.setState({
-                usernamePlaceholder: "请输入用户名"
+                usernamePlaceholder: "用户名/手机号/邮箱"
 			});
 			// $("i.fa-times-circle-o").fadeOut()
         } else {
             this.setState({
-                passwordPlaceholder: "请输入密码"
+                passwordPlaceholder: "请输入登录密码"
 			});
 			// $("i.fa-eye").fadeOut()
         }
@@ -209,7 +209,7 @@ class Login extends Component {
 									onChange={this.setUsername}
 									autoComplete="off"/>
 								<i className="fa fa-user fa-inverse" aria-hidden="true"></i>
-                                <div className="login-center-input-text">用户名</div>
+                                <div className="login-center-input-text">账号</div>
 								<i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.setUsername()}></i>
                             </div>
                         </div>
