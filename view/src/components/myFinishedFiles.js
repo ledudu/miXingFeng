@@ -33,7 +33,7 @@ class MyFinishedFiles extends React.Component {
 				<NavBar centerText="文件" backToPreviousPage={this.backToMainPage}
 					rightText="清空" rightTextFunc={this.clearAllFiles}
 				/>
-				<div className="my-download-content">
+				<div className="my-download-content file-container">
 					<div className="downloading-file-container">
 						<div className="downloading-file-title">正在下载</div>
 						{ window.isCordova && <FileManage fileDataList={downloadingFileItems} original="fileDownloading" /> }

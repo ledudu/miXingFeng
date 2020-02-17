@@ -517,7 +517,7 @@ class SearchResourceComponent extends Component {
 						{lastSearchString && <i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.updateValue()}></i>}
                     </div>
                 </div>
-                <div className={`search-result-container net-ease-cloud-container`}>
+                <div className={`search-result-container ${type === "file" && 'isFileSearchColumn'}`}>
 					{
 						isSearching
 						? 	<div className="searching">正在查询...</div>

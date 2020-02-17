@@ -84,7 +84,7 @@ class MusicController extends React.Component{
 		}
 		return (
 			<div className="window-music-controller"  ref={ref => window.musicController = ref} onClick={this.gotoPlayingMusicPage} >
-				<div className="song-pic" >{currentSongInfo.filename && currentSongInfo.filename.slice(0, 1).toUpperCase() || "没"}</div>
+				<div className="song-pic" >{currentSongInfo.filename && currentSongInfo.filename.slice(0, 1).toUpperCase() || ""}</div>
 				<div className="song-info">
 					<div className="song-name">{currentSongInfo.filename || "当前没有播放歌曲"}</div>
 					<div className="singer-name">{currentSongInfo.uploadUsername || "无"}</div>

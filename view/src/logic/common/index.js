@@ -1162,20 +1162,20 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 export const checkToShowPlayController = () => {
 	setTimeout(() => {
 		const urlHash =  window.location.href.split("#/")[1]
-		const arr = ["search_position", "login", "nickname_page", "type_shell", "user_agreement", "service_list", "privacy"]
-		let notDisplay = false
-		if(urlHash && !/main/gi.test(urlHash)){
+		const arr = ["search_music", "search_online_music", "search_all", "saved_songs", "my_finished_musics"]
+		let needDisplay = false
+		if(urlHash){
 			arr.forEach(item => {
 				if(item === urlHash){
-					notDisplay = true
+					needDisplay = true
 				}
 			})
-			if(notDisplay){
-				$("#root .container .main-content").css("height", "100vh")
-				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
-			} else {
+			if(needDisplay){
 				$("#root .container .main-content").css("height", "calc(100vh - 60px)")
 				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+			} else {
+				$("#root .container .main-content").css("height", "100vh")
+				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 			}
 		} else {
 			$("#root .container .main-content").css("height", "100vh")
