@@ -98,22 +98,30 @@ class Music extends React.Component {
 		const { MD5Value, MD5ValueError } = this.state;
 		const { username } = this.props;
 		if (!/\.mp3$|\.MPEG$|\.OPUS$|\.OGG$|\.OGA$|\.WAV$|\.AAC$|\.CAF$|\.M4A$|\.MP4$|\.WEBA$|\.WEBM$|\.DOLBY$|\.FLAC$/gi.test(filename)) {
-			alert(`不支持的音乐文件后缀名: .${filename.split('.').pop()}`);
+			const filenameArr = filename.split('.')
+			if(filenameArr.length > 1){
+				const extname = filenameArr.pop()
+				alertDialog(`不支持的音乐文件后缀名: .${extname}`);
+			} else {
+				alertDialog("不知道上传无后缀名的音乐")
+			}
+			logger.info("不支持的音乐文件后缀名 filename", filename)
 			this.startToUpload = false;
 			return
 		} else if (/#|%/g.test(filename)) {
 			this.startToUpload = false;
-			alert("文件名不能包含%或#");
+			alertDialog("文件名不能包含%或#");
 			return
 		} else if (fileSize > 100* 1024 * 1024) {
 			this.startToUpload = false;
-			alert('文件大小超过100M');
+			alertDialog('文件大小超过100M');
 			return
 		} else if(this.getMD5Time > 100 && !MD5Value ){
 			$dispatch(updateMusicSubmitStatus("上传"))
 			logger.warn("too long loop to generate md5")
 			this.startToUpload = false;
-			return alert("文件不可读，请更换文件重试")
+			logger.error("文件不可读，请更换文件重试 filename, fileSize",  filename, fileSize)
+			return alertDialog("文件不可读，请更换文件重试")
 		}
 		$dispatch(updateMusicSubmitStatus("上传中"))
 		if(MD5Value){
@@ -121,12 +129,12 @@ class Music extends React.Component {
 			const checkResult = await checkFileMD5Func(filename, username, MD5Value, "default-music", "music")
 			if(checkResult === "缺少字段"){
 				this.startToUpload = false;
-				return alert('缺少字段')
+				return alertDialog('缺少字段')
 			}
 			if(checkResult === "上传成功") {
 				this.startToUpload = false;
 				$dispatch(updateMusicSubmitStatus("上传"))
-				return  alert('秒传成功')
+				return  alertDialog('秒传成功')
 			}
 			if(checkResult === "没有匹配"){
 				this.setState({
@@ -137,16 +145,17 @@ class Music extends React.Component {
 						i++;
 						if(i > 100){
 							clearInterval(getTimeInterval)
-							alert("文件读取错误, 请上传其他文件");
-							logger.warn('"文件读取错误, 请上传其他文件"')
+							alertDialog("文件读取错误, 请上传其他文件");
+							logger.error("文件读取错误, 请上传其他文件 filename, fileSize", filename, fileSize)
 							$dispatch(updateMusicSubmitStatus("上传"))
 							$dispatch(updateMusicUploadProgress(''))
 							self.startToUpload = false;
 							return
 						}
 						const duration = $(".will-upload-music")[0].duration;
-						logger.info("uploadMusic duration", duration)
+						logger.info("uploadMusic duration, isNaN(duration)", duration, isNaN(duration))
 						if(!isNaN(duration)){
+							logger.info("uploadMusicFunc username, duration, MD5Value", username, duration, MD5Value)
 							clearInterval(getTimeInterval);
 							const formData = new FormData();
 							formData.append('files', files[0]);
@@ -164,20 +173,20 @@ class Music extends React.Component {
 								logger.info('上传成功' + xhr.responseText);
 								if (xhr.status === 200) {
 									if (xhr.responseText.response === "illegal_filetype") {
-										alert(`不支持的文件后缀名: ${filename.split('.').pop()}`);
+										alertDialog(`不支持的文件后缀名: ${filename.split('.').pop()}`);
 									} else if (xhr.responseText.response === "illegal_filename") {
-										alert('文件名不得含有%或#');
+										alertDialog('文件名不得含有%或#');
 									} else if (xhr.responseText.response === "more_than_100mb") {
-										alert('文件大小超过100MB');
+										alertDialog('文件大小超过100MB');
 									} else {
 										alert('上传成功！');
 									}
-									$dispatch(updateMusicSubmitStatus("上传"))
-									$dispatch(updateMusicUploadProgress(''))
 								} else {
-									alert('上传失败')
+									alertDialog('上传失败')
 									logger.error("music upload fail xhr", xhr)
 								}
+								$dispatch(updateMusicSubmitStatus("上传"))
+								$dispatch(updateMusicUploadProgress(''))
 							};
 							xhr.send(formData);
 						}
@@ -188,7 +197,7 @@ class Music extends React.Component {
 			if(MD5ValueError){
 				this.startToUpload = false;
 				$dispatch(updateMusicSubmitStatus("上传"))
-				alert("文件不可读，请更换文件重试");
+				alertDialog("文件不可读，请更换文件重试");
 				return
 			} else {
 				this.getMD5Time++
@@ -207,7 +216,7 @@ class Music extends React.Component {
 	}
 
 	uploadFailed = () => {
-		alert("上传失败");
+		alertDialog("上传失败");
 		$dispatch(updateMusicSubmitStatus("上传"))
 		$dispatch(updateMusicUploadProgress('失败'))
 		this.startToUpload = false;

@@ -132,7 +132,7 @@ function formatDataType(value){
 function activate() {
 	flag = false;
 	let data = list.shift();
-	return createAndWriteFile(data, 'sign_log.log', 'log')
+	return createAndWriteFile(data, 'miXingFeng.txt', 'log')
 		.then(() => new Promise(res => {
 			list.length ? activate() : flag = true;
 			res();

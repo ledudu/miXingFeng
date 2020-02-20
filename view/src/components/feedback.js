@@ -81,7 +81,7 @@ class Feedback extends React.Component {
 								}, function (subDirEntry) {
 									//持久化数据保存
 									subDirEntry.getFile(
-										"sign_log.log", {create: true, exclusive: false},
+										"miXingFeng.txt", {create: true, exclusive: false},
 										function (fileEntry) {
 											const fileURL = fileEntry.toURL();
 											const win = function(r) {

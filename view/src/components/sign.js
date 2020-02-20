@@ -144,6 +144,7 @@ class Sign extends Component {
 			}
 			getGreeting();  // go to this page from other page
 			document.addEventListener("deviceready", this.listenBackKeyDown);
+			document.addEventListener("deviceready", this.getPositionPermission);
 			if(!window.logger) window.logger = console;
 			// if no network when launch app, username will be empty string
 			if(username && !isFromLoginPage){
@@ -212,7 +213,6 @@ class Sign extends Component {
 
 					if (window.isCordova) {
 						document.addEventListener("deviceready", this.checkLoginInfo);
-						document.addEventListener("deviceready", this.getPositionPermission);
 					} else {
 						const token = window.localStorage.getItem('tk');
 						$dispatch(updateToken(token));
@@ -253,6 +253,7 @@ class Sign extends Component {
 		clearInterval(window.clockIntervalTimer)
 		document.removeEventListener("deviceready", this.listenBackKeyDown, false);
 		document.removeEventListener("deviceready", this.backgroundColorByHexString, false);
+		document.removeEventListener("deviceready", this.getPositionPermission, false);
 		document.removeEventListener("backbutton", this.onBackKeyDownSign, false);
 		document.removeEventListener("backbutton", this.checkUpdateSign, false);
 		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
