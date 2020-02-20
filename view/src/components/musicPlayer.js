@@ -10,6 +10,7 @@ import {
 	updatePlayByRandom,
 	updateLastMusicSearchResult,
 	updateLastSearchAllMusicResult,
+	updateRecentMusicList
 } from "../ducks/fileServer";
 import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority } from "../services/utils";
 import { updateToken } from "../ducks/login";
@@ -26,6 +27,7 @@ import {
 	checkStatus,
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
+import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
 let wrapProps;
@@ -75,6 +77,49 @@ class MusicPlayer extends React.Component {
 				})
 			}
 		})
+		window.eventEmit.$on("updateRecentMusicListEventEmit", (recentMusicList) => {
+			if(original === CONSTANT.musicOriginal.musicRecent){
+				recentMusicList = _.orderBy(recentMusicList, ['date'], ['desc'])
+				this.setState({
+					musicDataList: recentMusicList
+				})
+				$dispatch(updateRecentMusicList(recentMusicList))
+			}
+		})
+		window.eventEmit.$on("clearAllMusicRecentRecords", () => {
+			if(original === CONSTANT.musicOriginal.musicRecent){
+				const self = this
+				let clearAllFilesTime = false
+				const { musicDataList } = this.state
+				if(!clearAllFilesTime){
+					clearAllFilesTime = true
+					confirm(`提示`, `确定要移除所有播放记录吗`, "确定", () => {
+						$dispatch(updateRecentMusicList([]))
+						musicDataList.forEach(item => {
+							removeRecentMusicDataByIndexFromIndexDB(item.filenameOrigin)
+								.then(() => {
+									window.eventEmit.$emit("updateRecentMusicListEventEmit", [])
+								}).catch((err) => {
+									logger.error("clearAllMusicRecentRecords removeRecentMusicDataByIndexFromIndexDB file err", err)
+								})
+						})
+						self.setState({
+							musicDataList: []
+						}, () => {
+							clearAllFilesTime = false
+							if(musicDataList.length){
+								alert("删除成功")
+							} else {
+								alert("没有记录可以删除")
+							}
+						})
+
+					}, () => {
+						clearAllFilesTime = false
+					})
+				}
+			}
+		})
 	}
 
 	componentWillReceiveProps(nextProps){
@@ -88,7 +133,25 @@ class MusicPlayer extends React.Component {
 		window.eventEmit.$off("musicRemoved")
 		window.eventEmit.$off("downloadingMusicItems")
 		window.eventEmit.$off("downloadMusicFinished")
+		window.eventEmit.$off("updateRecentMusicListEventEmit")
+		window.eventEmit.$off("clearAllMusicRecentRecords")
 	}
+
+	// listenBackFunc = () => {
+    //     document.addEventListener("backbutton", this.closeShowMenu, false);
+	// }
+
+	// removeListenBackFunc = () => {
+	// 	document.removeEventListener("deviceready", this.listenBackFunc);
+	// 	document.removeEventListener("backbutton", this.closeShowMenu, false);
+	// }
+
+	// closeShowMenu = () => {
+	// 	if($('.am-action-sheet-button-list div:nth-last-child(1)')[0]){
+	// 		$('.am-action-sheet-button-list div:nth-last-child(1)')[0].click();
+	// 		$('.am-action-sheet-button-list div:nth-last-child(1)')[0].click();
+	// 	}
+	// }
 
 	checkSongSaved = () => {
 		const {  musicDataList=[] } = this.state;
@@ -105,8 +168,9 @@ class MusicPlayer extends React.Component {
 			+ ':' + (seconds.toString().length < 2 ? '0'+seconds : seconds );
 	}
 
-	showMenu = (filename, fileSize, fileId, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
+	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
 		try {
+			// document.addEventListener("deviceready", this.listenBackFunc);
 			const {
 				pauseWhenOver,
 				playByOrder,
@@ -151,7 +215,7 @@ class MusicPlayer extends React.Component {
 						text: '版',
 					})
 				}
-				if(original === CONSTANT.musicOriginal.savedSongs || (fileId && fileId !== "downloaded")){
+				if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl"){
 					// 收藏页面和搜索在线音乐页面的菜单没有删除功能
 					buttons.splice(9, 1);
 					delete showActionSheetWithOptionsConfig.destructiveButtonIndex
@@ -174,7 +238,7 @@ class MusicPlayer extends React.Component {
 							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId, self)
 							break;
 						case 1:
-							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null)
+							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType, self)
 							break;
 						case 2:
 							if(!pauseWhenOver || playByOrder || playByRandom){
@@ -298,6 +362,11 @@ class MusicPlayer extends React.Component {
 							if(original === CONSTANT.musicOriginal.musicFinished){
 								confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
 									return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+										.then(() => {
+											if(filenameOrigin === currentPlayingSong){
+												playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
+											}
+										})
 										.catch(error => {
 											logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
 											networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
@@ -325,36 +394,70 @@ class MusicPlayer extends React.Component {
 								filename,
 								type: "default-music"
 							}
-							if(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.netEaseCloud || original === CONSTANT.musicOriginal.qqMusic) return;
-							confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
-								if(!this.startToDelete){
-									this.startToDelete = true
-									return axios.delete(HTTP_URL.delFile, {data: dataInfo})
-										.then((result) => {
-											this.startToDelete = false
-											if(result.data.result.result === 'success'){
-												$dispatch(updateToken(result.data.result.token))
-												//  实时更新搜索列表里被删除的音乐
-												alert('删除成功')
-												return this.updateSearchList(original, filenameOrigin)
-											}  else if (result.data.result.result === 'file_deleted') {
-												alert("文件已删除!");
-												return this.updateSearchList(original, filenameOrigin)
-										    } else {
-												logger.error("HTTP_URL.delFile result", result)
+							if(original === CONSTANT.musicOriginal.musicShare){
+								confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
+									if(!this.startToDelete){
+										this.startToDelete = true
+										return axios.delete(HTTP_URL.delFile, {data: dataInfo})
+											.then((result) => {
+												this.startToDelete = false
+												if(result.data.result.result === 'success'){
+													$dispatch(updateToken(result.data.result.token))
+													//  实时更新搜索列表里被删除的音乐
+													alert('删除成功')
+													return this.updateSearchList(original, filenameOrigin)
+												}  else if (result.data.result.result === 'file_deleted') {
+													alert("文件已删除!");
+													return this.updateSearchList(original, filenameOrigin)
+												} else {
+													logger.error("HTTP_URL.delFile result", result)
+												}
+											})
+											.then(() => {
+												if(filenameOrigin === currentPlayingSong){
+													playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
+												}
+											})
+											.catch(err => {
+												this.startToDelete = false
+												logger.error("HTTP_URL.delFile err", err)
+												networkErr(err, `musicPlayer delFile filenameOrigin: ${filenameOrigin}`);
+											})
+									}
+								})
+							} else if(original === CONSTANT.musicOriginal.musicRecent){
+								let startToDelete
+								confirm('提示', `确定要删除${filename}的播放记录吗`, "确定", () => {
+									if(!startToDelete){
+										startToDelete = true
+										const { recentMusicList } = this.props
+										let currentItemIndex = null
+										recentMusicList.some((item, index) => {
+											if(item.filenameOrigin === filenameOrigin){
+												currentItemIndex = index;
+												return true
 											}
 										})
-										.catch(err => {
-											this.startToDelete = false
-											logger.error("HTTP_URL.delFile err", err)
-											networkErr(err, `musicPlayer delFile filenameOrigin: ${filenameOrigin}`);
-										})
-								}
-							})
+										if(currentItemIndex !== null){
+											recentMusicList.splice(currentItemIndex, 1)
+											$dispatch(updateRecentMusicList(recentMusicList))
+											removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
+											window.eventEmit.$emit("updateRecentMusicListEventEmit", recentMusicList)
+											if(filenameOrigin === currentPlayingSong){
+												const currentMusicFilenameOriginalArr = recentMusicList.map(item => item.filenameOrigin)
+												playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, recentMusicList, null, self)
+											}
+										} else {
+											logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
+										}
+									}
+								})
+							}
 							break;
 						default:
 							break;
 					}
+					// this.removeListenBackFunc()
 				}
 			);
 		} catch(err){
@@ -482,7 +585,7 @@ class MusicPlayer extends React.Component {
 										{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
 										{item.saved && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 										{
-											(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished) && (
+											(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished || original === CONSTANT.musicOriginal.musicRecent) && (
 												item.original === CONSTANT.musicOriginal.netEaseCloud
 												?	<div className="net-ease-source-flag">网易云</div>
 												:	item.original === CONSTANT.musicOriginal.qqMusic
@@ -518,7 +621,7 @@ class MusicPlayer extends React.Component {
 							</div>
 							{
 								original !== CONSTANT.musicOriginal.musicDownloading
-								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.id, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id)}>
+								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id)}>
 										<div className="dot"></div>
 										<div className="dot"></div>
 										<div className="dot"></div>
@@ -551,6 +654,7 @@ const mapStateToProps = state => {
 		downloadingMusicItems: state.fileServer.downloadingMusicItems,
 		downloadedMusicList: state.fileServer.downloadedMusicList,
 		currentPlayingSongOriginal: state.fileServer.currentPlayingSongOriginal,
+		recentMusicList: state.fileServer.recentMusicList,
     };
 };
 

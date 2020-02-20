@@ -3,8 +3,8 @@ import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
 import { calcSize, checkFilePath } from "../logic/common";
-import { addDataFromIndexDB, removeDataFromIndexDB } from "./indexDB"
-import { addMusicDataFromIndexDB, removeMusicDataFromIndexDB } from "./indexDBMusic"
+import { addDataFromIndexDB, removeDataByIndexFromIndexDB } from "./indexDB"
+import { addMusicDataFromIndexDB, removeMusicDataByIndexFromIndexDB } from "./indexDBMusic"
 
 export const alert = (text) => {
 	if(window.isCordova){
@@ -275,7 +275,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 								downloadingFileItems.splice(index, 1)
 								window.eventEmit.$emit("downloadingFileItems", downloadingFileItems)
 								$dispatch(updateDownloadingFileItems(downloadingFileItems))
-								removeDataFromIndexDB(param[1])
+								removeDataByIndexFromIndexDB(param[1])
 							}
 						}
 					} else if(param[0] === "music"){
@@ -284,7 +284,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 								downloadingMusicItems.splice(index, 1)
 								window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 								$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
-								removeMusicDataFromIndexDB(param[1])
+								removeMusicDataByIndexFromIndexDB(param[1])
 							}
 						}
 					}
@@ -333,10 +333,10 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 											downloadingDataToSaveIndexedDBObj.duration = options.duration
 											downloadingDataToSaveIndexedDBObj.id = options.fileId || "downloading"  //只有下载到本地的共享音乐才有id，且id只能是downloaded
 											downloadingDataToSaveIndexedDBObj.original = options.original
-											// await removeMusicDataFromIndexDB(downloadingFileOrigin)
+											// await removeMusicDataByIndexFromIndexDB(downloadingFileOrigin)
 											addMusicDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
 										} else {
-											// await removeDataFromIndexDB(downloadingFileOrigin)
+											// await removeDataByIndexFromIndexDB(downloadingFileOrigin)
 											addDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
 										}
 										updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
@@ -379,12 +379,12 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 												downloadedDataToSaveIndexedDBObj.duration = options.duration
 												downloadedDataToSaveIndexedDBObj.id = options.fileId || "downloaded"
 												downloadedDataToSaveIndexedDBObj.original = options.original
-												await removeMusicDataFromIndexDB(downloadingFileOrigin)
-												// await removeMusicDataFromIndexDB(downloadedFileOrigin)
+												await removeMusicDataByIndexFromIndexDB(downloadingFileOrigin)
+												// await removeMusicDataByIndexFromIndexDB(downloadedFileOrigin)
 												addDataFromIndexDBPromise = addMusicDataFromIndexDB(downloadedDataToSaveIndexedDBObj)
 											} else {
-												await removeDataFromIndexDB(downloadingFileOrigin)
-												// await removeDataFromIndexDB(downloadedFileOrigin)
+												await removeDataByIndexFromIndexDB(downloadingFileOrigin)
+												// await removeDataByIndexFromIndexDB(downloadedFileOrigin)
 												addDataFromIndexDBPromise = addDataFromIndexDB(downloadedDataToSaveIndexedDBObj)
 											}
 

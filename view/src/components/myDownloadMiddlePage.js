@@ -10,6 +10,10 @@ const itemColumns = [
 		displayName: "音乐",
 		routeName: "/my_finished_musics"
 	},
+	{
+		displayName: "最近播放",
+		routeName: "/recent_music_played"
+	},
 ]
 
 class MyDownloadMiddlePage extends React.Component {

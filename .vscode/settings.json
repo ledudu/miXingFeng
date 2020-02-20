@@ -1,4 +1,5 @@
 {
     "java.configuration.updateBuildConfiguration": "disabled",
-    "workbench.colorCustomizations": {}
+    "workbench.colorCustomizations": {},
+    "debug.node.autoAttach": "off"
 }

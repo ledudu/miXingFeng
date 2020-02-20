@@ -11,8 +11,6 @@ class Login extends Component {
     constructor(props){
         super(props);
         this.state = {
-            usernamePlaceholder: "用户名/手机号/邮箱",
-			passwordPlaceholder: "请输入登录密码",
 			username: this.props.username || "",
 			password: this.props.password || "",
 			showAsPassword: "password"
@@ -88,28 +86,16 @@ class Login extends Component {
     focus = (elem) => {
         if(elem === 'username'){
 			if(this.state.username) $("i.fa-times-circle-o").fadeIn()
-            this.setState({
-                usernamePlaceholder: ""
-			});
         } else {
 			if(this.state.password) $("i.fa-eye").fadeIn()
-            this.setState({
-                passwordPlaceholder: ""
-			});
         }
     }
 
     blur = (elem) => {
         if(elem === 'username'){
-            this.setState({
-                usernamePlaceholder: "用户名/手机号/邮箱"
-			});
-			// $("i.fa-times-circle-o").fadeOut()
+			$("i.fa-times-circle-o").fadeOut()
         } else {
-            this.setState({
-                passwordPlaceholder: "请输入登录密码"
-			});
-			// $("i.fa-eye").fadeOut()
+			$("i.fa-eye").fadeOut()
         }
 	}
 
@@ -189,7 +175,7 @@ class Login extends Component {
 	}
 
     render() {
-        let { usernamePlaceholder, passwordPlaceholder, username, password, showAsPassword } = this.state;
+        let { username, password, showAsPassword } = this.state;
         return (
             <div className="first-page">
                 <div className="pic-blur"></div>
@@ -203,7 +189,7 @@ class Login extends Component {
                         <div className="input-content">
                             <div className="content">
 								<input type="text" id="login-username" name="username"
-									placeholder={usernamePlaceholder} className="form" size="26" value={username}
+									placeholder="用户名/手机号/邮箱" className="form" size="26" value={username}
 									onKeyDown={this.keyDownEvent} onFocus={(e) => this.focus(e, "username")}
 									onBlur={() => this.blur("username")}
 									onChange={this.setUsername}
@@ -216,7 +202,7 @@ class Login extends Component {
                         <div className="input-content">
                             <div className="content">
 								<input name="password" id="login-password" type={showAsPassword}
-									placeholder={passwordPlaceholder} className="form" value={password}
+									placeholder="请输入登录密码" className="form" value={password}
 									onKeyDown={this.keyDownEvent}
 									onFocus={() => this.focus("password")} onBlur={() => this.blur("password")}
 									onChange={this.setPassword}/>

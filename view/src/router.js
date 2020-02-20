@@ -160,6 +160,10 @@ const MusicController = MyLoadable({
 	loader: () => import("./components/child/musicController")
 })
 
+const RecentMusicPlayed = MyLoadable({
+	loader: () => import("./components/RecentMusicPlayed")
+})
+
 import { initWebsocket } from "./logic/common" ;
 
 class Routers extends Component {
@@ -349,6 +353,7 @@ class Routers extends Component {
 							<Route path="/search_music" component={SearchMusic} />
 							<Route path="/search_online_music" component={SearchOnlineMusic} />
 							<Route path="/search_all" component={SearchAll} />
+							<Route path="/recent_music_played" component={RecentMusicPlayed} />
                     	    <Route path="/" component={Entry} />
     					</Switch>
 					</div>

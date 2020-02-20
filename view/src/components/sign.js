@@ -22,10 +22,11 @@ import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
-import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems  } from "../ducks/fileServer";
+import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems, updateRecentMusicList } from "../ducks/fileServer";
 import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc, updateLoadedInWifi } from "../ducks/common"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
+import { readAllRecentMusicDataFromIndexDB } from "../services/indexDBRecentMusic"
 
 class Sign extends Component {
 
@@ -199,6 +200,14 @@ class Sign extends Component {
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType music`);
+						})
+
+					//加载最近播放列表
+					readAllRecentMusicDataFromIndexDB()
+						.then((result) => {
+							result.forEach(item => delete item.getNewestPath)
+							result = _.orderBy(result, ['date'], ['desc'])
+							$dispatch(updateRecentMusicList(result))
 						})
 
 					if (window.isCordova) {

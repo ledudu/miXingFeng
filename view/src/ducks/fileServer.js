@@ -48,6 +48,7 @@ const DOWNLOADED_MUSIC_LIST = "fileServer/downloadedMusicList"
 const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
 const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
 const MUSIC_PAGE_TYPE = "fileServer/musicPageType"
+const RECENT_MUSIC_LIST = "fileServer/recentMusicList"
 
 // initialSate
 const initialState = () => ({
@@ -113,7 +114,8 @@ const initialState = () => ({
 	downloadedMusicList: [],
 	currentPlayingSongOriginal: "",
 	currentPlayingSongDuration: "",
-	musicPageType: ""
+	musicPageType: "",
+	recentMusicList: []
 });
 
 // Reducer
@@ -217,6 +219,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {currentPlayingSongDuration: action.data});
 		case MUSIC_PAGE_TYPE:
 			return Object.assign({}, state, {musicPageType: action.data});
+		case RECENT_MUSIC_LIST:
+			return Object.assign({}, state, {recentMusicList: action.data});
 		default:
 			return state;
 	}
@@ -465,5 +469,10 @@ export const updateCurrentPlayingSongDuration = data => ({
 
 export const updateMusicPageType = data => ({
 	type: MUSIC_PAGE_TYPE,
+	data
+})
+
+export const updateRecentMusicList = data => ({
+	type: RECENT_MUSIC_LIST,
 	data
 })

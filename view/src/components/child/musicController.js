@@ -45,6 +45,9 @@ class MusicController extends React.Component{
 			case CONSTANT.musicOriginal.musicFinished:
 				if(urlHash !== "my_finished_musics") window.goRoute(null, "my_finished_musics")
 				break
+			case CONSTANT.musicOriginal.musicRecent:
+				if(urlHash !== "recent_music_played") window.goRoute(null, "recent_music_played")
+				break
 			case "onlySearchShareMusic":
 				if(urlHash !== "search_music") window.goRoute(null, "search_music")
 				break
@@ -66,6 +69,7 @@ class MusicController extends React.Component{
 			musicCollection=[],
 			currentPlayingSongOriginal,
 			soundPlaying,
+			musicPageType,
 		} = this.props
 		let currentSongInfo = {}
 		currentPlayingMusicList.some(item => {
@@ -90,7 +94,7 @@ class MusicController extends React.Component{
 					<div className="singer-name">{currentSongInfo.uploadUsername || "无"}</div>
 				</div>
 				<div className={`fa fa-heart ${(currentSongInfo.saved || currentPlayingSongOriginal === "savedSongs") ? "saved" : "no-save"}`}
-					onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e)}>
+					onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
 
 				</div>
 				<div className="fa fa-step-backward play-previous"

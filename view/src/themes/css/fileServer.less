@@ -138,27 +138,6 @@
 					}
 					.saved-song-flag{
 						margin-left: 6px;
-						animation: heartfill 0.3s 0s forwards;
-					}
-					@keyframes heartfill {
-						0% {
-							opacity: 0.4;
-							transform-origin: 50% 50% !important;
-							transform: scale(0.1);
-						}
-
-						90% {
-							opacity: 0.8;
-							transform-origin: 50% 50% !important;
-							transform: scale(1.3);
-						}
-
-						100% {
-							opacity: 1;
-							transform-origin: 50% 50% !important;
-							transform: scale(1);
-
-						}
 					}
 					.net-ease-source-flag, .qq-music-source-flag, .ku-gou-music-source-flag, .ku-wo-music-source-flag{
 						font-size: 12px;
@@ -188,7 +167,7 @@
 					}
 				}
 				.song-saved{
-					color: #CD2626;
+					color: #FF6347;
 					transition: color 1s;
 				}
 				.upload-duration{
@@ -326,6 +305,15 @@
 	height: 100vh;
 	overflow: hidden;
 	.saved-song-content{
+		height: calc(100% - 111px);
+    	overflow-y: scroll;
+	}
+}
+
+.recent-play-container{
+	height: 100vh;
+	overflow: hidden;
+	.recent-play-content{
 		height: calc(100% - 111px);
     	overflow-y: scroll;
 	}

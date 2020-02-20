@@ -13,6 +13,7 @@ export const CONSTANT = {
 		savedSongs: "savedSongs",
 		window: "window",
 		musicFinished: "musicFinished",
-		musicDownloading: "musicDownloading"
+		musicDownloading: "musicDownloading",
+		musicRecent: "musicRecent"
 	}
 }

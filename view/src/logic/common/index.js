@@ -32,13 +32,15 @@ import {
 	updateCurrentPlayingSongOriginal,
 	updateSoundInstance,
 	updateSoundInstanceId,
-	updateMusicPageType
+	updateMusicPageType,
+	updateRecentMusicList
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
 import { dealtWithLoginIn } from "../../logic/login"
 import { removeMusicDataByIndexFromIndexDB } from "../../services/indexDBMusic"
 import { CONSTANT } from "../../constants/enumeration"
+import { addRecentMusicDataFromIndexDB, removeRecentMusicDataByIndexFromIndexDB } from "../../services/indexDBRecentMusic"
 
 const logger = window.logger || console;
 let receiveServerSocketPong = false;
@@ -805,7 +807,7 @@ export const checkSongSavedFunc = (musicDataList, original) => {
 
 export const removePrefixFromFileOrigin = (filenameOrigin) => {
 	if(!filenameOrigin) return
-	return filenameOrigin.replace(/downloading_|downloaded_|saved_|searchAll_|onlineMusic_|searchMusic_/g, "")
+	return filenameOrigin.replace(/downloading_|downloaded_|saved_|searchAll_|onlineMusic_|searchMusic_|recent_/g, "")
 }
 
 export const checkOnlinePersons = () => {
@@ -821,59 +823,66 @@ export const checkOnlinePersons = () => {
 	}
 }
 
-export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e) => {
-	if(e) e.stopPropagation();
-	if(currentFileIndex === -1) return
-	const { username, token } = $getState().login
-	if (!username || !token) return alert("请先登录")
-	const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
-	if (hasSaved !== -1) {
-		musicCollection.splice(hasSaved, 1)
-	} else {
-		const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
-		willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
-		if(original === CONSTANT.musicOriginal.musicFinished){
-			willSavedSong.filePath = willSavedSong.fileUrl
-			delete willSavedSong.fileUrl
-		}
-		delete willSavedSong.getNewestPath
-		musicCollection.push(willSavedSong)
-	}
-	const dataObj = {
-		username,
-		token,
-		musicCollection
-	}
-	return axios.post(HTTP_URL.saveSong, dataObj)
-		.then((result) => {
-			if (result.data.result.result === 'success') {
-				checkSongSavedFunc(musicDataList, original)
-				$dispatch(updateToken(result.data.result.token))
-				musicCollection.forEach(item => {
-					delete item.saved
-				})
-				$dispatch(updateMusicCollection(musicCollection))
-				window.eventEmit.$emit("listenMusicSaved")
-				if (hasSaved !== -1) {
-					alert('取消收藏成功')
-					return false
-				} else {
-					alert('收藏成功')
-					return true
-				}
-			} else {
-				logger.error("HTTP_URL.saveSong result not success", result)
+export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e, pageType, self) => {
+	try {
+		if(e) e.stopPropagation();
+		if(currentFileIndex === -1) return
+		const { username, token } = $getState().login
+		if (!username || !token) return alert("请先登录")
+		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
+		if (hasSaved !== -1) {
+			musicCollection.splice(hasSaved, 1)
+		} else {
+			const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+			willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
+			if(original === CONSTANT.musicOriginal.musicFinished){
+				willSavedSong.filePath = willSavedSong.fileUrl
+				delete willSavedSong.fileUrl
 			}
-		})
-		.catch(err => {
-			logger.error("HTTP_URL.saveSong err", err)
-			networkErr(err, `saveSong dataObj: ${dataObj}`);
-		})
+			delete willSavedSong.getNewestPath
+			musicCollection.push(willSavedSong)
+		}
+		const dataObj = {
+			username,
+			token,
+			musicCollection
+		}
+		return axios.post(HTTP_URL.saveSong, dataObj)
+			.then((result) => {
+				if (result.data.result.result === 'success') {
+					checkSongSavedFunc(musicDataList, original)
+					$dispatch(updateToken(result.data.result.token))
+					musicCollection.forEach(item => {
+						delete item.saved
+					})
+					$dispatch(updateMusicCollection(musicCollection))
+					window.eventEmit.$emit("listenMusicSaved")
+					if (hasSaved !== -1) {
+						alert('取消收藏成功')
+						if(pageType === CONSTANT.musicOriginal.savedSongs){
+							const currentMusicFilenameOriginalArr = musicCollection.map(item => item.filenameOrigin)
+							playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
+						}
+						return false
+					} else {
+						alert('收藏成功')
+						return true
+					}
+				} else {
+					logger.error("HTTP_URL.saveSong result not success", result)
+				}
+			})
+			.catch(err => {
+				logger.error("HTTP_URL.saveSong err", err)
+				networkErr(err, `saveSong dataObj: ${dataObj}`);
+			})
+	} catch(err){
+		logger.error("saveSongFunc err", err)
+	}
 }
 
 export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
-	if(currentFileIndex === -1) return
 	if(!currentFileIndex){
 		currentFileIndex = currentMusicFilenameOriginalArr.length
 	}
@@ -884,7 +893,6 @@ export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalA
 
 export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
-	if(currentFileIndex === -1) return
 	if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
 		currentFileIndex = -1
 	}
@@ -955,39 +963,59 @@ export const resumeMusic = () => {
 export const stopMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music stop currentPlayingSong", currentPlayingSong)
-	if(soundInstance && soundInstanceId) soundInstance.stop(soundInstanceId)
+	if(soundInstance && soundInstanceId) {
+		soundInstance.stop(soundInstanceId)
+		soundInstance.unload()
+	}
 	$dispatch(updateSoundPlaying(false))
+	$dispatch(updateCurrentSongTime(0))
 }
 
 export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self) => {
 	try {
-		const { pauseWhenOver, soundInstance, soundInstanceId } = $getState().fileServer;
-		if(pageType === CONSTANT.musicOriginal.musicFinished){
+		const { pauseWhenOver, recentMusicList } = $getState().fileServer;
+		let currentMusicItem, isLocalDownloadedMusicPath = filePath ? filePath.indexOf("cdvfile://localhost/sdcard/miXingFeng/music/") !== -1 : false
+		if(isLocalDownloadedMusicPath){
+			// 检查已下载的音乐是否被删除
 			const fileExist = await checkFileExistOrNot(removePrefixFromFileOrigin(filenameOrigin), "music")
 			if(!fileExist) {
 				alertDialog(`${filename}已被删除`)
 				logger.warn("playMusic 已被删除 filePath, filenameOrigin", filePath, filenameOrigin)
+				// 移除已下载的音乐
 				removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+				// 移除最近列表的音乐
+				let currentItemIndex = -1
+				recentMusicList.some((item, index) => {
+					if(item.filenameOrigin === filenameOrigin){
+						currentItemIndex = index;
+						return true
+					}
+				})
+				if(currentItemIndex !== -1){
+					recentMusicList.splice(currentItemIndex, 1)
+					$dispatch(updateRecentMusicList(recentMusicList))
+					removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
+					window.eventEmit.$emit("updateRecentMusicListEventEmit", recentMusicList)
+				}
 				return
 			}
 			filePath = removePrefixFromFileOrigin(filePath)
 		}
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
 		logger.info("playMusic music play filenameOrigin", filenameOrigin)
-		if(soundInstance && soundInstanceId){
-			soundInstance.unload()
-		}
+		stopMusic()
 		$dispatch(updateCurrentPlayingMusicList(musicDataList))
-		$dispatch(updateCurrentSongTime(0))
 		$dispatch(updateSoundPlaying(true))
 		$dispatch(updateCurrentPlayingSong(filenameOrigin))
 		$dispatch(updateCurrentPlayingSongDuration(duration))
 		$dispatch(updateCurrentPlayingSongOriginal(original))
 		if(pageType) $dispatch(updateMusicPageType(pageType))
-		if(pageType !== CONSTANT.musicOriginal.musicFinished){
+		if(!isLocalDownloadedMusicPath){
+			// 检查是否需要获取或重新获取音乐链接
 			let needGetNewestPath = true
 			musicDataList.some((item) => {
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+					currentMusicItem = JSON.parse(JSON.stringify(item));
 					if(item.getNewestPath){
 						needGetNewestPath = false
 					}
@@ -998,6 +1026,59 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, self)
 				if(!filePath) return
 			}
+		} else {
+			// 已下载的音乐的链接在本地，这里只需把音乐记录保存下即可
+			musicDataList.some((item) => {
+				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+					currentMusicItem = JSON.parse(JSON.stringify(item));
+					return true
+				}
+			})
+		}
+		if(currentMusicItem){
+			// 播放记录
+			let currentMusicItemCopy
+			currentMusicItem.date = Date.now()
+			if(recentMusicList.length){
+				if(removePrefixFromFileOrigin(recentMusicList[0]['filenameOrigin']) === removePrefixFromFileOrigin(filenameOrigin) && recentMusicList[0]['original'] === songOriginal){
+					logger.info("playMusic onload same song filenameOrigin, songOriginal, pauseWhenOver", filenameOrigin, songOriginal, pauseWhenOver)
+				} else {
+					if(pageType !== CONSTANT.musicOriginal.musicRecent){
+						currentMusicItem.filenameOrigin = ("recent_" + currentMusicItem.filenameOrigin)
+						let reduplicateItemIndex, needInsertNewOne = true
+						recentMusicList.some((item, index) => {
+							if(item.filenameOrigin === currentMusicItem.filenameOrigin){
+								reduplicateItemIndex = index
+								needInsertNewOne = false
+								return true
+							}
+						})
+						if(!needInsertNewOne){
+							recentMusicList.splice(reduplicateItemIndex, 1)
+							currentMusicItemCopy = JSON.parse(JSON.stringify(currentMusicItem))
+							recentMusicList.unshift(currentMusicItemCopy)
+							removeRecentMusicDataByIndexFromIndexDB(currentMusicItem.filenameOrigin)
+							delete currentMusicItem.getNewestPath
+							addRecentMusicDataFromIndexDB(currentMusicItem)
+						} else {
+							currentMusicItemCopy = JSON.parse(JSON.stringify(currentMusicItem))
+							recentMusicList.unshift(currentMusicItemCopy)
+							delete currentMusicItem.getNewestPath
+							addRecentMusicDataFromIndexDB(currentMusicItem)
+						}
+						window.eventEmit.$emit("updateRecentMusicListEventEmit", recentMusicList)
+					}
+				}
+			} else {
+				currentMusicItem.filenameOrigin = ("recent_" + currentMusicItem.filenameOrigin)
+				currentMusicItemCopy = JSON.parse(JSON.stringify(currentMusicItem))
+				delete currentMusicItem.getNewestPath
+				addRecentMusicDataFromIndexDB(currentMusicItem)
+				recentMusicList.unshift(currentMusicItemCopy)
+			}
+			$dispatch(updateRecentMusicList(recentMusicList))
+		} else {
+			logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
 		}
 		const soundInstanceModel = new Howl({
 			src: [filePath],
@@ -1071,7 +1152,6 @@ export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original, s
 
 function playAnotherSong(anotherSongInfo, original, musicDataList, type, others, self){
 	$dispatch(updateCurrentSongTime(0))
-	stopMusic()
 	if(anotherSongInfo.payPlay) {
 		alert("尊重版权,人人有责")
 		logger.info("playAnotherSong 尊重版权,人人有责 anotherSongInfo", anotherSongInfo)
@@ -1138,16 +1218,12 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 					resumeMusic()
 				} else {
 					// stop current song and switch to another song case and then initial play current time
-					$dispatch(updateCurrentSongTime(0))
-					stopMusic()
 					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self)
 				}
 			}
 		} else {
 			if(filenameOrigin !== currentPlayingSong){
 				// stop current song and switch to another song case and initial play current time
-				$dispatch(updateCurrentSongTime(0))
-				stopMusic()
 				playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self)
 			} else {
 				// pause current song
@@ -1162,7 +1238,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 export const checkToShowPlayController = () => {
 	setTimeout(() => {
 		const urlHash =  window.location.href.split("#/")[1]
-		const arr = ["search_music", "search_online_music", "search_all", "saved_songs", "my_finished_musics"]
+		const arr = ["search_music", "search_online_music", "search_all", "saved_songs", "my_finished_musics", "recent_music_played"]
 		let needDisplay = false
 		if(urlHash){
 			arr.forEach(item => {
@@ -1197,15 +1273,35 @@ export const checkFileExistOrNot = (filenameOrigin, folder) => {
 					subDirEntry.getFile(
 						filenameOrigin, {create: false, exclusive: true},
 						function (fileEntry) {
-							logger.info("file is already exist, filenameOrigin", filenameOrigin)
+							logger.info("checkFileExistOrNot file is already exist, filenameOrigin", filenameOrigin)
 							res(true)
 						}, () => {
-							logger.info("file is not exist at all, filenameOrigin", filenameOrigin)
+							logger.info("checkFileExistOrNot file is not exist at all, filenameOrigin", filenameOrigin)
 							res(false)
 						});
-				}, (err) => {logger.error("load file fail", err); res(false)});
-			}, (err) => {logger.error("load file directory fail", err); res(false)});
-		}, (err) => {logger.error("load file system fail", err); res(false)});
+				}, (err) => {logger.error("checkFileExistOrNot load file fail", err); res(false)});
+			}, (err) => {logger.error("checkFileExistOrNot load file directory fail", err); res(false)});
+		}, (err) => {logger.error("checkFileExistOrNot load file system fail", err); res(false)});
+	})
+}
+
+export const checkExternalFileExistOrNot = (filename) => {
+	return new Promise((resolve) => {
+		window.resolveLocalFileSystemURL(
+			window.cordova.file.externalApplicationStorageDirectory,
+			function (fs) {
+				fs.getFile(
+					filename,
+					{create: false,exclusive: true},
+					function (fileEntry) {
+						resolve(true)
+					},
+					function(error){
+						resolve(false)
+					}
+				)
+			}
+		)
 	})
 }
 
