@@ -103,7 +103,7 @@ class Music extends React.Component {
 				const extname = filenameArr.pop()
 				alertDialog(`不支持的音乐文件后缀名: .${extname}`);
 			} else {
-				alertDialog("不知道上传无后缀名的音乐")
+				alertDialog("不支持上传无后缀名的音乐")
 			}
 			logger.info("不支持的音乐文件后缀名 filename", filename)
 			this.startToUpload = false;
