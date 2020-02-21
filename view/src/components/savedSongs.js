@@ -6,19 +6,6 @@ import { CONSTANT } from "../constants/enumeration"
 
 class SavedSongs extends React.Component {
 
-	componentDidMount(){
-        document.addEventListener("deviceready", this.listenBackButton, false);
-    }
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
-	}
-
-	listenBackButton = () => {
-		document.addEventListener("backbutton", this.backToMainPage, false)
-    }
-
 	backToMainPage = () => {
 		window.goRoute(this, "/main/myInfo");
 	}

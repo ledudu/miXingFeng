@@ -58,7 +58,7 @@ window.alertDialog = alertDialog
 //change router
 window.goRoute = ( self, path ) => {
 	if(!self && window.SELF) {
-		logger.debug("window.goRoute window.SELF", window.SELF)
+		logger.warn("window.goRoute window.SELF path", path)
 		self = window.SELF;
 	} else if(self){
 
@@ -66,7 +66,7 @@ window.goRoute = ( self, path ) => {
 		logger.warn("window.goRoute", window.SELF)
 		return
 	}
-	logger.info("window.goRoute inner func", window.location.href)
+	logger.info("window.goRoute inner func path", path)
 	checkToShowPlayController()
 	return self.props.history.push(path);
 }

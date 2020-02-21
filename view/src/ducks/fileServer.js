@@ -63,19 +63,19 @@ const initialState = () => ({
 	musicMenuBadge: [
 		{
 			index: 2,
-			text: '✔️',
+			text: '',
 		}, {
 			index: 3,
 			text: '',
 		}, {
 			index: 4,
-			text: '',
+			text: '✔️',
 		}, {
 			index: 5,
 			text: '',
 		}
 	],
-	playByOrder: false,
+	playByOrder: true,
 	musicCollection: [],
 	fileSubmitStatus: "上传",
 	fileUploadProgress: "",

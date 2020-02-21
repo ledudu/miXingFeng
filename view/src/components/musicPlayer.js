@@ -12,7 +12,7 @@ import {
 	updateLastSearchAllMusicResult,
 	updateRecentMusicList
 } from "../ducks/fileServer";
-import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority } from "../services/utils";
+import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
 	calcSize,
@@ -137,21 +137,25 @@ class MusicPlayer extends React.Component {
 		window.eventEmit.$off("clearAllMusicRecentRecords")
 	}
 
-	// listenBackFunc = () => {
-    //     document.addEventListener("backbutton", this.closeShowMenu, false);
-	// }
+	listenBackFunc = () => {
+		document.addEventListener("backbutton", this.closeShowMenu, false);
+	}
 
-	// removeListenBackFunc = () => {
-	// 	document.removeEventListener("deviceready", this.listenBackFunc);
-	// 	document.removeEventListener("backbutton", this.closeShowMenu, false);
-	// }
+	removeListenBackFunc = () => {
+		document.removeEventListener("backbutton", this.closeShowMenu);
+		document.removeEventListener("deviceready", this.listenBackFunc);
+		const urlLocation = window.location.href
+		logger.info("musicPlayer removeListenBackFunc urlLocation", urlLocation)
+		if(urlLocation.indexOf("main/music")){
+			document.addEventListener("backbutton", onBackKeyDown, false);
+		}
+	}
 
-	// closeShowMenu = () => {
-	// 	if($('.am-action-sheet-button-list div:nth-last-child(1)')[0]){
-	// 		$('.am-action-sheet-button-list div:nth-last-child(1)')[0].click();
-	// 		$('.am-action-sheet-button-list div:nth-last-child(1)')[0].click();
-	// 	}
-	// }
+	closeShowMenu = () => {
+		const musicMenuExisted = $('.am-action-sheet-button-list div:nth-last-child(1)')[0]
+		if(musicMenuExisted) musicMenuExisted.click();
+		if(musicMenuExisted) musicMenuExisted.click();
+	}
 
 	checkSongSaved = () => {
 		const {  musicDataList=[] } = this.state;
@@ -170,7 +174,12 @@ class MusicPlayer extends React.Component {
 
 	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
 		try {
-			// document.addEventListener("deviceready", this.listenBackFunc);
+			const urlLocation = window.location.href
+			logger.info("musicPlayer showMenu urlLocation", urlLocation)
+			if(urlLocation.indexOf("/main/music")){
+				document.removeEventListener("backbutton", onBackKeyDown, false);
+			}
+			document.addEventListener("deviceready", this.listenBackFunc);
 			const {
 				pauseWhenOver,
 				playByOrder,
@@ -457,7 +466,7 @@ class MusicPlayer extends React.Component {
 						default:
 							break;
 					}
-					// this.removeListenBackFunc()
+					this.removeListenBackFunc()
 				}
 			);
 		} catch(err){

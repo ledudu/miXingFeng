@@ -5,19 +5,6 @@ import NavBar from "./child/navbar";
 
 class MyFinishedFiles extends React.Component {
 
-	componentDidMount(){
-        document.addEventListener("deviceready", this.listenBackFunc);
-    }
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackFunc);
-        document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false);
-	}
-
 	backToMainPage = () => {
 		window.goRoute(this, "/my_download_middle_page")
 	}

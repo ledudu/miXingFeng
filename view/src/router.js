@@ -187,26 +187,7 @@ class Routers extends Component {
 		if(localStorage.getItem("allowOthersGetPosition") === "no"){
 			$dispatch(updateAllowOthersGetPosition(false))
 		}
-		if(localStorage.getItem("pauseWhenOver") === "no"){
-			$dispatch(updatePauseWhenOver(false))
-			$dispatch(updatePlayByOrder(false))
-			$dispatch(updatePlayByRandom(false))
-			$dispatch(updateMusicMenuBadge([
-				{
-					index: 2,
-					text: '',
-				}, {
-					index: 3,
-					text: '✔️',
-				}, {
-					index: 4,
-					text: '',
-				}, {
-					index: 5,
-					text: '',
-				}
-			]))
-		} else if(localStorage.getItem("playByOrder") === "yes"){
+		if(localStorage.getItem("playByOrder") === "yes" && !localStorage.getItem("playByOrder")){
 			$dispatch(updatePauseWhenOver(true))
 			$dispatch(updatePlayByOrder(true))
 			$dispatch(updatePlayByRandom(false))
@@ -220,6 +201,44 @@ class Routers extends Component {
 				}, {
 					index: 4,
 					text: '✔️',
+				}, {
+					index: 5,
+					text: '',
+				}
+			]))
+		} else if(localStorage.getItem("pauseWhenOver") === "yes" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
+			$dispatch(updatePauseWhenOver(true))
+			$dispatch(updatePlayByOrder(true))
+			$dispatch(updatePlayByRandom(false))
+			$dispatch(updateMusicMenuBadge([
+				{
+					index: 2,
+					text: '✔️',
+				}, {
+					index: 3,
+					text: '',
+				}, {
+					index: 4,
+					text: '',
+				}, {
+					index: 5,
+					text: '',
+				}
+			]))
+		} else if(localStorage.getItem("pauseWhenOver") === "no" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
+			$dispatch(updatePauseWhenOver(false))
+			$dispatch(updatePlayByOrder(false))
+			$dispatch(updatePlayByRandom(false))
+			$dispatch(updateMusicMenuBadge([
+				{
+					index: 2,
+					text: '',
+				}, {
+					index: 3,
+					text: '✔️',
+				}, {
+					index: 4,
+					text: '',
 				}, {
 					index: 5,
 					text: '',

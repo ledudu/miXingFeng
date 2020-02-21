@@ -4,23 +4,6 @@ import SearchResourceComponent from './child/searchResourceComponent'
 
 class SearchMusic extends Component{
 
-	componentDidMount(){
-		document.addEventListener("deviceready", this.listenBackFunc);
-    }
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackFunc);
-		document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false);
-	}
-
-	backToMainPage = () => {
-		window.goRoute(this, "/search_column");
-	}
-
 	render(){
 		const { musicList, lastMusicSearchResult, lastMusicSearchString } = this.props;
 		return 	<SearchResourceComponent

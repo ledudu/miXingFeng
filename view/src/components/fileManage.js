@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 import { ActionSheet } from 'antd-mobile'
 import MINE from "mime-types"
 import { calcSize } from "../logic/common"
-import { networkErr, confirm, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority } from "../services/utils"
+import { networkErr, confirm, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils"
 import { HTTP_URL } from "../constants/httpRoute"
 import { updateToken } from "../ducks/login"
 import { readAllDataFromIndexDB } from "../services/indexDB"
@@ -90,6 +90,26 @@ class FileManage extends React.Component {
 		window.eventEmit.$off("fileRemoved")
 	}
 
+	listenBackFunc = () => {
+		document.addEventListener("backbutton", this.closeShowMenu, false);
+	}
+
+	removeListenBackFunc = () => {
+		document.removeEventListener("backbutton", this.closeShowMenu);
+		document.removeEventListener("deviceready", this.listenBackFunc);
+		const urlLocation = window.location.href
+		logger.info("fileManage removeListenBackFunc urlLocation", urlLocation)
+		if(urlLocation.indexOf("main/file")){
+			document.addEventListener("backbutton", onBackKeyDown, false);
+		}
+	}
+
+	closeShowMenu = () => {
+		const musicMenuExisted = $('.am-action-sheet-button-list div:nth-last-child(1)')[0]
+		if(musicMenuExisted) musicMenuExisted.click();
+		if(musicMenuExisted) musicMenuExisted.click();
+	}
+
 	getDataFromIndexDB = async (notRefresh) => {
 		const { fileDataList=[] } = this.props;
 		let indexDBData = await readAllDataFromIndexDB()
@@ -113,6 +133,13 @@ class FileManage extends React.Component {
 
 	showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin) => {
 		try {
+			const urlLocation = window.location.href
+			logger.info("fileManage showMenu urlLocation", urlLocation)
+			if(urlLocation.indexOf("main/file")){
+				document.removeEventListener("backbutton", onBackKeyDown, false);
+			}
+			document.addEventListener("deviceready", this.listenBackFunc);
+
 			const { username, token, original } = this.props;
 			let firstItem = "下载";
 			let isFileFinished = (original === "fileFinished")
@@ -203,6 +230,7 @@ class FileManage extends React.Component {
 							logger.warn("buttonIndex default")
 							break;
 					}
+					this.removeListenBackFunc()
 				}
 			);
 		} catch(err){

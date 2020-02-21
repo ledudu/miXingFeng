@@ -5,19 +5,6 @@ import { openBrowserLink } from "../../services/utils";
 
 export default class MyInfoMiddlePageComponent extends React.Component {
 
-    componentDidMount(){
-        document.addEventListener("deviceready", this.listenBackButton, false);
-    }
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackButton = () => {
-		document.addEventListener("backbutton", this.backToMainPage, false)
-    }
-
     backToMainPage = () => {
 		const { backToPage } = this.props;
 		logger.info("MyInfoMiddlePageComponent backToPage", backToPage)

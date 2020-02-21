@@ -4,23 +4,6 @@ import SearchResourceComponent from './child/searchResourceComponent'
 
 class SearchOnlineMusic extends Component{
 
-	componentDidMount(){
-		document.addEventListener("deviceready", this.listenBackFunc);
-    }
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackFunc);
-		document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false);
-	}
-
-	backToMainPage = () => {
-		window.goRoute(this, "/search_column");
-	}
-
 	render(){
 		const { lastNetEaseCloudSearchResult, lastQQMusicSearchResult, lastKuGouMusicSearchResult, lastKuWoMusicSearchResult, lastOnlineMusicSearchString } = this.props;
 		const lastSearchResult = ["", ""]
