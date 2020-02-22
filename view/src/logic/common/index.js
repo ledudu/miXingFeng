@@ -33,7 +33,11 @@ import {
 	updateSoundInstance,
 	updateSoundInstanceId,
 	updateMusicPageType,
-	updateRecentMusicList
+	updateRecentMusicList,
+	updatePauseWhenOver,
+	updatePlayByOrder,
+	updateMusicMenuBadge,
+	updatePlayByRandom
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
@@ -1008,8 +1012,8 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		$dispatch(updateSoundPlaying(true))
 		$dispatch(updateCurrentPlayingSong(filenameOrigin))
 		$dispatch(updateCurrentPlayingSongDuration(duration))
-		$dispatch(updateCurrentPlayingSongOriginal(original))
-		if(pageType) $dispatch(updateMusicPageType(pageType))
+		$dispatch(updateCurrentPlayingSongOriginal(original))   //音乐源是什么,比如网易云,qq音乐
+		if(pageType) $dispatch(updateMusicPageType(pageType))  	//是在哪个页面播放的,比如全局搜索,搜藏页面
 		if(!isLocalDownloadedMusicPath){
 			// 检查是否需要获取或重新获取音乐链接
 			let needGetNewestPath = true
@@ -1036,6 +1040,16 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			})
 		}
 		if(currentMusicItem){
+			// 记住正在播放的音乐,便于下次启动app显示上次播放的音乐
+			const currentMusicItem2 = JSON.parse(JSON.stringify(currentMusicItem))
+			delete currentMusicItem2.getNewestPath
+			if(pageType === CONSTANT.musicOriginal.savedSongs){
+				currentMusicItem2.saved = true
+				musicDataList.forEach(item => item.saved = true)
+			}
+			localStorage.setItem('lastPlaySongInfo', JSON.stringify(currentMusicItem2))
+			localStorage.setItem('lastPlaySongPageType', pageType)
+			localStorage.setItem('lastPlaySongMusicDataList', JSON.stringify(musicDataList))
 			// 播放记录
 			let currentMusicItemCopy
 			currentMusicItem.date = Date.now()
@@ -1096,6 +1110,12 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				logger.error("playMusic onloaderror error ", error)
 				logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
 				alertDialog("歌曲播放异常,请尝试其他歌曲")
+			},
+			onload  : function(id){
+				if(self === null) {
+					self = ""
+					pauseMusic()
+				}
 			},
 			onend: function() {
 				const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
@@ -1344,10 +1364,13 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 				}
 			}
 			if(!self){
-				logger.warn("checkFilePath !self songOriginal, musicDataList", songOriginal, musicDataList)
-				alertDebug("self is not defined in checkFilePath")
+				if(self === undefined){
+					logger.warn("checkFilePath !self songOriginal, musicDataList", songOriginal, musicDataList)
+					alertDebug("self is not defined in checkFilePath")
+				}
+			} else {
+				self.forceUpdate()
 			}
-			self.forceUpdate()
 			return filePath
 		} else {
 			logger.warn("get no filePath songOriginal, musicId, response", songOriginal, musicId, response)
@@ -1358,3 +1381,96 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 		return filePath
 	}
 }
+
+export const checkMusicPlayWays = () => {
+	if(localStorage.getItem("playByOrder") === "yes" && !localStorage.getItem("playByOrder")){
+		$dispatch(updatePauseWhenOver(true))
+		$dispatch(updatePlayByOrder(true))
+		$dispatch(updatePlayByRandom(false))
+		$dispatch(updateMusicMenuBadge([
+			{
+				index: 2,
+				text: '',
+			}, {
+				index: 3,
+				text: '',
+			}, {
+				index: 4,
+				text: '✔️',
+			}, {
+				index: 5,
+				text: '',
+			}
+		]))
+	} else if(localStorage.getItem("pauseWhenOver") === "yes" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
+		$dispatch(updatePauseWhenOver(true))
+		$dispatch(updatePlayByOrder(true))
+		$dispatch(updatePlayByRandom(false))
+		$dispatch(updateMusicMenuBadge([
+			{
+				index: 2,
+				text: '✔️',
+			}, {
+				index: 3,
+				text: '',
+			}, {
+				index: 4,
+				text: '',
+			}, {
+				index: 5,
+				text: '',
+			}
+		]))
+	} else if(localStorage.getItem("pauseWhenOver") === "no" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
+		$dispatch(updatePauseWhenOver(false))
+		$dispatch(updatePlayByOrder(false))
+		$dispatch(updatePlayByRandom(false))
+		$dispatch(updateMusicMenuBadge([
+			{
+				index: 2,
+				text: '',
+			}, {
+				index: 3,
+				text: '✔️',
+			}, {
+				index: 4,
+				text: '',
+			}, {
+				index: 5,
+				text: '',
+			}
+		]))
+	} else if(localStorage.getItem("playByRandom") === "yes"){
+		$dispatch(updatePauseWhenOver(true))
+		$dispatch(updatePlayByOrder(false))
+		$dispatch(updatePlayByRandom(true))
+		$dispatch(updateMusicMenuBadge([
+			{
+				index: 2,
+				text: '',
+			}, {
+				index: 3,
+				text: '',
+			}, {
+				index: 4,
+				text: '',
+			}, {
+				index: 5,
+				text: '✔️',
+			}
+		]))
+	}
+}
+
+export const checkLastMusicPlayInfo = () => {
+	try {
+		const lastPlaySongInfo = JSON.parse(localStorage.getItem('lastPlaySongInfo'))
+		const lastPlaySongPageType = localStorage.getItem('lastPlaySongPageType')
+		const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
+		playMusic(lastPlaySongInfo.filePath, lastPlaySongInfo.filenameOrigin, lastPlaySongInfo.duration, lastPlaySongInfo.original, lastPlaySongMusicDataList, lastPlaySongPageType, lastPlaySongInfo.filename, lastPlaySongInfo.id, lastPlaySongInfo.original, null)
+	} catch(err){
+		logger.error("checkLastMusicPlayInfo err", err)
+		alertDebug(`checkLastMusicPlayInfo err:${err}`)
+	}
+}
+

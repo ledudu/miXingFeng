@@ -47,7 +47,7 @@ window.alertDebug = (text) => {
 			// window.plugins.toast.showShortCenter(text)
 			alertDialog(text)
 		} else {
-			Toast.info(text, 2, null, false);
+			alertDialog(text);
 		}
 	}
 	logger.info('alertDebug', text)

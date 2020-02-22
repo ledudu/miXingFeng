@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { HashRouter as Router, Route, Switch  } from 'react-router-dom';
 import MyLoadable from './Loadable';
-import { updateAppVersion, updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
+import { updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
 import { updateDirectShowSignPage } from "./ducks/sign";
-import { updatePauseWhenOver, updatePlayByOrder, updateMusicMenuBadge, updateSoundPlaying, updatePlayByRandom } from "./ducks/fileServer"
-import { CONSTANT } from "./constants/enumeration"
+import { checkMusicPlayWays, checkLastMusicPlayInfo } from "./logic/common"
 
 const Login = MyLoadable({
     loader: () => import('./components/login')
@@ -169,127 +168,31 @@ import { initWebsocket } from "./logic/common" ;
 class Routers extends Component {
 
     componentDidMount(){
-		const self = this;
 		$("#root").removeClass("loading-text").removeClass("animate-flicker")
 		window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
+		// 初始化websocket
 		initWebsocket()
+		// 首次启动不是主页自动返回主页
 		const url = window.location.href;
 		if(url.split("#/")[1]) window.location.href = url.split("#/")[0];
-
+		// 检查是否每次都显示广告
 		if(localStorage.getItem("alwaysShowAdsPage") === "no"){
 			$dispatch(updateAlwaysShowAdsPage(false))
 			$dispatch(updateDirectShowSignPage(true))
 			$dispatch(updateHideNavBar(false))
 		}
+		// 检查是否允许程序获取地理位置
 		if(localStorage.getItem("usePosition") === "no"){
 			$dispatch(updateAllowGetPosition(false))
 		}
+		// 检查是否允许其他人获取自己的地理位置
 		if(localStorage.getItem("allowOthersGetPosition") === "no"){
 			$dispatch(updateAllowOthersGetPosition(false))
 		}
-		if(localStorage.getItem("playByOrder") === "yes" && !localStorage.getItem("playByOrder")){
-			$dispatch(updatePauseWhenOver(true))
-			$dispatch(updatePlayByOrder(true))
-			$dispatch(updatePlayByRandom(false))
-			$dispatch(updateMusicMenuBadge([
-				{
-					index: 2,
-					text: '',
-				}, {
-					index: 3,
-					text: '',
-				}, {
-					index: 4,
-					text: '✔️',
-				}, {
-					index: 5,
-					text: '',
-				}
-			]))
-		} else if(localStorage.getItem("pauseWhenOver") === "yes" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
-			$dispatch(updatePauseWhenOver(true))
-			$dispatch(updatePlayByOrder(true))
-			$dispatch(updatePlayByRandom(false))
-			$dispatch(updateMusicMenuBadge([
-				{
-					index: 2,
-					text: '✔️',
-				}, {
-					index: 3,
-					text: '',
-				}, {
-					index: 4,
-					text: '',
-				}, {
-					index: 5,
-					text: '',
-				}
-			]))
-		} else if(localStorage.getItem("pauseWhenOver") === "no" && (localStorage.getItem("playByRandom") === "no" || !localStorage.getItem("playByRandom"))){
-			$dispatch(updatePauseWhenOver(false))
-			$dispatch(updatePlayByOrder(false))
-			$dispatch(updatePlayByRandom(false))
-			$dispatch(updateMusicMenuBadge([
-				{
-					index: 2,
-					text: '',
-				}, {
-					index: 3,
-					text: '✔️',
-				}, {
-					index: 4,
-					text: '',
-				}, {
-					index: 5,
-					text: '',
-				}
-			]))
-		} else if(localStorage.getItem("playByRandom") === "yes"){
-			$dispatch(updatePauseWhenOver(true))
-			$dispatch(updatePlayByOrder(false))
-			$dispatch(updatePlayByRandom(true))
-			$dispatch(updateMusicMenuBadge([
-				{
-					index: 2,
-					text: '',
-				}, {
-					index: 3,
-					text: '',
-				}, {
-					index: 4,
-					text: '',
-				}, {
-					index: 5,
-					text: '✔️',
-				}
-			]))
-		}
-		document.addEventListener('deviceready',function(){
-			window.permissions = cordova.plugins.permissions;
-			window.open = cordova.InAppBrowser.open;
-			cordova.plugins.notification.local.on('click', self.installPackage, self);
-			window.HeadsetDetection && window.HeadsetDetection.registerRemoteEvents(function(status) {
-				logger.info("HeadsetDetection status", status)
-				switch (status) {
-					case 'headsetAdded':
-						logger.info('Headset was added');
-						break;
-					case 'headsetRemoved':
-						logger.info('Headset was removed');
-						const { soundPlaying, soundInstance, soundInstanceId } = $getState().fileServer
-						if(soundPlaying){
-							soundInstance.pause(soundInstanceId);
-							$dispatch(updateSoundPlaying(false))
-						}
-						break;
-				};
-			});
-
-			cordova.getAppVersion.getVersionNumber().then(function (version){
-				window.$dispatch(updateAppVersion(version));
-			});
-		},false);
-
+		// 检查音乐播放方式,比如单曲循环,顺序播放
+		checkMusicPlayWays()
+		// 检查上次播放的最后一首音乐
+		checkLastMusicPlayInfo()
 		logger.info("Router.js window.location.href", window.location.href)
 	}
 
@@ -299,32 +202,6 @@ class Routers extends Component {
 		if(window.ws && ws.readyState ===1){
 			window.ws.close(1000)
 		}
-	}
-
-	installPackage = () => {
-		const { hasDownloadedPackage, appSize } = $getState().common;
-		logger.info("installPackage hasDownloadedPackage", hasDownloadedPackage)
-		if(!hasDownloadedPackage) {
-			logger.info("downloading, can't install")
-			cordova.plugins.notification.local.schedule({
-				title: '正在更新',
-				text: `安装包大小:${appSize}，请稍后`,
-			});
-			return;
-		}
-		logger.info("cordova.plugins.fileOpener2.open  installPackage")
-		cordova.plugins.fileOpener2.open(
-			'cdvfile://localhost/sdcard/Android/data/com.szhou.mixingfeng/sign_release.apk', // You can also use a Cordova-style file uri: cdvfile://localhost/persistent/Downloads/starwars.pdf
-			'application/vnd.android.package-archive',
-			{
-				error : function(e) {
-					logger.error('installPackage  Error status: ' + e.status + ' - Error message: ' + e.message);
-				},
-				success : function () {
-					logger.info('installPackage  file opened successfully');
-				}
-			}
-		);
 	}
 
     render(){

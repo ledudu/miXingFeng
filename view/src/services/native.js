@@ -9,6 +9,8 @@ import { updateBackToDesktopTime,
 } from '../ducks/common'
 import { updateDirectShowSignPage, updateAdNumber, updateFromResume } from "../ducks/sign"
 import { reconnectAndSend } from "../logic/common"
+import { updateSoundPlaying } from "../ducks/fileServer";
+import { updateAppVersion } from "../ducks/common"
 
 document.addEventListener("deviceready", onDeviceReady, false);
 function onDeviceReady(){
@@ -18,6 +20,33 @@ function onDeviceReady(){
 		cordova.plugins.backgroundMode.disableWebViewOptimizations();
 	});
 	// cordova.plugins.backgroundMode.excludeFromTaskList();
+	// 检查获取位置和文件读写的权限
+	window.permissions = cordova.plugins.permissions;
+	// 使用浏览器打开外部链接
+	window.open = cordova.InAppBrowser.open;
+	// 点击通知安装app
+	cordova.plugins.notification.local.on('click', installPackage);
+	// 监听耳机拔插事件
+	window.HeadsetDetection && window.HeadsetDetection.registerRemoteEvents(function(status) {
+		logger.info("HeadsetDetection status", status)
+		switch (status) {
+			case 'headsetAdded':
+				logger.info('Headset was added');
+				break;
+			case 'headsetRemoved':
+				logger.info('Headset was removed');
+				const { soundPlaying, soundInstance, soundInstanceId } = $getState().fileServer
+				if(soundPlaying){
+					soundInstance.pause(soundInstanceId);
+					$dispatch(updateSoundPlaying(false))
+				}
+				break;
+		};
+	});
+	// 更新版本信息
+	cordova.getAppVersion.getVersionNumber().then(function (version){
+		window.$dispatch(updateAppVersion(version));
+	});
 
 	// pause resume
 	document.addEventListener("pause", () => {
@@ -76,4 +105,30 @@ function onDeviceReady(){
 export const setSilentDefaults = (bool) => {
 	logger.info("setSilentDefaults", bool)
 	cordova.plugins.backgroundMode.setDefaults({ silent: bool });
+}
+
+const installPackage  = () => {
+	const { hasDownloadedPackage, appSize } = $getState().common;
+	logger.info("installPackage hasDownloadedPackage", hasDownloadedPackage)
+	if(!hasDownloadedPackage) {
+		logger.info("downloading, can't install")
+		cordova.plugins.notification.local.schedule({
+			title: '正在更新',
+			text: `安装包大小:${appSize}，请稍后`,
+		});
+		return;
+	}
+	logger.info("cordova.plugins.fileOpener2.open  installPackage")
+	cordova.plugins.fileOpener2.open(
+		'cdvfile://localhost/sdcard/Android/data/com.szhou.mixingfeng/sign_release.apk', // You can also use a Cordova-style file uri: cdvfile://localhost/persistent/Downloads/starwars.pdf
+		'application/vnd.android.package-archive',
+		{
+			error : function(e) {
+				logger.error('installPackage  Error status: ' + e.status + ' - Error message: ' + e.message);
+			},
+			success : function () {
+				logger.info('installPackage  file opened successfully');
+			}
+		}
+	);
 }
