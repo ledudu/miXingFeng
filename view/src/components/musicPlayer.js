@@ -124,6 +124,10 @@ class MusicPlayer extends React.Component {
 
 	componentWillReceiveProps(nextProps){
 		this.checkSongSaved()
+		const { pageType } = this.props
+		if(pageType === CONSTANT.musicOriginal.savedSongs){
+			nextProps.musicDataList.forEach(item => delete item.saved)
+		}
 		this.setState({
 			musicDataList: nextProps.musicDataList
 		})
