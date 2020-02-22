@@ -4,6 +4,7 @@ import StatusBar from "./child/statusBar";
 import { List, Badge } from 'antd-mobile';
 import { onBackKeyDown } from "../services/utils";
 import { showHeadPic } from "../logic/myInfo"
+import { hideMusicController } from "../logic/common"
 
 const marginLeft = 12;
 
@@ -27,6 +28,7 @@ class MyInfo extends React.Component {
 		if(this.signatureRef.offsetHeight < 80){
 			this.signatureRef.style.display = 'none'
 		}
+		hideMusicController()
     }
 
     listenBackFunc = () => {

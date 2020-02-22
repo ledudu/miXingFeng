@@ -10,7 +10,12 @@ import {
 	updatePlayByRandom,
 	updateLastMusicSearchResult,
 	updateLastSearchAllMusicResult,
-	updateRecentMusicList
+	updateRecentMusicList,
+	updateCurrentPlayingSong,
+	updateMusicPageType,
+	updateCurrentPlayingSongOriginal,
+	updateCurrentPlayingSongDuration,
+	updateCurrentPlayingMusicList,
 } from "../ducks/fileServer";
 import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils";
 import { updateToken } from "../ducks/login";
@@ -25,6 +30,8 @@ import {
 	playNextSong,
 	getMusicCurrentPlayProcess,
 	checkStatus,
+	getFilenameWithoutExt,
+	stopMusic
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
@@ -86,11 +93,12 @@ class MusicPlayer extends React.Component {
 				$dispatch(updateRecentMusicList(recentMusicList))
 			}
 		})
+		let clearAllFilesTime = false
 		window.eventEmit.$on("clearAllMusicRecentRecords", () => {
 			if(original === CONSTANT.musicOriginal.musicRecent){
 				const self = this
-				let clearAllFilesTime = false
 				const { musicDataList } = this.state
+				const { musicPageType } = this.props
 				if(!clearAllFilesTime){
 					clearAllFilesTime = true
 					confirm(`提示`, `确定要移除所有播放记录吗`, "确定", () => {
@@ -107,6 +115,19 @@ class MusicPlayer extends React.Component {
 							musicDataList: []
 						}, () => {
 							clearAllFilesTime = false
+							if(musicPageType === CONSTANT.musicOriginal.musicRecent){
+								stopMusic()
+								$dispatch(updateCurrentPlayingSong(null))
+								$dispatch(updateMusicPageType(""))
+								$dispatch(updateCurrentPlayingSongOriginal(""))
+								$dispatch(updateCurrentPlayingSongDuration(""))
+								$dispatch(updateCurrentPlayingMusicList([]))
+								localStorage.removeItem('lastPlaySongInfo')
+								localStorage.removeItem('lastPlaySongPageType')
+								localStorage.removeItem('lastPlaySongMusicDataList')
+								window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
+								window.circleControlRef.style.strokeWidth = "8px"
+							}
 							if(musicDataList.length){
 								alert("删除成功")
 							} else {
@@ -552,13 +573,6 @@ class MusicPlayer extends React.Component {
 		}
 	}
 
-	getFilenameWithoutExt = (filename) => {
-		let singleFilenameArr = filename.split(".");
-		if(singleFilenameArr.length !== 1) singleFilenameArr.pop();
-		const filenameWithoutExt = singleFilenameArr.join("");
-		return filenameWithoutExt;
-	}
-
 	removeDownloadItem = (filename, filenameOrigin) => {
         confirm('提示', `确定要移除下载${filename}吗`, "确定", () => {
 			window.eventEmit.$emit(`FileTransfer-${removePrefixFromFileOrigin(filenameOrigin)}`, 'abort', ["music", filenameOrigin])
@@ -594,7 +608,7 @@ class MusicPlayer extends React.Component {
 								<div className="num">{index + 1}</div>
 								<div className="music-info">
 									<div className={`info ${item.saved ? 'song-saved' : ""}`}>
-										<div className="filename">{this.getFilenameWithoutExt(item.filename)}</div>
+										<div className="filename">{getFilenameWithoutExt(item.filename)}</div>
 										{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
 										{item.saved && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 										{
@@ -668,6 +682,7 @@ const mapStateToProps = state => {
 		downloadedMusicList: state.fileServer.downloadedMusicList,
 		currentPlayingSongOriginal: state.fileServer.currentPlayingSongOriginal,
 		recentMusicList: state.fileServer.recentMusicList,
+		musicPageType: state.fileServer.musicPageType,
     };
 };
 

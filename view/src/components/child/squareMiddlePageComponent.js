@@ -1,11 +1,13 @@
 import React from 'react';
 import NavBar from "./navbar";
 import { openBrowserLink } from "../../services/utils";
+import { hideMusicController } from "../../logic/common"
 
 export default class SquareMiddlePageComponent extends React.Component {
 
     componentDidMount(){
-        document.addEventListener("deviceready", this.listenBackButton, false);
+		document.addEventListener("deviceready", this.listenBackButton, false);
+		hideMusicController()
     }
 
     componentWillUnmount(){

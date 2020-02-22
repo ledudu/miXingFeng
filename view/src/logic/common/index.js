@@ -8,7 +8,7 @@ import {
 	updateAllowGetPosition,
 	updateSharedNicknames
 } from "../../ducks/common"
-import { writeFile, networkErr, alertDialog, saveFileToLocal, updateDownloadingStatus } from "../../services/utils";
+import { writeFile, networkErr, alertDialog, saveFileToLocal, updateDownloadingStatus, alert } from "../../services/utils";
 import { updateToken, updateLogOutFlag} from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
 import { updateSetNickname,
@@ -830,7 +830,7 @@ export const checkOnlinePersons = () => {
 export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e, pageType, self) => {
 	try {
 		if(e) e.stopPropagation();
-		if(currentFileIndex === -1) return
+		if(currentFileIndex === -1 || currentFileIndex === null) return alert("请选择一首歌播放")
 		const { username, token } = $getState().login
 		if (!username || !token) return alert("请先登录")
 		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -887,6 +887,9 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 
 export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
+	if(currentFileIndex === null){
+		return alert('请选择一首歌播放')
+	}
 	if(!currentFileIndex){
 		currentFileIndex = currentMusicFilenameOriginalArr.length
 	}
@@ -897,6 +900,9 @@ export const playPreviousSong = (currentFileIndex, currentMusicFilenameOriginalA
 
 export const playNextSong = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, e, self) => {
 	if(e) e.stopPropagation();
+	if(currentFileIndex === null){
+		return alert('请选择一首歌播放')
+	}
 	if(currentFileIndex === (currentMusicFilenameOriginalArr.length - 1)){
 		currentFileIndex = -1
 	}
@@ -953,14 +959,18 @@ export const musicPlayingProgressFunc = () => {
 export const pauseMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music pause currentPlayingSong", currentPlayingSong)
-	soundInstance.pause(soundInstanceId);
+	if(soundInstance && soundInstanceId) {
+		soundInstance.pause(soundInstanceId);
+	}
 	$dispatch(updateSoundPlaying(false))
 }
 
 export const resumeMusic = () => {
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music resume currentPlayingSong", currentPlayingSong)
-	soundInstance.play(soundInstanceId)
+	if(soundInstance && soundInstanceId) {
+		soundInstance.play(soundInstanceId)
+	}
 	$dispatch(updateSoundPlaying(true))
 }
 
@@ -973,6 +983,12 @@ export const stopMusic = () => {
 	}
 	$dispatch(updateSoundPlaying(false))
 	$dispatch(updateCurrentSongTime(0))
+	$dispatch(updateSoundInstance(null))
+	$dispatch(updateSoundInstanceId(null))
+	if(window.circleControlRef){
+		window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
+		window.circleControlRef.style.strokeWidth = "8px"
+	}
 }
 
 export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self) => {
@@ -1039,7 +1055,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				}
 			})
 		}
-		if(currentMusicItem){
+		if(currentMusicItem && self){
 			// 记住正在播放的音乐,便于下次启动app显示上次播放的音乐
 			const currentMusicItem2 = JSON.parse(JSON.stringify(currentMusicItem))
 			delete currentMusicItem2.getNewestPath
@@ -1092,7 +1108,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			}
 			$dispatch(updateRecentMusicList(recentMusicList))
 		} else {
-			logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
+			if(self) logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
 		}
 		const soundInstanceModel = new Howl({
 			src: [filePath],
@@ -1115,6 +1131,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				if(self === null) {
 					self = ""
 					pauseMusic()
+					setTimeout(pauseMusic)
 				}
 			},
 			onend: function() {
@@ -1267,15 +1284,13 @@ export const checkToShowPlayController = () => {
 				}
 			})
 			if(needDisplay){
-				$("#root .container .main-content").css("height", "calc(100vh - 60px)")
+				$("#root .container .main-content").css("height", "calc(100vh - 66px)")
 				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
 			} else {
-				$("#root .container .main-content").css("height", "100vh")
-				window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+				hideMusicController()
 			}
 		} else {
-			$("#root .container .main-content").css("height", "100vh")
-			window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+			hideMusicController()
 		}
 	})
 }
@@ -1467,10 +1482,23 @@ export const checkLastMusicPlayInfo = () => {
 		const lastPlaySongInfo = JSON.parse(localStorage.getItem('lastPlaySongInfo'))
 		const lastPlaySongPageType = localStorage.getItem('lastPlaySongPageType')
 		const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
-		playMusic(lastPlaySongInfo.filePath, lastPlaySongInfo.filenameOrigin, lastPlaySongInfo.duration, lastPlaySongInfo.original, lastPlaySongMusicDataList, lastPlaySongPageType, lastPlaySongInfo.filename, lastPlaySongInfo.id, lastPlaySongInfo.original, null)
+		if(lastPlaySongInfo && lastPlaySongPageType && lastPlaySongMusicDataList){
+			playMusic(lastPlaySongInfo.filePath, lastPlaySongInfo.filenameOrigin, lastPlaySongInfo.duration, lastPlaySongInfo.original, lastPlaySongMusicDataList, lastPlaySongPageType, lastPlaySongInfo.filename, lastPlaySongInfo.id, lastPlaySongInfo.original, null)
+		}
 	} catch(err){
 		logger.error("checkLastMusicPlayInfo err", err)
 		alertDebug(`checkLastMusicPlayInfo err:${err}`)
 	}
 }
 
+export const getFilenameWithoutExt = (filename) => {
+	let singleFilenameArr = filename.split(".");
+	if(singleFilenameArr.length !== 1) singleFilenameArr.pop();
+	const filenameWithoutExt = singleFilenameArr.join("");
+	return filenameWithoutExt;
+}
+
+export const hideMusicController = () => {
+	$("#root .container .main-content").css("height", "100vh")
+	window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+}
