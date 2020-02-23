@@ -11,11 +11,6 @@ import {
 	updateLastMusicSearchResult,
 	updateLastSearchAllMusicResult,
 	updateRecentMusicList,
-	updateCurrentPlayingSong,
-	updateMusicPageType,
-	updateCurrentPlayingSongOriginal,
-	updateCurrentPlayingSongDuration,
-	updateCurrentPlayingMusicList,
 } from "../ducks/fileServer";
 import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils";
 import { updateToken } from "../ducks/login";
