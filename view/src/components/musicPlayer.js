@@ -117,16 +117,9 @@ class MusicPlayer extends React.Component {
 							clearAllFilesTime = false
 							if(musicPageType === CONSTANT.musicOriginal.musicRecent){
 								stopMusic()
-								$dispatch(updateCurrentPlayingSong(null))
-								$dispatch(updateMusicPageType(""))
-								$dispatch(updateCurrentPlayingSongOriginal(""))
-								$dispatch(updateCurrentPlayingSongDuration(""))
-								$dispatch(updateCurrentPlayingMusicList([]))
 								localStorage.removeItem('lastPlaySongInfo')
 								localStorage.removeItem('lastPlaySongPageType')
 								localStorage.removeItem('lastPlaySongMusicDataList')
-								window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
-								window.circleControlRef.style.strokeWidth = "8px"
 							}
 							if(musicDataList.length){
 								alert("删除成功")
@@ -283,6 +276,7 @@ class MusicPlayer extends React.Component {
 								localStorage.setItem("pauseWhenOver", 'yes')
 								localStorage.setItem("playByOrder", "no")
 								localStorage.setItem("playByRandom", 'no')
+								alert('单曲播放')
 								$dispatch(updateMusicMenuBadge([
 									{
 										index: 2,
@@ -309,6 +303,7 @@ class MusicPlayer extends React.Component {
 								localStorage.setItem("pauseWhenOver", 'no')
 								localStorage.setItem("playByOrder", 'no')
 								localStorage.setItem("playByRandom", 'no')
+								alert('单曲循环')
 								$dispatch(updateMusicMenuBadge([
 									{
 										index: 2,
@@ -337,6 +332,7 @@ class MusicPlayer extends React.Component {
 								localStorage.setItem("pauseWhenOver", 'yes')
 								localStorage.setItem("playByOrder", 'yes')
 								localStorage.setItem("playByRandom", 'no')
+								alert('顺序播放')
 								$dispatch(updateMusicMenuBadge([
 									{
 										index: 2,
@@ -365,6 +361,7 @@ class MusicPlayer extends React.Component {
 								localStorage.setItem("pauseWhenOver", 'yes')
 								localStorage.setItem("playByOrder", 'no')
 								localStorage.setItem("playByRandom", 'yes')
+								alert('随机播放')
 								$dispatch(updateMusicMenuBadge([
 									{
 										index: 2,
@@ -398,6 +395,9 @@ class MusicPlayer extends React.Component {
 									return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
 										.then(() => {
 											if(filenameOrigin === currentPlayingSong){
+												localStorage.removeItem('lastPlaySongInfo')
+												localStorage.removeItem('lastPlaySongPageType')
+												localStorage.removeItem('lastPlaySongMusicDataList')
 												playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 											}
 										})
@@ -449,6 +449,9 @@ class MusicPlayer extends React.Component {
 											})
 											.then(() => {
 												if(filenameOrigin === currentPlayingSong){
+													localStorage.removeItem('lastPlaySongInfo')
+													localStorage.removeItem('lastPlaySongPageType')
+													localStorage.removeItem('lastPlaySongMusicDataList')
 													playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
 												}
 											})
@@ -478,6 +481,9 @@ class MusicPlayer extends React.Component {
 											removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
 											window.eventEmit.$emit("updateRecentMusicListEventEmit", recentMusicList)
 											if(filenameOrigin === currentPlayingSong){
+												localStorage.removeItem('lastPlaySongInfo')
+												localStorage.removeItem('lastPlaySongPageType')
+												localStorage.removeItem('lastPlaySongMusicDataList')
 												const currentMusicFilenameOriginalArr = recentMusicList.map(item => item.filenameOrigin)
 												playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, recentMusicList, null, self)
 											}

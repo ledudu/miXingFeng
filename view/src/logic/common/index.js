@@ -985,6 +985,11 @@ export const stopMusic = () => {
 	$dispatch(updateCurrentSongTime(0))
 	$dispatch(updateSoundInstance(null))
 	$dispatch(updateSoundInstanceId(null))
+	$dispatch(updateCurrentPlayingSong(null))
+	$dispatch(updateMusicPageType(""))
+	$dispatch(updateCurrentPlayingSongOriginal(""))
+	$dispatch(updateCurrentPlayingSongDuration(""))
+	$dispatch(updateCurrentPlayingMusicList([]))
 	if(window.circleControlRef){
 		window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
 		window.circleControlRef.style.strokeWidth = "8px"
@@ -1123,9 +1128,11 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 						return true
 					}
 				})
-				logger.error("playMusic onloaderror error ", error)
-				logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
-				alertDialog("歌曲播放异常,请尝试其他歌曲")
+				if(self){ //只有刚启动app获取上一次播放歌曲的时候才没有self
+					logger.error("playMusic onloaderror error ", error)
+					logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
+					alertDialog("歌曲播放异常,请尝试其他歌曲")
+				}
 			},
 			onload  : function(id){
 				if(self === null) {
@@ -1484,6 +1491,7 @@ export const checkLastMusicPlayInfo = () => {
 		const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
 		if(lastPlaySongInfo && lastPlaySongPageType && lastPlaySongMusicDataList){
 			playMusic(lastPlaySongInfo.filePath, lastPlaySongInfo.filenameOrigin, lastPlaySongInfo.duration, lastPlaySongInfo.original, lastPlaySongMusicDataList, lastPlaySongPageType, lastPlaySongInfo.filename, lastPlaySongInfo.id, lastPlaySongInfo.original, null)
+			pauseMusic()
 		}
 	} catch(err){
 		logger.error("checkLastMusicPlayInfo err", err)
