@@ -1,7 +1,7 @@
 # 觅星峰
 
 # 简介
-使用cordova开发的音乐播放器,提供签到,文件共享和音乐共享,还可以搜索网易云,qq音乐和酷狗音乐,上传具备秒传性质,h5和安卓设备已测试通过  
+使用cordova开发的音乐播放器,提供签到,文件共享和音乐共享,还可以搜索网易云,qq音乐,酷狗音乐和酷我,上传具备秒传性质,h5和安卓设备已测试通过  
 
 # 特别感谢
 ````网易云音乐api:````: [Binaryify/NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi)  
@@ -59,11 +59,11 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 ```
 
 # 功能特性  
-1. 注册登录  
+1. 注册,登录和忘记密码  
 2. 签到和查询签到记录  
-3. 实时显示在线人数和成员签到情况  
+3. 实时显示在线人数和成员签到  
 4. 账号颜色区分账号注册来源  
-5. 实时监听当前地址变化  
+5. 艺术昵称墙(d3.js)  
 6. 文件服务器客户端  
 7. 个人信息管理  
 8. 搜索对方地理位置  
@@ -75,14 +75,14 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 14. 登录记录  
 15. 通知和运行  
 16. 重置密码  
-17. 成员上传文件和获取自己位置的状态栏push推送  
-18. 本地日志记录
+17. 状态栏push推送(成员上传文件和获取自己位置)  
+18. APP日志记录
 19. websocket心跳检测，断网重连和后台保活  
 20. 在线升级  
 21. 前端错误监控  
 22. 音乐共享系统  
-23. 音乐播放器: 单曲循环，顺序播放，结束后暂停，播放上一首，播放下一首  
-24. 删除上传的音乐  
+23. 音乐播放器: 单曲循环，顺序播放，单曲播放,随机播放，播放上一首，播放下一首  
+24. 支持删除上传的音乐  
 25. 收藏音乐  
 26. 支持音乐锁屏或后台播放  
 27. 在通知栏显示app更新通知  
@@ -90,21 +90,22 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 28. 实时显示文件下载进度和完成状态  
 29. 分享列表同步更新下载和收藏状态  
 30. 秒传系统  
-31. 艺术昵称墙  
-32. 验证邮箱和忘记密码  
-33. 支持搜索，播放和下载网易云，qq音乐和酷狗音乐  
+31. nginx代理
+32. 验证邮箱,忘记密码和邮箱登录  
+33. 支持搜索，播放和下载网易云，qq音乐,酷狗音乐和酷我音乐  
 34. 支持搜索共享文件和共享音乐  
-35. 支持综合搜索  
+35. 支持全局搜索  
 36. 从服务端下载广告  
 37. 音乐播放器底部控制条"
-38. 完善安卓日志系统"
+38. 手机号注册账号,修改手机号,手机号忘记密码和手机号登录
+39. 最近播放列表
+
+# 更新:  
+[更新日志](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/CHANGELOG.MD)
 
 # 效果图预览  
 ![release pic](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v2.png)  
 [更多](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/thumb_release_v1.png)  
-
-# 更新:  
-[更新日志](https://github.com/zhoushoujian/miXingFeng/blob/master/docs/CHANGELOG.MD)
 
 # 秒传系统的设计(群组方向)：
 
