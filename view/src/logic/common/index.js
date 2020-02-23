@@ -962,10 +962,19 @@ export const pauseMusic = () => {
 	if(soundInstance && soundInstanceId) {
 		soundInstance.pause(soundInstanceId);
 	}
+	setTimeout(() => {
+		if(window.checkMusicPlaying) clearInterval(window.checkMusicPlaying)
+		window.checkMusicPlaying = setInterval(() => {
+			if(soundInstance.playing()){
+				soundInstance.pause()
+			}
+		}, 500)
+	})
 	$dispatch(updateSoundPlaying(false))
 }
 
 export const resumeMusic = () => {
+	if(window.checkMusicPlaying) clearInterval(window.checkMusicPlaying)
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music resume currentPlayingSong", currentPlayingSong)
 	if(soundInstance && soundInstanceId) {
@@ -975,6 +984,7 @@ export const resumeMusic = () => {
 }
 
 export const stopMusic = () => {
+	if(window.checkMusicPlaying) clearInterval(window.checkMusicPlaying)
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music stop currentPlayingSong", currentPlayingSong)
 	if(soundInstance && soundInstanceId) {
@@ -1138,7 +1148,6 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 				if(self === null) {
 					self = ""
 					pauseMusic()
-					setTimeout(pauseMusic)
 				}
 			},
 			onend: function() {
@@ -1491,7 +1500,6 @@ export const checkLastMusicPlayInfo = () => {
 		const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
 		if(lastPlaySongInfo && lastPlaySongPageType && lastPlaySongMusicDataList){
 			playMusic(lastPlaySongInfo.filePath, lastPlaySongInfo.filenameOrigin, lastPlaySongInfo.duration, lastPlaySongInfo.original, lastPlaySongMusicDataList, lastPlaySongPageType, lastPlaySongInfo.filename, lastPlaySongInfo.id, lastPlaySongInfo.original, null)
-			pauseMusic()
 		}
 	} catch(err){
 		logger.error("checkLastMusicPlayInfo err", err)
