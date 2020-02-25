@@ -596,6 +596,20 @@ class MusicPlayer extends React.Component {
 		)
 	}
 
+	showSongMv = (e, mvId, original, filename) => {
+		e.stopPropagation();
+		const { that, self } = this.props
+		let _this = ""
+		if(that) {
+			_this = that.props.self
+		} else if(self) {
+			_this = self
+		} else {
+			return
+		}
+		_this.props.history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
+	}
+
 	render() {
 		let { currentPlayingSong, currentSongTime, soundPlaying, original, pageType } = this.props;
 		let { musicDataList=[] } = this.state
@@ -624,6 +638,10 @@ class MusicPlayer extends React.Component {
 												?	<div className="ku-wo-music-source-flag">酷我音乐</div>
 												:	null
 											)
+										}
+										{ item.mvId
+											&& (pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl")
+											&& <i className="fa fa-youtube-play" aria-hidden="true" onClick={(e) => this.showSongMv(e, item.mvId, item.original, item.filename)}></i>
 										}
 									</div>
 									{
@@ -658,6 +676,9 @@ class MusicPlayer extends React.Component {
 							}
 						</div>
 					)
+				}
+				{
+					pageType === CONSTANT.musicOriginal.savedSongs && <div className="music-picture"></div>
 				}
 			</div>
 		)

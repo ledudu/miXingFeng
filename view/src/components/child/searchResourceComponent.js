@@ -348,7 +348,7 @@ class SearchResourceComponent extends Component {
 		return axios.get(fetchMoreMusicUrl.format({query: lastSearchString}))
 			.then((response) => {
 				const result = response.data.result.response;
-				logger.info("SearchResourceComponent showMoreSearchResult original, result", original, result)
+				logger.info("SearchResourceComponent showMoreSearchResult original, result.length", original, result.length)
 				this.dispatchOnlineSongResults(original, result)
 			})
 			.catch(err => {
@@ -419,7 +419,7 @@ class SearchResourceComponent extends Component {
 					lastSearchResult[3]['lastQQMusicSearchResult'].length !==0 && <div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">QQ音乐</div>
-						<MusicPlayer musicDataList={lastSearchResult[3]['lastQQMusicSearchResult']} original={CONSTANT.musicOriginal.qqMusic} pageType={origin} />
+						<MusicPlayer musicDataList={lastSearchResult[3]['lastQQMusicSearchResult']} original={CONSTANT.musicOriginal.qqMusic} pageType={origin} that={this} />
 						<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.qqMusic : "qqMusicSearchAll")}>
 							{!noMoreQQMusicResults && <i className={`fa fa-search ${moreQQMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
@@ -436,7 +436,7 @@ class SearchResourceComponent extends Component {
 					lastSearchResult[2]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
 						<div className="interval-line first-line"></div>
 						<div className="online-music-header">网易云</div>
-						<MusicPlayer musicDataList={lastSearchResult[2]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} />
+						<MusicPlayer musicDataList={lastSearchResult[2]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} that={this} />
 						<div className="online-music-more-btn" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
 							{!noMoreNetEaseCloudResults && <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
@@ -565,7 +565,7 @@ class SearchResourceComponent extends Component {
 													</div>
 												</div>
 											}
-											{this.onlineMusicComponent("onlineMusicSearchALl", lastSearchResult, noMoreSearchAllNetEaseCloudResults, moreNetEaseCloudSearch, noMoreSearchAllQQMusicResults, moreQQMusicSearch, noMoreSearchAllKuGouMusicResults, moreKuGouMusicSearch, noMoreSearchAllKuWoMusicResults, moreKuWoMusicSearch,)}
+											{this.onlineMusicComponent("onlineMusicSearchALl", lastSearchResult, noMoreSearchAllNetEaseCloudResults, moreNetEaseCloudSearch, noMoreSearchAllQQMusicResults, moreQQMusicSearch, noMoreSearchAllKuGouMusicResults, moreKuGouMusicSearch, noMoreSearchAllKuWoMusicResults, moreKuWoMusicSearch)}
 										</Fragment>
 									:	null
 								}

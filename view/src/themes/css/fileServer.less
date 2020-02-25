@@ -88,10 +88,23 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	width: 100%;
+	position: relative;
+	.music-picture{
+		width: 100%;
+		background-image: url(../imgs/ad0.png);
+		-webkit-filter: blur(38px);
+		filter: blur(38px);
+		height: 100%;
+		background-size: cover;
+		position: absolute;
+		top: 0;
+		z-index:1;
+	}
 	.music-list{
 		display: flex;
 		position: relative;
 		width: 100%;
+		z-index:10;
 		&:active{
 			background-color: #eaeaea;
 		}
@@ -164,6 +177,10 @@
 					.ku-wo-music-source-flag{
 						border: 1px solid #FCE363;
 						color: #FCE363;
+					}
+					.fa-youtube-play{
+						padding: 1px 10px;
+						color: #FFA500;
 					}
 				}
 				.song-saved{
@@ -306,7 +323,7 @@
 	overflow: hidden;
 	.saved-song-content{
 		height: calc(100% - 111px);
-    	overflow-y: scroll;
+		overflow-y: scroll;;
 	}
 }
 
@@ -595,5 +612,16 @@
 			transform: scale(1);
 
 		}
+	}
+}
+
+.music-mv-player-container{
+	.music-mv-player-content{
+		background-color: #000;
+		height: calc(100vh - 50px);
+		max-height: calc(100vh - 50px);
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
 	}
 }

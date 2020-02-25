@@ -5,6 +5,7 @@ import MyLoadable from './Loadable';
 import { updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
 import { updateDirectShowSignPage } from "./ducks/sign";
 import { checkMusicPlayWays, checkLastMusicPlayInfo } from "./logic/common"
+import { initWebsocket } from "./logic/common" ;
 
 const Login = MyLoadable({
     loader: () => import('./components/login')
@@ -163,7 +164,9 @@ const RecentMusicPlayed = MyLoadable({
 	loader: () => import("./components/RecentMusicPlayed")
 })
 
-import { initWebsocket } from "./logic/common" ;
+const MusicMvPlayer = MyLoadable({
+	loader: () => import("./components/musicMvPlayer")
+})
 
 class Routers extends Component {
 
@@ -250,7 +253,8 @@ class Routers extends Component {
 							<Route path="/search_online_music" component={SearchOnlineMusic} />
 							<Route path="/search_all" component={SearchAll} />
 							<Route path="/recent_music_played" component={RecentMusicPlayed} />
-                    	    <Route path="/" component={Entry} />
+							<Route path="/music_mv_player" component={MusicMvPlayer} />
+                    	    <Route path="/" exact component={Entry} />
     					</Switch>
 					</div>
 					<div className="window-music-container">

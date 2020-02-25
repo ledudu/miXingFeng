@@ -47,4 +47,6 @@ export const HTTP_URL = {
 	"getKuGouMusicLinksByIds": hostname + "/get_ku_gou_music_links_by_ids",
 	"getKuWoMusicLinksByIds": hostname + "/get_ku_wo_music_links_by_ids",
 	"getAdPicture": hostname + "/get_ad_picture",
+	"getNetEaseCloudMvLink": hostname + "/get_net_ease_cloud_mv_link?id={id}&userId={userId}",
+	"getQQMvLink": hostname + "/get_qq_mv_link?id={id}&userId={userId}",
 }

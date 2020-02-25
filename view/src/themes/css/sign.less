@@ -83,8 +83,8 @@
         	-khtml-user-select: none;
         	-moz-user-select: none;
         	-ms-user-select: none;
-			 user-select: none;
-			 position: relative;
+			user-select: none;
+			position: relative;
 			.sign {
 				width: 150px;
 				height: 150px;
@@ -116,10 +116,10 @@
 				}
 			}
 			.flick-animation{
-				-webkit-animation: flickAnimation 2s infinite;
-				-moz-animation: flickAnimation 2s infinite;
-				-o-animation: flickAnimation 2s infinite;
-				animation: flickAnimation 2s infinite;
+				-webkit-animation: flickAnimation 49s infinite;
+				-moz-animation: flickAnimation 49s infinite;
+				-o-animation: flickAnimation 49s infinite;
+				animation: flickAnimation 49s infinite;
 			}
 			.signed-flag {
 				color: #EDEDED;
@@ -128,7 +128,7 @@
 				box-shadow: none;
 
 				&:active {
-				  background-color: rgba(129,175,237, 0.6);
+					background-color: rgba(129,175,237, 0.6);
 				}
 			}
 			.last-sign-time {
@@ -291,24 +291,44 @@
 }
 
 @keyframes flickAnimation {
-	0%   { box-shadow: 0 0 10px #EEB422; }
-	50%  { box-shadow: 0 0 10px #EEEE00; }
-	100% { box-shadow: 0 0 10px #EEB422; }
+	1%   { box-shadow: 0 0 20px pink; }
+	14%   { box-shadow: 0 0 20px hsl(4, 100%, 41%); }
+	28%  { box-shadow: 0 0 20px #d18800; }
+	42% { box-shadow: 0 0 20px hsl(61, 100%, 50%); }
+	56%   { box-shadow: 0 0 20px rgb(123, 255, 0); }
+	70%  { box-shadow: 0 0 20px hsl(241, 100%, 50%); }
+	84% { box-shadow: 0 0 20px 	#68228B; }
+	100% { box-shadow: 0 0 20px #CD00CD; }
 }
 @-o-keyframes flickAnimation{
-	0%   { box-shadow: 0 0 10px #EEB422; }
-	50%  { box-shadow: 0 0 10px #EEEE00; }
-	100% { box-shadow: 0 0 10px #EEB422; }
+	1%   { box-shadow: 0 0 20px pink; }
+	14%   { box-shadow: 0 0 20px hsl(4, 100%, 41%); }
+	28%  { box-shadow: 0 0 20px #d18800; }
+	42% { box-shadow: 0 0 20px hsl(61, 100%, 50%); }
+	56%   { box-shadow: 0 0 20px rgb(123, 255, 0); }
+	70%  { box-shadow: 0 0 20px hsl(241, 100%, 50%); }
+	84% { box-shadow: 0 0 20px 	#68228B; }
+	100% { box-shadow: 0 0 20px #CD00CD; }
 }
 @-moz-keyframes flickAnimation{
-	0%   { box-shadow: 0 0 10px #EEB422; }
-	50%  { box-shadow: 0 0 10px #EEEE00; }
-	100% { box-shadow: 0 0 10px #EEB422; }
+	1%   { box-shadow: 0 0 20px pink; }
+	14%   { box-shadow: 0 0 20px hsl(4, 100%, 41%); }
+	28%  { box-shadow: 0 0 20px #d18800; }
+	42% { box-shadow: 0 0 20px hsl(61, 100%, 50%); }
+	56%   { box-shadow: 0 0 20px rgb(123, 255, 0); }
+	70%  { box-shadow: 0 0 20px hsl(241, 100%, 50%); }
+	84% { box-shadow: 0 0 20px 	#68228B; }
+	100% { box-shadow: 0 0 20px #CD00CD; }
 }
 @-webkit-keyframes flickAnimation{
-	0%   { box-shadow: 0 0 10px #EEB422; }
-	50%  { box-shadow: 0 0 10px #EEEE00; }
-	100% { box-shadow: 0 0 10px #EEB422; }
+	1%   { box-shadow: 0 0 20px pink; }
+	14%   { box-shadow: 0 0 20px hsl(4, 100%, 41%); }
+	28%  { box-shadow: 0 0 20px #d18800; }
+	42% { box-shadow: 0 0 20px hsl(61, 100%, 50%); }
+	56%   { box-shadow: 0 0 20px rgb(123, 255, 0); }
+	70%  { box-shadow: 0 0 20px hsl(241, 100%, 50%); }
+	84% { box-shadow: 0 0 20px 	#68228B; }
+	100% { box-shadow: 0 0 20px #CD00CD; }
 }
 
 

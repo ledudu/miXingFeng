@@ -24,8 +24,29 @@ $ npm i
 # 技术栈
 cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loadable
 
+# 原生功能
+1. android-permissions  
+2. app-version  
+3. backbutton  
+4. background-mode  
+5. baidumaplocation  
+6. device info  
+7. fastrde-md5  
+8. file-opener2  
+9. file-transfer  
+10. headsetdetection  
+11. inappbrowser  
+12. JPush  
+13. local-notifications  
+14. network-information  
+15. x-toast  
+16. camera  
+17. image-resizer  
+18. splashscreen  
+19. statusbar  
+
 # 注意
-推荐使用  
+````推荐使用````  
 cordova8.0.0,cordova-android7.1.4,  
 cordova-plugin-jcore1.3.1,  
 jpush-phonegap-plugin3.7.3,  
@@ -53,7 +74,7 @@ Cordova包装你的HTML/JavaScript app到原生app容器中，可以让你访问
 
 # 关于签名
 使用Keytool生成自己的密钥,并把密码写入build.json  
-提示：debug包不需要签名  
+````提示：debug包不需要签名````  
 ```shell
 keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myapp.keystore
 ```
@@ -90,7 +111,7 @@ keytool -genkey -alias myapp.keystore -keyalg RSA -validity 20000 -keystore myap
 28. 实时显示文件下载进度和完成状态  
 29. 分享列表同步更新下载和收藏状态  
 30. 秒传系统  
-31. nginx代理
+31. nginx反向代理
 32. 验证邮箱,忘记密码和邮箱登录  
 33. 支持搜索，播放和下载网易云，qq音乐,酷狗音乐和酷我音乐  
 34. 支持搜索共享文件和共享音乐  

@@ -17,7 +17,12 @@ class SavedSongs extends React.Component {
             <div className="saved-song-container">
                 <NavBar centerText="收藏" backToPreviousPage={this.backToMainPage} />
                 <div className="saved-song-content">
-					<MusicPlayer musicDataList={musicCollection} original={CONSTANT.musicOriginal.savedSongs} pageType={CONSTANT.musicOriginal.savedSongs} />
+					<MusicPlayer
+						musicDataList={musicCollection}
+						original={CONSTANT.musicOriginal.savedSongs}
+						pageType={CONSTANT.musicOriginal.savedSongs}
+						self={this}
+					/>
 				</div>
             </div>
         );

@@ -35,28 +35,28 @@ class MusicController extends React.Component{
 
 	gotoPlayingMusicPage = () => {
 		const { musicPageType } = this.props
-		const urlHash =  window.location.href.split("#/")[1]
+		const urlHash =  window.getRoute()
 		switch(musicPageType){
 			case CONSTANT.musicOriginal.musicShare:
-				if(urlHash !== "main/music") window.goRoute(null, "main/music")
+				if(urlHash !== "/main/music") window.goRoute(null, "main/music")
 				break
 			case CONSTANT.musicOriginal.savedSongs:
-				if(urlHash !== "saved_songs") window.goRoute(null, "saved_songs")
+				if(urlHash !== "/saved_songs") window.goRoute(null, "saved_songs")
 				break
 			case CONSTANT.musicOriginal.musicFinished:
-				if(urlHash !== "my_finished_musics") window.goRoute(null, "my_finished_musics")
+				if(urlHash !== "/my_finished_musics") window.goRoute(null, "my_finished_musics")
 				break
 			case CONSTANT.musicOriginal.musicRecent:
-				if(urlHash !== "recent_music_played") window.goRoute(null, "recent_music_played")
+				if(urlHash !== "/recent_music_played") window.goRoute(null, "recent_music_played")
 				break
 			case "onlySearchShareMusic":
-				if(urlHash !== "search_music") window.goRoute(null, "search_music")
+				if(urlHash !== "/search_music") window.goRoute(null, "search_music")
 				break
 			case "onlineMusic":
-				if(urlHash !== "search_online_music") window.goRoute(null, "search_online_music")
+				if(urlHash !== "/search_online_music") window.goRoute(null, "search_online_music")
 				break
 			case "onlineMusicSearchALl":
-				if(urlHash !== "onlineMusicSearchALl") window.goRoute(null, "search_all")
+				if(urlHash !== "/onlineMusicSearchALl") window.goRoute(null, "search_all")
 				break
 			default:
 				break

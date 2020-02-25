@@ -965,7 +965,7 @@ export const pauseMusic = () => {
 	setTimeout(() => {
 		if(window.checkMusicPlaying) clearInterval(window.checkMusicPlaying)
 		window.checkMusicPlaying = setInterval(() => {
-			if(soundInstance.playing()){
+			if(soundInstance && soundInstance.playing && soundInstance.playing()){
 				soundInstance.pause()
 			}
 		}, 500)
@@ -1290,8 +1290,8 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 
 export const checkToShowPlayController = () => {
 	setTimeout(() => {
-		const urlHash =  window.location.href.split("#/")[1]
-		const arr = ["search_music", "search_online_music", "search_all", "saved_songs", "my_finished_musics", "recent_music_played"]
+		const urlHash =  window.getRoute()
+		const arr = ["/search_music", "/search_online_music", "/search_all", "/saved_songs", "/my_finished_musics", "/recent_music_played"]
 		let needDisplay = false
 		if(urlHash){
 			arr.forEach(item => {
