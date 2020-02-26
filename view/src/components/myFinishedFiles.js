@@ -6,7 +6,7 @@ import NavBar from "./child/navbar";
 class MyFinishedFiles extends React.Component {
 
 	backToMainPage = () => {
-		window.goRoute(this, "/my_download_middle_page")
+		window.goRoute(this, "/main/myInfo")
 	}
 
 	clearAllFiles = () => {

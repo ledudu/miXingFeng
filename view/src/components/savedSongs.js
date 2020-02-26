@@ -7,7 +7,7 @@ import { CONSTANT } from "../constants/enumeration"
 class SavedSongs extends React.Component {
 
 	backToMainPage = () => {
-		window.goRoute(this, "/main/myInfo");
+		window.goRoute(this, "/my_download_middle_page");
 	}
 
 	render() {

@@ -38,8 +38,8 @@ const initialState = () => ({
 		},
 		{
 			title: "文件",
-			icon: "fa fa-file-image-o",
-			selectedIcon: "fa fa-file-image-o light-blue",
+			icon: "fa fa-file-o",
+			selectedIcon: "fa fa-file light-blue",
 			badge: "",
 			isDot: "",
 			route: "file"

@@ -64,16 +64,16 @@ class MyInfo extends React.Component {
 		window.goRoute(this, "/login");
 	}
 
-	gotoMySaved = () => {
-		window.goRoute(this, '/saved_songs')
-	}
-
-	gotoMyDownloadMiddleware = () => {
-		window.goRoute(this, '/my_download_middle_page')
-	}
-
 	gotoNicknamePage = () => {
 		window.goRoute(this, '/nickname_page')
+	}
+
+	gotoFileDownloadPage = () => {
+		window.goRoute(this, '/my_finished_files')
+	}
+
+	gotoMusicPage= () => {
+		window.goRoute(this, '/my_download_middle_page')
 	}
 
     render() {
@@ -118,15 +118,15 @@ class MyInfo extends React.Component {
                     </List>
 					<div className="interval"></div>
 					<List>
-                        <List.Item arrow="horizontal" onClick={this.gotoMySaved}>
-							<i className="fa fa-heart" aria-hidden="true"></i>
-                        	<span style={{ marginLeft }}>收藏</span>
+                        <List.Item arrow="horizontal" onClick={this.gotoFileDownloadPage}>
+							<i className="fa fa-file" aria-hidden="true"></i>
+                        	<span style={{ marginLeft }}>文件</span>
                         </List.Item>
 					</List>
 					<List>
-						<List.Item arrow="horizontal" onClick={this.gotoMyDownloadMiddleware}>
-							<i className="fa fa-download" aria-hidden="true"></i>
-                    	    <span style={{ marginLeft }}>下载</span>
+						<List.Item arrow="horizontal" onClick={this.gotoMusicPage}>
+							<i className="fa fa-music" aria-hidden="true"></i>
+                    	    <span style={{ marginLeft }}>音乐</span>
                     	</List.Item>
                     </List>
 					<div className="interval"></div>

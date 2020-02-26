@@ -3,16 +3,19 @@ import SquareMiddlePageComponent from "./child/squareMiddlePageComponent";
 
 const itemColumns = [
 	{
-		displayName: "文件",
-		routeName: "/my_finished_files"
+		displayName: "收藏",
+		routeName: "/saved_songs",
+		fa: "fa-heart"
 	},
 	{
-		displayName: "音乐",
-		routeName: "/my_finished_musics"
+		displayName: "下载",
+		routeName: "/my_finished_musics",
+		fa: "fa-download"
 	},
 	{
 		displayName: "最近播放",
-		routeName: "/recent_music_played"
+		routeName: "/recent_music_played",
+		fa: "fa-play-circle"
 	},
 ]
 
@@ -26,6 +29,9 @@ class MyDownloadMiddlePage extends React.Component {
 					itemColumns={itemColumns}
 					self={this}
 				/>
+				<div className="music-logo">
+
+				</div>
             </div>
         );
 	}
