@@ -4,27 +4,33 @@ import SquareMiddlePageComponent from "./child/squareMiddlePageComponent";
 const itemColumns = [
 	{
 		displayName: "历史签到",
-		routeName: "/search_user_history"
+		routeName: "/search_user_history",
+		fa: "fa-sign-in"
 	},
 	{
 		displayName: "地理位置",
-		routeName: "/search_position"
+		routeName: "/search_position",
+		fa: "fa-location-arrow"
 	},
 	{
 		displayName: "共享文件",
-		routeName: "/search_file"
+		routeName: "/search_file",
+		fa: "fa-file"
 	},
 	{
 		displayName: "共享音乐",
-		routeName: "/search_music"
+		routeName: "/search_music",
+		fa: "fa-music"
 	},
 	{
 		displayName: "在线音乐",
-		routeName: "/search_online_music"
+		routeName: "/search_online_music",
+		fa: "fa-search-minus"
 	},
 	{
 		displayName: "全局搜索",
-		routeName: "/search_all"
+		routeName: "/search_all",
+		fa: "fa-search-plus"
 	},
 ]
 

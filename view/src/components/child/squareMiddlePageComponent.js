@@ -44,6 +44,7 @@ export default class SquareMiddlePageComponent extends React.Component {
                 <div className="square-middle-page-content">
 						{itemColumns.map(item => (
 							<div key={item.displayName} className="square-item" onClick={() => this.goNextRoute(item.routeName, item.name, item.src)} >
+								<i className={`fa ${item.fa}`} aria-hidden="true"></i>
 								<span className="square-item-text">{item.displayName}</span>
 							</div>
 						))}

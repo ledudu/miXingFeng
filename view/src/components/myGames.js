@@ -7,34 +7,33 @@ const itemColumns = [
 		routeName: "/package_iframe",
 		name: '俄罗斯方块',
 		src: "./games/teris/index.html",
+		fa: "fa-square"
 	},
 	{
 		displayName: "五子棋",
 		routeName: "/package_iframe",
 		name: '五子棋',
 		src: "./games/gobang/index.html",
+		fa: "fa-circle-o"
 	},
 	{
 		displayName: "2048",
 		routeName: "/package_iframe",
 		name: '2048小游戏',
 		src: "./games/js_game_2048/index.html",
+		fa: "fa-meetup"
 	},
 	{
 		displayName: "spacecraft",
 		routeName: "/package_iframe",
 		name: 'spacecraft',
 		src: "./games/spacecraft/index.html",
-	},
-	{
-		displayName: "SSR",
-		routeName: "/package_iframe",
-		name: '摘苹果-SSR',
-		src: "http://129.226.77.79:8002/"
+		fa: "fa-deviantart"
 	},
 	{
 		displayName: "RPC",
-		routeName: "/type_shell"
+		routeName: "/type_shell",
+		fa: "fa-openid"
 	}
 ]
 

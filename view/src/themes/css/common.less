@@ -128,36 +128,14 @@
 .fa.fa-search{
     color: #8968CD;
 }
-.fa.fa-heart{
-    color: #FF6347;
-}
-.fa.fa-download{
-    color: #7CCD7C;
-}
-.fa.fa-check-circle-o{
-	color: #1E90FF;
-}
 .fa.fa-quote-right{
 	color: #20B2AA;
 }
 .fa.fa-gamepad{
 	color: #B8860B;
 }
-.fa.fa-send-o{
-	color: #1E90FF;
-}
 .fa.fa-cogs{
     color: #4169E1;
-}
-
-.fa.fa-pencil{
-    color: #CD2626;
-}
-.fa.fa-scribd{
-    color: #20B2AA;
-}
-.fa.light-blue{
-	color: #4876FF
 }
 
 .square-middle-page-container{
@@ -174,9 +152,11 @@
 			background-color: #fffefb;
 			color: #000;
 			box-sizing: border-box;
-			border-radius: 2px;
+			border-radius: 1px;
 			cursor: pointer;
 			font-size: 15px;
+			display: flex;
+    		flex-direction: column;
 			&:nth-child(odd){
 				border-right: 1px solid #C2C2C2;
 				border-bottom: 1px solid #C2C2C2;
@@ -184,21 +164,64 @@
 			&:nth-child(even){
 				border-bottom: 1px solid #C2C2C2;
 			}
-			&:nth-last-child(1){
-				border-bottom: none;
-			}
-			&:nth-last-child(2){
-				border-bottom: none;
-			}
 			&:hover{
 				background-color: rgba(128, 128, 128, 0.5);
 				color: #fff;
 				transition: all .8s;
 			}
+			.fa{
+				font-size: 30px;
+				padding-bottom: 10px;
+			}
+			.square-item-text{
+				color: #696969;
+			}
+			.fa.fa-heart{
+				color: #FF6347;
+			}
+			.fa.fa-download{
+				color: #7CCD7C;
+			}
+			.fa-play-circle{
+				color: #81AFED;
+    			font-size: 36px;
+			}
+			.fa-sign-in{
+				color: #1E90FF;
+			}
+			.fa-location-arrow{
+				color: #20B2AA;
+			}
+			.fa-file{
+				color: #81AFED;
+			}
+			.fa-music{
+				color:#7CCD7C;
+			}
+			.fa-search-minus{
+				color: #1E90FF;
+			}
+			.fa-search-plus{
+				color: #76EE00;
+			}
+			.fa-square{
+				color: #EFCC19;
+			}
+			.fa-circle-o{
+				color: #DEB887;
+			}
+			.fa-meetup{
+				color: #DEB887;
+			}
+			.fa-deviantart{
+				color: #002F33;
+			}
+			.fa-openid{
+				color: #108EE9;
+			}
 		}
 	}
 }
-
 
 a {
 	cursor: pointer;

@@ -486,6 +486,7 @@
 }
 
 .my-download-outside-container{
+	position: relative;
     .my-download-outside-content{
 		display: flex;
         flex-direction: column;
@@ -509,6 +510,23 @@
 		.music-download-page-btn{
 			background-color: #0C77C5;
 			margin-bottom: 30px;
+		}
+	}
+	.music-logo{
+		background-image: url('../imgs/music-logo.png');
+		position: absolute;
+    	width: 100%;
+    	height: 300px;
+    	top: 320px;
+    	background-size: cover;
+    	opacity: 0.1;
+	}
+}
+
+@media only screen and (max-height: 600px){
+	.my-download-outside-container{
+		.music-logo{
+			top: 260px;
 		}
 	}
 }
