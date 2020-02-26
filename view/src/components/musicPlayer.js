@@ -211,7 +211,7 @@ class MusicPlayer extends React.Component {
 			const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
 			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
-			const buttons = ['播放', (hasSaved !== -1) ? '已收藏' : "收藏", '单曲播放', '单曲循环', '顺序播放', '随机播放', '播放上一首', '播放下一首', '下载', '删除', '取消'];
+			const buttons = ['播放', (hasSaved !== -1) ? '已收藏' : "收藏", '单曲播放', '单曲循环', '顺序播放', '随机播放', '下载', '删除', '取消'];
 			if(soundPlaying && filenameOrigin === currentPlayingSong){
 				buttons[0] = "暂停"
 			}
@@ -228,18 +228,18 @@ class MusicPlayer extends React.Component {
 			}
 			if(original === CONSTANT.musicOriginal.musicFinished){
 				//  已下载页面的菜单没有下载功能，原来下载的位置要换成删除本地音乐的函数
-				buttons.splice(8, 1);
+				buttons.splice(6, 1);
 				showActionSheetWithOptionsConfig.destructiveButtonIndex = buttons.length - 2
 			} else {
 				if(payDownload){
 					musicMenuBadgeCopy.push({
-						index: 8,
+						index: 6,
 						text: '版',
 					})
 				}
 				if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl"){
 					// 收藏页面和搜索在线音乐页面的菜单没有删除功能
-					buttons.splice(9, 1);
+					buttons.splice(7, 1);
 					delete showActionSheetWithOptionsConfig.destructiveButtonIndex
 				}
 			}
@@ -375,16 +375,6 @@ class MusicPlayer extends React.Component {
 							}
 							break;
 						case 6:
-							logger.info("播放上一首 currentFileIndex", currentFileIndex)
-							// 更新dom到store,用于在其他页面直接点击播放上一首
-							playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
-							break;
-						case 7:
-							logger.info("播放下一首 currentFileIndex", currentFileIndex)
-							// 更新dom到store
-							playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
-							break;
-						case 8:
 							if(original === CONSTANT.musicOriginal.musicFinished){
 								confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
 									return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
@@ -415,7 +405,7 @@ class MusicPlayer extends React.Component {
 								this.saveMusicToLocal(filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId)
 							}
 							break;
-						case 9:
+						case 7:
 							if(!username || !token) return alert("请先登录")
 							const dataInfo = {
 								username,
@@ -641,7 +631,8 @@ class MusicPlayer extends React.Component {
 										}
 										{ item.mvId
 											&& (pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl")
-											&& <i className="fa fa-youtube-play" aria-hidden="true" onClick={(e) => this.showSongMv(e, item.mvId, item.original, item.filename)}></i>
+											? <i className="fa fa-youtube-play" aria-hidden="true" onClick={(e) => this.showSongMv(e, item.mvId, item.original, item.filename)}></i>
+											: null
 										}
 									</div>
 									{
