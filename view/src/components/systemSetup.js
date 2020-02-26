@@ -64,7 +64,11 @@ class SystemSetup extends React.Component {
 
 	gotoAboutPage = () => {
         window.goRoute(this, "/about");
-    }
+	}
+
+	gotoFeedbackPage = () => {
+		window.goRoute(this, "/feedback");
+	}
 
     render() {
 		let { token, setSystemSetupDot } = this.props;
@@ -91,6 +95,9 @@ class SystemSetup extends React.Component {
                         	<span style={{ marginLeft: 12 }}>关于</span>
 							&nbsp;&nbsp;
 							<Badge text={setSystemSetupDot && 'new'}/>
+                        </List.Item>
+						<List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.gotoFeedbackPage}>
+                        	<span style={{ marginLeft: 12 }}>反馈</span>
                         </List.Item>
 						{
 							token && <List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.resetPassword}>

@@ -21,7 +21,7 @@ class Feedback extends React.Component {
 	}
 
     backToMainPage = () => {
-        window.goRoute(this, "/main/myInfo");
+        window.goRoute(this, "/system_setup");
     }
 
     submitFeedback = () => {

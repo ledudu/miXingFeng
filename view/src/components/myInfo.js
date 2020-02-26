@@ -56,10 +56,6 @@ class MyInfo extends React.Component {
 		window.goRoute(this, "/my_games");
 	}
 
-	gotoFeedbackPage = () => {
-		window.goRoute(this, "/feedback");
-	}
-
     gotoUserProfile = () => {
 		window.goRoute(this, "/user_profile");
     }
@@ -147,12 +143,6 @@ class MyInfo extends React.Component {
                         </List.Item>
 					</List>
 					<div className="interval"></div>
-					<List>
-                        <List.Item arrow="horizontal" onClick={this.gotoFeedbackPage}>
-							<i className="fa fa-send-o" aria-hidden="true"></i>
-                        	<span style={{ marginLeft }}>反馈</span>
-                        </List.Item>
-					</List>
 					<List>
 						<List.Item arrow="horizontal" onClick={this.gotoSystemSetup} >
                         	<Badge dot style={{display: setSystemSetupDot}}>
