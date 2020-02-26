@@ -44,6 +44,8 @@ cordova, react, redux, webpack4, websocket, Push, antd-mobile, less, react-loada
 17. image-resizer  
 18. splashscreen  
 19. statusbar  
+20. screen-orientation  
+21. insomnia  
 
 # 注意
 ````推荐使用````  

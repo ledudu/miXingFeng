@@ -281,7 +281,7 @@ class SearchResourceComponent extends Component {
 		return axios.get(HTTP_URL.getOnlineMusicLists.format({query}))
 			.then((response) => {
 				const result = response.data.result.response;
-				logger.info("SearchResourceComponent fetchOnlineSongs result", result)
+				logger.info("SearchResourceComponent fetchOnlineSongs result")
 				this.setState({
 					isSearching: false
 				})

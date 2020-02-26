@@ -295,6 +295,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 	}
 	return new Promise(function (res, rej) {
 		logger.info("saveFileToLocal prepare to download filenameOrigin", filenameOrigin)
+		let fileSizeCopy = fileSize
         window.requestFileSystem(window.LocalFileSystem.PERSISTENT, 0, function (fs) {
 			fs.root.getDirectory('miXingFeng', {
 				create: true
@@ -315,12 +316,13 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 									if(firstTime){
 										logger.info("saveFileToLocal start to download onprogress firstTime filenameOrigin", filenameOrigin)
 										firstTime = false;
+										fileSizeCopy = (fileSize && fileSize !== "未知") ? fileSize : e.total
 										const { username } = $getState().login
 										const downloadingFileOrigin = `downloading_${filenameOrigin}`
 										const downloadingDataToSaveIndexedDBObj = {
 											filename,
 											username,
-											fileSize,
+											fileSize: fileSizeCopy,
 											uploadUsername,
 											date: Date.now(),
 											filenameOrigin: downloadingFileOrigin,
@@ -365,7 +367,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 											const downloadedDataToSaveIndexedDBObj = {
 												filename,
 												username,
-												fileSize,
+												fileSize: fileSizeCopy,
 												uploadUsername,
 												date: Date.now(),
 												filenameOrigin: downloadedFileOrigin,
@@ -439,7 +441,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 										if(cancelDownload){
 											window.logger.info(`error callback cancel download`);
 											logger.info("saveFileToLocal download 已取消 filenameOrigin", filenameOrigin)
-											updateDownloadingStatus(filename, '已取消', uploadUsername, fileSize, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+											updateDownloadingStatus(filename, '已取消', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
 										} else {
 											window.logger.error(`下载失败`, error, 'fileUrl', fileUrl);
 											if(error.body === "Not Found"){
@@ -449,7 +451,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 											}
 											alert(`${filename}下载失败`)
 											window.logger.error("saveFileToLocal download 下载失败 filenameOrigin", filenameOrigin);
-											updateDownloadingStatus(filename, '失败', uploadUsername, fileSize, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+											updateDownloadingStatus(filename, '失败', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
 										}
 									}, 1010)
                                     res()

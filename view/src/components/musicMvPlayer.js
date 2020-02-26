@@ -6,6 +6,7 @@ import { HTTP_URL } from "../constants/httpRoute"
 import Loading from "./child/loading"
 import { hideMusicController, pauseMusic } from "../logic/common"
 import NavBar from "./child/navbar"
+import { networkErr, saveFileToLocal, updateDownloadingStatus } from "../services/utils"
 
 export default class MusicMvPlayer extends React.Component {
 
@@ -46,6 +47,9 @@ export default class MusicMvPlayer extends React.Component {
 					this.backToMainPage()
 				}
 			})
+			.catch(err => {
+				networkErr(err, "MusicMvPlayer")
+			})
 	}
 
 	componentDidCatch(err){
@@ -61,6 +65,7 @@ export default class MusicMvPlayer extends React.Component {
     }
 
     listenBackButton = () => {
+		window.plugins.insomnia.keepAwake()
 		document.addEventListener("backbutton", this.backToMainPage, false)
     }
 
@@ -84,6 +89,7 @@ export default class MusicMvPlayer extends React.Component {
 			StatusBar.overlaysWebView(false);
 			StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
 			screen.orientation.lock('portrait');
+			window.plugins.insomnia.allowSleepAgain()
 		}
 	}
 
@@ -103,6 +109,16 @@ export default class MusicMvPlayer extends React.Component {
 		}
 	}
 
+	downloadMv = () => {
+		const { mvLink } = this.state
+		const { original, filename } = this.props.location.query;
+		const uploadUsername = original === CONSTANT.musicOriginal.netEaseCloud ? "网易云" : original === CONSTANT.musicOriginal.qqMusic ? "qq音乐" : "未知"
+		const filenameOrigin = filename + ".mp4"
+		alert(`开始下载${filename}`)
+		updateDownloadingStatus(filenameOrigin, '准备中', uploadUsername, "未知", true, mvLink, filenameOrigin)
+		saveFileToLocal(filenameOrigin, mvLink, "download", filenameOrigin, uploadUsername, true, "未知", false)
+	}
+
     render() {
 		const { getMvLink, mvLink } = this.state
 		let filename = "MV"
@@ -111,11 +127,13 @@ export default class MusicMvPlayer extends React.Component {
 		}
         return (
 			<div className="music-mv-player-container">
-				<NavBar centerText={filename} backToPreviousPage={this.backToMainPage} />
+				<NavBar centerText={filename} backToPreviousPage={this.backToMainPage}
+					rightText="下载" rightTextFunc={this.downloadMv.bind(this, filename, )}
+				/>
 				<div className="music-mv-player-content">
 					{
 						getMvLink
-						? 	<Player ref={ref => this.player = ref}>
+						? 	<Player ref={ref => this.player = ref} autoPlay autoHide={false}>
 								<source src={mvLink} />
 								<BigPlayButton position="center" />
 							</Player>
