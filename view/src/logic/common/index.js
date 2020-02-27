@@ -796,7 +796,7 @@ export const checkSongSavedFunc = (musicDataList, original) => {
 			delete item.saved
 		})
 		musicCollection.forEach(item1 => {
-			musicDataList.some(item2 => {  //  在当前页将搜索已被收藏的歌曲加上标记
+			musicDataList.some(item2 => {  //  在当前页将收藏的歌曲加上标记
 				if(removePrefixFromFileOrigin(item1.filenameOrigin) === removePrefixFromFileOrigin(item2.filenameOrigin)){
 					item2.saved = true;
 					return true
@@ -1076,7 +1076,10 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			delete currentMusicItem2.getNewestPath
 			if(pageType === CONSTANT.musicOriginal.savedSongs){
 				currentMusicItem2.saved = true
-				musicDataList.forEach(item => item.saved = true)
+				musicDataList.forEach(item => {
+					delete item.getNewestPath
+					item.saved = true
+				})
 			}
 			localStorage.setItem('lastPlaySongInfo', JSON.stringify(currentMusicItem2))
 			localStorage.setItem('lastPlaySongPageType', pageType)

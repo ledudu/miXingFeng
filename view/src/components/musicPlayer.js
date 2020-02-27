@@ -21,7 +21,6 @@ import {
 	checkSongSavedFunc,
 	removePrefixFromFileOrigin,
 	saveSongFunc,
-	playPreviousSong,
 	playNextSong,
 	getMusicCurrentPlayProcess,
 	checkStatus,
@@ -570,6 +569,20 @@ class MusicPlayer extends React.Component {
 		})
 	}
 
+	showSongMv = (e, mvId, original, filename) => {
+		e.stopPropagation();
+		const { that, self } = this.props
+		let _this = ""
+		if(that) {
+			_this = that.props.self
+		} else if(self) {
+			_this = self
+		} else {
+			return
+		}
+		_this.props.history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
+	}
+
 	playingComponent = (filePath, currentSongTime, duration) => {
 		return (
 			<div className="audio-player" >
@@ -584,20 +597,6 @@ class MusicPlayer extends React.Component {
 				<div className="audio-player-time audio-player-time-duration">{this.secondsToTime(duration)}</div>
 			</div>
 		)
-	}
-
-	showSongMv = (e, mvId, original, filename) => {
-		e.stopPropagation();
-		const { that, self } = this.props
-		let _this = ""
-		if(that) {
-			_this = that.props.self
-		} else if(self) {
-			_this = self
-		} else {
-			return
-		}
-		_this.props.history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
 	}
 
 	render() {
