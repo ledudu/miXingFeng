@@ -1414,7 +1414,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 }
 
 export const checkMusicPlayWays = () => {
-	if(localStorage.getItem("playByOrder") === "yes" && !localStorage.getItem("playByOrder")){
+	if(localStorage.getItem("playByOrder") === "yes" || !localStorage.getItem("playByOrder")){
 		$dispatch(updatePauseWhenOver(true))
 		$dispatch(updatePlayByOrder(true))
 		$dispatch(updatePlayByRandom(false))
