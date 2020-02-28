@@ -203,7 +203,7 @@ class MusicPlayer extends React.Component {
 	}
 
 	listenBackFunc = () => {
-		document.addEventListener("backbutton", this.closeShowMenu, false);
+		document.addEventListener("backbutton", this.closeShowMenu);
 	}
 
 	removeListenBackFunc = () => {
@@ -212,13 +212,12 @@ class MusicPlayer extends React.Component {
 		const urlLocation = window.location.href
 		logger.info("musicPlayer removeListenBackFunc urlLocation", urlLocation)
 		if(urlLocation.indexOf("main/music")){
-			document.addEventListener("backbutton", onBackKeyDown, false);
+			document.addEventListener("backbutton", onBackKeyDown);
 		}
 	}
 
 	closeShowMenu = () => {
 		const musicMenuExisted = $('.am-action-sheet-button-list div:nth-last-child(1)')[0]
-		if(musicMenuExisted) musicMenuExisted.click();
 		if(musicMenuExisted) musicMenuExisted.click();
 	}
 
@@ -239,7 +238,6 @@ class MusicPlayer extends React.Component {
 
 	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
 		try {
-
 			const {
 				pauseWhenOver,
 				playByOrder,
@@ -255,14 +253,12 @@ class MusicPlayer extends React.Component {
 				pageType
 			} = this.props
 			const self = this
-			if(username && token){
-				const urlLocation = window.location.href
-				logger.info("musicPlayer showMenu urlLocation", urlLocation)
-				if(urlLocation.indexOf("/main/music")){
-					document.removeEventListener("backbutton", onBackKeyDown, false);
-				}
-				document.addEventListener("deviceready", this.listenBackFunc);
+			const urlLocation = window.location.href
+			logger.info("musicPlayer showMenu urlLocation", urlLocation)
+			if(urlLocation.indexOf("/main/music")){
+				document.removeEventListener("backbutton", onBackKeyDown, false);
 			}
+			document.addEventListener("deviceready", this.listenBackFunc);
 			const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
 			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -461,6 +457,7 @@ class MusicPlayer extends React.Component {
 							}
 							break;
 						case 7:
+							this.removeListenBackFunc()
 							if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
 								return
 							}
@@ -538,11 +535,10 @@ class MusicPlayer extends React.Component {
 							}
 							break;
 						default:
+							this.removeListenBackFunc()
 							break;
 					}
-					if(username && token){
-						this.removeListenBackFunc()
-					}
+					this.removeListenBackFunc()
 				}
 			);
 		} catch(err){

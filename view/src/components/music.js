@@ -20,15 +20,12 @@ class Music extends React.Component {
     }
 
     componentDidMount(){
-		document.addEventListener("deviceready", this.listenBackFunc);
 		this.el = document.getElementById('fileToUpload');
 		this.el.addEventListener('change', this.handleMD5, false);
 		this.getMD5Time = 0
     }
 
     componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackFunc);
-		document.removeEventListener("backbutton", onBackKeyDown);
 		this.el.removeEventListener('change', this.handleMD5, false);
 		this.getMD5Time = null
 	}

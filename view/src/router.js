@@ -6,6 +6,7 @@ import { updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, upda
 import { updateDirectShowSignPage } from "./ducks/sign";
 import { checkMusicPlayWays, checkLastMusicPlayInfo, stopMusic } from "./logic/common"
 import { initWebsocket } from "./logic/common" ;
+import { onBackKeyDown } from "./services/utils"
 
 const Login = MyLoadable({
     loader: () => import('./components/login')
@@ -196,6 +197,8 @@ class Routers extends Component {
 		checkMusicPlayWays()
 		// 检查上次播放的最后一首音乐
 		checkLastMusicPlayInfo()
+
+		document.addEventListener("deviceready", this.listenBackFunc);
 		logger.info("Router.js window.location.href", window.location.href)
 	}
 
@@ -206,9 +209,13 @@ class Routers extends Component {
 			window.ws.close(1000)
 		}
 		const { soundPlaying } = $getState().fileServer
-		if(soundPlaying){
-			stopMusic()
-		}
+		if(soundPlaying) stopMusic()
+		document.removeEventListener("deviceready", this.listenBackFunc);
+		document.removeEventListener("backbutton", onBackKeyDown);
+	}
+
+	listenBackFunc = () => {
+        document.addEventListener("backbutton", onBackKeyDown, false);
 	}
 
     render(){

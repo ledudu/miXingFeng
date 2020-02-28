@@ -24,7 +24,6 @@ class MyInfo extends React.Component {
 		this.setState({
 			headPicAddress
 		})
-		document.addEventListener("deviceready", this.listenBackFunc);
 		if(this.signatureRef.offsetHeight < 80){
 			this.signatureRef.style.display = 'none'
 		}
@@ -35,10 +34,6 @@ class MyInfo extends React.Component {
 		document.addEventListener("backbutton", onBackKeyDown, false);
     }
 
-    componentWillUnmount(){
-		document.removeEventListener("deviceready", this.listenBackFunc);
-		document.removeEventListener("backbutton", onBackKeyDown);
-	}
 
 	searchColumn = () => {
         window.goRoute(this, "/search_column");

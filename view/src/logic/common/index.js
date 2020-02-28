@@ -412,6 +412,7 @@ export const logoutApp = async(self) => {
 			$dispatch(updateSetHeadPic(""));
 			$dispatch(updateSignedFlag(""));
 			$dispatch(updateSetRole(""));
+			$dispatch(updateMusicCollection([]));
 			goRoute(self, "/login");
         })
 }
