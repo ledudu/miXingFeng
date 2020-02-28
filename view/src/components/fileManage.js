@@ -220,7 +220,7 @@ class FileManage extends React.Component {
 											.catch(error => {
 												this.startToDeleteOnline = false
 												logger.error("删除文件过程中发生了错误", error.stack||error.toString());
-												networkErr(error, `delFile dataInfo: ${dataInfo}`);
+												networkErr(error, `delFile dataInfo: ${JSON.stringify(dataInfo)}`);
 											})
 									}
 								})

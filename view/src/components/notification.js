@@ -114,7 +114,16 @@ class Notification extends Component {
 
 	onAllowShareMySignature = (checked) => {
 		const { username, token } = this.props
-		if(!token) return alert("请先登录")
+		if(!token) {
+			alert("请先登录")
+			setTimeout(() => {
+				this.props.form.setFieldsValue({
+					Switch6: !checked,
+				})
+				$dispatch(updateAllowShareMyNickname(!checked))
+			}, 17)
+			return
+		}
 		logger.info("onAllowShareMySignature", checked);
 		const data = Object.assign({username, token, userInfo: { shareNickname: checked } })
 		axios.post(HTTP_URL.updateUserInfo, data)
@@ -125,9 +134,17 @@ class Notification extends Component {
 				} else {
 					alertDebug("onAllowShareMySignature 设置失败")
 					logger.error('onAllowShareMySignature 设置失败', response.data.result);
+					this.props.form.setFieldsValue({
+						Switch6: !checked,
+					});
+					$dispatch(updateAllowShareMyNickname(!checked))
 				}
 			})
 			.catch(err => {
+				this.props.form.setFieldsValue({
+					Switch6: !checked,
+				});
+				$dispatch(updateAllowShareMyNickname(!checked))
 				return networkErr(err, `onAllowShareMySignature`);
 			})
 		this.props.form.setFieldsValue({

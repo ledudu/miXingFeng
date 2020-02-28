@@ -38,7 +38,7 @@ export const saveUserInfoFunc = (name, info, self) => {
             	})
             	.catch(err => {
 					self.startToSubmit = false
-					return networkErr(err, `saveUserInfoFunc updateUserInfo data: ${data}`);
+					return networkErr(err, `saveUserInfoFunc updateUserInfo data: ${JSON.stringify(data)}`);
             	})
 		}
 }

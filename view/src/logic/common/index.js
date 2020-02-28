@@ -1045,6 +1045,20 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		$dispatch(updateCurrentPlayingSongDuration(duration))
 		$dispatch(updateCurrentPlayingSongOriginal(original))   //音乐源是什么,比如网易云,qq音乐
 		if(pageType) $dispatch(updateMusicPageType(pageType))  	//是在哪个页面播放的,比如全局搜索,搜藏页面
+		// setTimeout(() => {  //加载音乐缓冲时间
+		// 	const _audio = window["musicPlayerRef_" + filenameOrigin]
+		// 	if(_audio){
+		// 		if(window.audioBufferedTimer) clearInterval(window.audioBufferedTimer)
+		// 			window.audioBufferedTimer = setInterval(() => {
+		// 			var timeRanges = _audio.buffered;
+		// 			 // 获取以缓存的时间
+		// 			if(timeRanges && _audio.duration){
+		// 				var timeBuffered = timeRanges.end(timeRanges.length - 1);
+		// 				var bufferPercent = timeBuffered / _audio.duration;
+		// 			}
+		// 		}, 1000)
+		// 	}
+		// }, 1000)
 		if(!isLocalDownloadedMusicPath){
 			// 检查是否需要获取或重新获取音乐链接
 			let needGetNewestPath = true
@@ -1080,6 +1094,10 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 					delete item.getNewestPath
 					item.saved = true
 				})
+			} else {
+				musicDataList.forEach(item => {
+					delete item.getNewestPath
+				})
 			}
 			localStorage.setItem('lastPlaySongInfo', JSON.stringify(currentMusicItem2))
 			localStorage.setItem('lastPlaySongPageType', pageType)
@@ -1095,7 +1113,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 						currentMusicItem.filenameOrigin = ("recent_" + currentMusicItem.filenameOrigin)
 						let reduplicateItemIndex, needInsertNewOne = true
 						recentMusicList.some((item, index) => {
-							if(item.filenameOrigin === currentMusicItem.filenameOrigin){
+							if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(currentMusicItem.filenameOrigin)){
 								reduplicateItemIndex = index
 								needInsertNewOne = false
 								return true
@@ -1303,8 +1321,10 @@ export const checkToShowPlayController = () => {
 				}
 			})
 			if(needDisplay){
-				$("#root .container .main-content").css("height", "calc(100vh - 66px)")
-				window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+				setTimeout(() => {
+					$("#root .container .main-content").css("height", "calc(100vh - 66px)")
+					window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+				}, 100)
 			} else {
 				hideMusicController()
 			}

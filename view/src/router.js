@@ -4,7 +4,7 @@ import { HashRouter as Router, Route, Switch  } from 'react-router-dom';
 import MyLoadable from './Loadable';
 import { updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
 import { updateDirectShowSignPage } from "./ducks/sign";
-import { checkMusicPlayWays, checkLastMusicPlayInfo } from "./logic/common"
+import { checkMusicPlayWays, checkLastMusicPlayInfo, stopMusic } from "./logic/common"
 import { initWebsocket } from "./logic/common" ;
 
 const Login = MyLoadable({
@@ -204,6 +204,10 @@ class Routers extends Component {
 		if(window.isCordova) cordova.plugins.notification.local.clearAll()
 		if(window.ws && ws.readyState ===1){
 			window.ws.close(1000)
+		}
+		const { soundPlaying } = $getState().fileServer
+		if(soundPlaying){
+			stopMusic()
 		}
 	}
 

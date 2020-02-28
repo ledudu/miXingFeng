@@ -37,19 +37,19 @@ class Feedback extends React.Component {
 		if(hasPic){
 			extname = files[0]['file']['name'].split('.').pop()
 		}
-		const {username} = window.$getState().login;
+		const username = window.$getState().login.username || localStorage.getItem('userId')
 		const needUploadLog = uploadLog && window.isCordova
 		const data = Object.assign({}, { username }, { feedbackContent: arr }, {extname, needUploadLog})
 		// 提交反馈的文字内容
 		if(!this.startToSubmit){
 			this.startToSubmit = true
 			axios.post(HTTP_URL.feedback, data)
-            .then((response) => {
-				this.startToSubmit = false
-                Toast.success('提交成功, 非常感谢您的反馈', CONSTANT.toastTime);
-				return response.data.result.filename
-			})
-			.then((filename) => {
+            	.then((response) => {
+					this.startToSubmit = false
+            	    Toast.success('提交成功, 非常感谢您的反馈', CONSTANT.toastTime);
+					return response.data.result.filename
+				})
+				.then((filename) => {
 				if(!filename) return
 				if(hasPic){
 					// 提交反馈截图
@@ -112,14 +112,14 @@ class Feedback extends React.Component {
 						})
 					})
 				}
-			})
-            .catch(err => {
-				this.startToSubmit = false
-                return networkErr(err, `submitFeedback feedback data ${data}`);
-			})
-			.finally(() => {
-				//window.goRoute(this, "/system_setup");
-			})
+				})
+            	.catch(err => {
+					this.startToSubmit = false
+            	    return networkErr(err, `submitFeedback feedback data ${JSON.stringify(data)}`);
+				})
+				.finally(() => {
+					//window.goRoute(this, "/system_setup");
+				})
 		}
 	}
 

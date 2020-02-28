@@ -12,7 +12,15 @@ import {
 	updateLastSearchAllMusicResult,
 	updateRecentMusicList,
 } from "../ducks/fileServer";
-import { confirm, networkErr, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils";
+import {
+	confirm,
+	networkErr,
+	saveFileToLocal,
+	updateDownloadingStatus,
+	checkFileWritePriority,
+	requestFileWritePriority,
+	onBackKeyDown
+} from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
 	calcSize,
@@ -43,7 +51,8 @@ class MusicPlayer extends React.Component {
 	constructor(props){
 		super(props);
 		this.state = {
-			musicDataList: props.musicDataList
+			musicDataList: props.musicDataList,
+			showRecentSongsDownTimes: 1,
 		}
 	}
 
@@ -54,6 +63,10 @@ class MusicPlayer extends React.Component {
 		const { original, soundInstance } = this.props
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
 			if(soundInstance) getMusicCurrentPlayProcess(false)
+		}
+		if(original === CONSTANT.musicOriginal.musicRecent){
+			const scrollDom = document.querySelector('.recent-play-content')
+			scrollDom.addEventListener("scroll", this.handleScroll, true);
 		}
 
 		window.eventEmit.$on("musicRemoved", (musicDataList) => {
@@ -142,11 +155,51 @@ class MusicPlayer extends React.Component {
 	}
 
 	componentWillUnmount(){
+		const { original } = this.props
+		if(original === CONSTANT.musicOriginal.musicRecent){
+			const scrollDom = document.querySelector('.recent-play-content')
+			scrollDom.removeEventListener("scroll", this.handleScroll);
+		}
 		window.eventEmit.$off("musicRemoved")
 		window.eventEmit.$off("downloadingMusicItems")
 		window.eventEmit.$off("downloadMusicFinished")
 		window.eventEmit.$off("updateRecentMusicListEventEmit")
 		window.eventEmit.$off("clearAllMusicRecentRecords")
+	}
+
+	handleScroll = (e) => {
+		if (this.debounceTimer) {
+			clearTimeout(this.debounceTimer)
+			this.debounceTimer = setTimeout(() => {
+				let {
+					showRecentSongsDownTimes,
+					musicDataList
+				} = this.state
+				if ((showRecentSongsDownTimes * 50 < musicDataList.length)) {
+					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
+						this.setState({
+							showRecentSongsDownTimes: ++showRecentSongsDownTimes
+						})
+					}
+				}
+				this.debounceTimer = null
+			}, 100)
+		} else {
+			this.debounceTimer = setTimeout(() => {
+				let {
+					showRecentSongsDownTimes,
+					musicDataList
+				} = this.state
+				if ((showRecentSongsDownTimes * 50 < musicDataList.length)) {
+					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
+						this.setState({
+							showRecentSongsDownTimes: ++showRecentSongsDownTimes
+						})
+					}
+				}
+				this.debounceTimer = null;
+			}, 4)
+		}
 	}
 
 	listenBackFunc = () => {
@@ -186,12 +239,7 @@ class MusicPlayer extends React.Component {
 
 	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
 		try {
-			const urlLocation = window.location.href
-			logger.info("musicPlayer showMenu urlLocation", urlLocation)
-			if(urlLocation.indexOf("/main/music")){
-				document.removeEventListener("backbutton", onBackKeyDown, false);
-			}
-			document.addEventListener("deviceready", this.listenBackFunc);
+
 			const {
 				pauseWhenOver,
 				playByOrder,
@@ -207,6 +255,14 @@ class MusicPlayer extends React.Component {
 				pageType
 			} = this.props
 			const self = this
+			if(username && token){
+				const urlLocation = window.location.href
+				logger.info("musicPlayer showMenu urlLocation", urlLocation)
+				if(urlLocation.indexOf("/main/music")){
+					document.removeEventListener("backbutton", onBackKeyDown, false);
+				}
+				document.addEventListener("deviceready", this.listenBackFunc);
+			}
 			const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
 			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -391,8 +447,8 @@ class MusicPlayer extends React.Component {
 										})
 								})
 							} else {
-								if(!username || !token) return alert("请先登录")
 								if(payDownload) return alert("尊重版权,人人有责")
+								if(!username || !token) return alert("请先登录")
 								const musicSrc = filePath
 								//  下载觅星峰服务器上的音乐，保存的文件名为filenameOrigin,
 								//  filenameOrigin由上传者用户名加文件名加时间戳构成，filenameOrigin是文件的id，唯一且不可变
@@ -405,6 +461,9 @@ class MusicPlayer extends React.Component {
 							}
 							break;
 						case 7:
+							if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
+								return
+							}
 							if(!username || !token) return alert("请先登录")
 							const dataInfo = {
 								username,
@@ -481,7 +540,9 @@ class MusicPlayer extends React.Component {
 						default:
 							break;
 					}
-					this.removeListenBackFunc()
+					if(username && token){
+						this.removeListenBackFunc()
+					}
 				}
 			);
 		} catch(err){
@@ -583,10 +644,10 @@ class MusicPlayer extends React.Component {
 		_this.props.history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
 	}
 
-	playingComponent = (filePath, currentSongTime, duration) => {
+	playingComponent = (filePath, currentSongTime, duration, filenameOrigin) => {
 		return (
 			<div className="audio-player" >
-				<audio preload="auto" className="audio-selector" >
+				<audio preload="auto" className="audio-selector" ref={ref => window["musicPlayerRef_" + filenameOrigin] = ref} >
 					<source src={filePath} />
 				</audio>
 				<div className="audio-player-time audio-player-time-current">{this.secondsToTime(currentSongTime)}</div>
@@ -601,8 +662,11 @@ class MusicPlayer extends React.Component {
 
 	render() {
 		let { currentPlayingSong, currentSongTime, soundPlaying, original, pageType } = this.props;
-		let { musicDataList=[] } = this.state
+		let { musicDataList=[], showRecentSongsDownTimes } = this.state
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
+		if(pageType === CONSTANT.musicOriginal.musicRecent){
+			musicDataList = musicDataList.slice(0, 50 * showRecentSongsDownTimes)
+		}
 		return (
 			<div className="music-list-container">
 				{
@@ -636,7 +700,7 @@ class MusicPlayer extends React.Component {
 									</div>
 									{
 										currentPlayingSong === item.filenameOrigin
-										? 	this.playingComponent(item.filePath, currentSongTime, item.duration, item.id)
+										? 	this.playingComponent(item.filePath, currentSongTime, item.duration, item.filenameOrigin)
 										:	<div className="upload-duration">
 												<div className="upload-user">{item.uploadUsername || "未知"}</div>
 												{

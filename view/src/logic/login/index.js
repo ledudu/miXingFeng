@@ -225,7 +225,7 @@ export const resetPasswordFunc = (self) => {
         } else if(newPwd2 !== newPwd3) {
 			return alert("两次密码不一致")
 		} else {
-			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : null
+			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : "systemSetuo"
 			if(origin){
 				data = Object.assign({}, {newPwd: newPwd3, token, origin});
 			} else {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Player, BigPlayButton } from 'video-react';
+import { Player, BigPlayButton, ControlBar } from 'video-react';
 import 'video-react/dist/video-react.css'
 import { CONSTANT } from "../constants/enumeration"
 import { HTTP_URL } from "../constants/httpRoute"
@@ -74,7 +74,7 @@ export default class MusicMvPlayer extends React.Component {
 		setTimeout(() => {
 			$("#root .container .main-content").css("height", "calc(100vh - 66px)")
 			window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
-		}, 50)
+		}, 100)
 	}
 
 	landscape = () => {
@@ -133,7 +133,8 @@ export default class MusicMvPlayer extends React.Component {
 				<div className="music-mv-player-content">
 					{
 						getMvLink
-						? 	<Player ref={ref => this.player = ref} autoPlay autoHide={false}>
+						? 	<Player ref={ref => this.player = ref} autoPlay>
+								<ControlBar autoHide={false} />
 								<source src={mvLink} />
 								<BigPlayButton position="center" />
 							</Player>

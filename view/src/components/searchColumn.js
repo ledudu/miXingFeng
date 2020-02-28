@@ -25,12 +25,12 @@ const itemColumns = [
 	{
 		displayName: "在线音乐",
 		routeName: "/search_online_music",
-		fa: "fa-search-minus"
+		fa: "fa-maxcdn"
 	},
 	{
 		displayName: "全局搜索",
 		routeName: "/search_all",
-		fa: "fa-search-plus"
+		fa: "fa-globe"
 	},
 ]
 
