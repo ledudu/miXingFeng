@@ -25,12 +25,12 @@ class MusicController extends React.Component{
 		pauseMusic(soundInstance, soundInstanceId, currentPlayingSong)
 	}
 
-	resume = (e) => {
+	resume = (e, self) => {
 		if(e) e.stopPropagation();
 		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
-		if(!soundInstance && !soundInstanceId) return alert('请选择一首歌播放')
+		if(!soundInstance && !soundInstanceId && !currentPlayingSong) return alert('请选择一首歌播放')
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
-		resumeMusic(soundInstance, soundInstanceId, currentPlayingSong)
+		resumeMusic(self)
 	}
 
 	gotoPlayingMusicPage = () => {
@@ -113,7 +113,7 @@ class MusicController extends React.Component{
 					{
 						soundPlaying
 						?	<div className="fa fa-pause" onClick={this.pause}></div>
-						:	<div className="fa fa-play" onClick={this.resume}></div>
+						:	<div className="fa fa-play" onClick={(e) => this.resume(e, this)}></div>
 					}
 				</div>
 				<div className="fa fa-step-forward play-next"

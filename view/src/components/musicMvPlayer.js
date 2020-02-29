@@ -69,7 +69,8 @@ export default class MusicMvPlayer extends React.Component {
 		document.addEventListener("backbutton", this.backToMainPage, false)
     }
 
-	backToMainPage = () => {
+	backToMainPage = (origin) => {
+		if(origin === "nav") window.history.back()
 		setTimeout(() => {
 			$("#root .container .main-content").css("height", "calc(100vh - 66px)")
 			window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
@@ -126,8 +127,8 @@ export default class MusicMvPlayer extends React.Component {
 		}
         return (
 			<div className="music-mv-player-container">
-				<NavBar centerText={filename} backToPreviousPage={this.backToMainPage}
-					rightText="下载" rightTextFunc={this.downloadMv.bind(this, filename, )}
+				<NavBar centerText={filename} backToPreviousPage={this.backToMainPage.bind(this, 'nav')}
+					rightText="下载" rightTextFunc={this.downloadMv}
 				/>
 				<div className="music-mv-player-content">
 					{

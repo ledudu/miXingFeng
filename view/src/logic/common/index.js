@@ -974,12 +974,22 @@ export const pauseMusic = () => {
 	$dispatch(updateSoundPlaying(false))
 }
 
-export const resumeMusic = () => {
+export const resumeMusic = (self) => {
 	if(window.checkMusicPlaying) clearInterval(window.checkMusicPlaying)
 	const { soundInstance, soundInstanceId, currentPlayingSong } = $getState().fileServer
 	logger.info("music resume currentPlayingSong", currentPlayingSong)
 	if(soundInstance && soundInstanceId) {
 		soundInstance.play(soundInstanceId)
+	} else {
+		try {
+			const { pauseWhenOver } = $getState().fileServer;
+			const lastPlaySongInfo = JSON.parse(localStorage.getItem('lastPlaySongInfo'))
+			const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
+			musicHowlPlay(lastPlaySongInfo.filePath, pauseWhenOver, lastPlaySongMusicDataList, lastPlaySongInfo.filenameOrigin, self, lastPlaySongInfo.original)
+		} catch(err){
+			logger.error("resumeMusic err", err)
+			stopMusic()
+		}
 	}
 	$dispatch(updateSoundPlaying(true))
 }
@@ -1041,7 +1051,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		logger.info("playMusic music play filenameOrigin", filenameOrigin)
 		stopMusic()
 		$dispatch(updateCurrentPlayingMusicList(musicDataList))
-		$dispatch(updateSoundPlaying(true))
+		if(self) $dispatch(updateSoundPlaying(true))
 		$dispatch(updateCurrentPlayingSong(filenameOrigin))
 		$dispatch(updateCurrentPlayingSongDuration(duration))
 		$dispatch(updateCurrentPlayingSongOriginal(original))   //音乐源是什么,比如网易云,qq音乐
@@ -1147,53 +1157,9 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		} else {
 			if(self) logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
 		}
-		const soundInstanceModel = new Howl({
-			src: [filePath],
-			loop: !pauseWhenOver,
-			rate: 1.0,
-			html5: true,
-			onloaderror: function(id, error){
-				stopMusic()
-				musicDataList.some((item) => {
-					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
-						delete item.getNewestPath
-						return true
-					}
-				})
-				if(self){ //只有刚启动app获取上一次播放歌曲的时候才没有self
-					logger.error("playMusic onloaderror error ", error)
-					logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
-					alertDialog("歌曲播放异常,请尝试其他歌曲")
-				}
-			},
-			onload  : function(id){
-				if(self === null) {
-					self = ""
-					pauseMusic()
-				}
-			},
-			onend: function() {
-				const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
-				logger.info("onend pauseWhenOver, playByOrder, playByRandom", pauseWhenOver, playByOrder, playByRandom)
-				musicPlayingProgressFunc()
-				if(playByOrder){
-					setTimeout(() => {
-						autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original, self)
-					}, 1500)
-				} else if(playByRandom){
-					setTimeout(() => {
-						autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original, self)
-					}, 1500)
-				} else if(pauseWhenOver){
-					$dispatch(updateSoundPlaying(false))
-					clearInterval(window.currentTimeInterval)
-				}
-			}
-		});
-		const soundInstanceModelId = soundInstanceModel.play();
-		$dispatch(updateSoundInstance(soundInstanceModel))
-		$dispatch(updateSoundInstanceId(soundInstanceModelId))
-		getMusicCurrentPlayProcess(false)
+		if(self){
+			musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original)
+		}
 		if(window.circleControlRef){
 			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
 			window.circleControlRef.style.strokeWidth = "8px"
@@ -1203,6 +1169,56 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		stopMusic()
 		alert('播放失败')
 	}
+}
+
+function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original){
+	const soundInstanceModel = new Howl({
+		src: [filePath],
+		loop: !pauseWhenOver,
+		rate: 1.0,
+		html5: true,
+		onloaderror: function(id, error){
+			stopMusic()
+			musicDataList.some((item) => {
+				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+					delete item.getNewestPath
+					return true
+				}
+			})
+			if(self){ //只有刚启动app获取上一次播放歌曲的时候才没有self
+				logger.error("playMusic onloaderror error ", error)
+				logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
+				alertDialog("歌曲播放异常,请尝试其他歌曲")
+			}
+		},
+		onload  : function(id){
+			// if(self === null) {
+			// 	self = ""
+			// 	pauseMusic()
+			// }
+		},
+		onend: function() {
+			const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
+			logger.info("onend pauseWhenOver, playByOrder, playByRandom", pauseWhenOver, playByOrder, playByRandom)
+			musicPlayingProgressFunc()
+			if(playByOrder){
+				setTimeout(() => {
+					autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original, self)
+				}, 1500)
+			} else if(playByRandom){
+				setTimeout(() => {
+					autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original, self)
+				}, 1500)
+			} else if(pauseWhenOver){
+				$dispatch(updateSoundPlaying(false))
+				clearInterval(window.currentTimeInterval)
+			}
+		}
+	});
+	const soundInstanceModelId = soundInstanceModel.play();
+	$dispatch(updateSoundInstance(soundInstanceModel))
+	$dispatch(updateSoundInstanceId(soundInstanceModelId))
+	getMusicCurrentPlayProcess(false)
 }
 
 export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original, self) => {
@@ -1290,7 +1306,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 			} else {
 				// pause case
 				if(filenameOrigin === currentPlayingSong){
-					resumeMusic()
+					resumeMusic(self)
 				} else {
 					// stop current song and switch to another song case and then initial play current time
 					playMusic(filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self)
