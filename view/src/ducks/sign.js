@@ -10,6 +10,7 @@ const DIRECT_SHOW_SIGN_PAGE = "sign/directShowSignPage";
 const AD_NUMBER = "sign/adNumber";
 const FROM_RESUME = "sign/fromResume"
 const JUST_OPEN_APP = "sign/justOpenApp"
+const SHOW_UPDATE_CONFIRM = "sign/showUpdateConfirm"
 
 // initialSate
 const initialState = () => ({
@@ -23,7 +24,8 @@ const initialState = () => ({
 	directShowSignPage: false,
 	adNumber: 0,
 	fromResume: false,
-	justOpenApp: true
+	justOpenApp: true,
+	showUpdateConfirm: false
 });
 
 // Reducer
@@ -72,6 +74,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case JUST_OPEN_APP:
 			return Object.assign({}, state, {
 				justOpenApp: action.data
+			});
+		case SHOW_UPDATE_CONFIRM:
+			return Object.assign({}, state, {
+				showUpdateConfirm: action.data
 			});
 		default:
 			return state;
@@ -129,5 +135,10 @@ export const updateFromResume = data => ({
 
 export const updateJustOpenApp = data => ({
 	type: JUST_OPEN_APP,
+	data
+})
+
+export const updateShowUpdateConfirm = data => ({
+	type: SHOW_UPDATE_CONFIRM,
 	data
 })

@@ -17,7 +17,6 @@ class packageIframe extends React.Component {
 	componentDidMount(){
 		const { token } = this.props
 		if(token) localStorage.setItem("hasLoginIn", true)
-		document.addEventListener("deviceready", this.listenBackButton, false);
 		const iframe = this.iframe, self = this;
         if (iframe.attachEvent) {
             iframe.attachEvent("onload", function () {
@@ -38,16 +37,6 @@ class packageIframe extends React.Component {
 					return Toast.fail("请检查网络连接", CONSTANT.toastTime);
 				}
 			})
-    }
-
-    componentWillUnmount(){
-		localStorage.removeItem("hasLoginIn")
-        document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackButton = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false)
     }
 
     backToMainPage = () => {

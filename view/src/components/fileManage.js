@@ -43,17 +43,17 @@ class FileManage extends React.Component {
 		window.eventEmit.$on("fileRemoved", () => {
 			this.getDataFromIndexDB()
 		})
+		window.clearAllFilesTime = false
 		window.eventEmit.$on("clearAllFiles", () => {
 			const { indexDBData }  = this.state
 			const self = this;
-			let clearAllFilesTime = false
-			if(!clearAllFilesTime){
-				clearAllFilesTime = true
+			if(!window.clearAllFilesTime){
+				window.clearAllFilesTime = true
 				confirm(`提示`, `确定要删除所有文件吗`, "确定", () => {
 					self.setState({
 						indexDBData: []
 					}, () => {
-						clearAllFilesTime = false
+						window.clearAllFilesTime = false
 						if(indexDBData.length){
 							alert("删除成功")
 						} else {
@@ -64,7 +64,7 @@ class FileManage extends React.Component {
 						removeFileFromDownload(removePrefixFromFileOrigin(item.filenameOrigin), "file")
 					})
 				}, () => {
-					clearAllFilesTime = false
+					window.clearAllFilesTime = false
 				})
 			}
 		})

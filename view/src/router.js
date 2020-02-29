@@ -197,7 +197,7 @@ class Routers extends Component {
 		checkMusicPlayWays()
 		// 检查上次播放的最后一首音乐
 		checkLastMusicPlayInfo()
-
+		// 监听物理返回键
 		document.addEventListener("deviceready", this.listenBackFunc);
 		logger.info("Router.js window.location.href", window.location.href)
 	}

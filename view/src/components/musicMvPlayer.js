@@ -70,7 +70,6 @@ export default class MusicMvPlayer extends React.Component {
     }
 
 	backToMainPage = () => {
-		window.history.back()
 		setTimeout(() => {
 			$("#root .container .main-content").css("height", "calc(100vh - 66px)")
 			window.musicController && window.musicController.style && (window.musicController.style.display = "flex")

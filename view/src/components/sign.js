@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from "react-redux";
 import Loadable from 'react-loadable';
-import { confirm, getAndReadFile, writeFile, onBackKeyDown, checkPreviousLogin, isEmptyFileFunc, alertDialog, networkErr } from "../services/utils";
+import { confirm, getAndReadFile, writeFile, onBackKeyDown, checkPreviousLogin, isEmptyFileFunc, alertDialog, networkErr, debounce } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
@@ -17,7 +17,7 @@ import {
 	requestPositionPermission,
 	checkOnlinePersons
 } from "../logic/common";
-import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp } from "../ducks/sign";
+import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp, updateShowUpdateConfirm } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
@@ -62,7 +62,6 @@ class Sign extends Component {
 			appTotalSize: 100,
 			showProgress: false,
 			fileTransfer: {},
-			showUpdateConfirm: false,
 			checkingPackage: false,
 			loadedInWifi: loadedInWifiState,
 			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.png`
@@ -107,7 +106,7 @@ class Sign extends Component {
 									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
 									this.getAdsConfig();
 									if(justOpenApp){
-										setTimeout(() => {
+										this.checkUpdateSignTimer = setTimeout(() => {
 											document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
 										}, 5000);
 									}
@@ -250,12 +249,13 @@ class Sign extends Component {
 	componentWillUnmount(){
 		window.clockTimer = false;
 		localStorage.setItem("leaveSignPage", "yes")
-		clearInterval(window.clockIntervalTimer)
+		if(window.clockIntervalTimer) clearInterval(window.clockIntervalTimer)
+		if(this.checkUpdateSignTimer) clearTimeout(this.checkUpdateSignTimer)
 		document.removeEventListener("deviceready", this.listenBackKeyDown, false);
 		document.removeEventListener("deviceready", this.backgroundColorByHexString, false);
 		document.removeEventListener("deviceready", this.getPositionPermission, false);
 		document.removeEventListener("backbutton", this.onBackKeyDownSign, false);
-		document.removeEventListener("backbutton", this.checkUpdateSign, false);
+		document.removeEventListener("deviceready", this.checkUpdateSign, false);
 		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
 	}
 
@@ -372,26 +372,30 @@ class Sign extends Component {
 
     onBackKeyDownSign = () => {
         const self = this;
-        const { showUpdateConfirm } = this.state;
+        const { showUpdateConfirm } = this.props;
         if(!showUpdateConfirm){
             onBackKeyDown();
         } else {
             this.setState({
-                showProgress: false,
-                showUpdateConfirm: false
-            });
-            confirm("提示","确定要取消下载吗","确定", function(){
-                self.setState({
-                    showProgress: false
-                }, () => {
-                    self.state.fileTransfer.abort && self.state.fileTransfer.abort();
-                });
-            },() => {
-                self.setState({
-                    showProgress: true,
-                    showUpdateConfirm: true  //点击取消后继续显示下载进度条
-                });
-            });
+                showProgress: false
+			});
+			confirm("提示","确定要取消下载吗","确定", function(){
+				self.setState({
+					showProgress: false
+				}, () => {
+					self.state.fileTransfer.abort && self.state.fileTransfer.abort();
+				});
+			},() => {
+				self.setState({
+					showProgress: true
+				});
+				$dispatch(updateShowUpdateConfirm(true)) //点击取消后继续显示下载进度条
+			});
+			new Promise(res => res())
+				.then(() => {
+					$dispatch(updateShowUpdateConfirm(false))
+				})
+
         }
     }
 
@@ -417,7 +421,7 @@ class Sign extends Component {
 					logger.info("发现新版本 remoteAppVersion", remoteAppVersion, "appVersion", appVersion);
 					content && logger.info("(date - content.closeUpdateDate) / (1000 * 3600 * 24))", (date - content.closeUpdateDate) / (1000 * 36 * 24))
 					window.$dispatch(updateSetSystemSetupDot(true));
-					if(!content || ((date - content.closeUpdateDate) / (1000 * 3600 * 24)) >  2){
+					if((!content || ((date - content.closeUpdateDate) / (1000 * 3600 * 24)) >  2) && window.getRoute() === "/main/sign"){
 						//两天内不提醒
 						confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
 							self.checkUpdate(HTTP_URL.appRelease ,"sign_release.apk", MD5);
@@ -460,8 +464,8 @@ class Sign extends Component {
 							// 初始化进度条并显示
 							// 此处采用mint-ui的Progress组件
 							const fileTransfer = new FileTransfer();
+							$dispatch(updateShowUpdateConfirm(true))
 							self.setState({
-								showUpdateConfirm: true,
 								showProgress: true
 							});
 							//监听下载进度
@@ -472,12 +476,15 @@ class Sign extends Component {
 									// 显示下载进度
 									progressPercent = (progressLine * 100).toFixed(0);
 								}
-								self.setState({
-									progress: progressPercent,
-									appSize: e.loaded,
-									appTotalSize: e.total,
-									fileTransfer: fileTransfer
-								})
+								const debounceFunc =  debounce(() => {
+									self.setState({
+										progress: progressPercent,
+										appSize: e.loaded,
+										appTotalSize: e.total,
+										fileTransfer: fileTransfer
+									})
+								}, 200)
+								debounceFunc()
 							};
 							// 使用fileTransfer.download开始下载
 							fileTransfer.download(
@@ -495,9 +502,9 @@ class Sign extends Component {
 												if(md5sum === MD5){
 													self.setState({
 														showProgress: false,
-														showUpdateConfirm: false,
 														checkingPackage: false
 													});
+													$dispatch(updateShowUpdateConfirm(false))
 													confirm("提示","下载完成","立即安装", function(){
 														entry.file(data => {
 															res(self.preview(fileEntry, data.type));
@@ -508,9 +515,9 @@ class Sign extends Component {
 													logger.error("sign page MD5", MD5)
 													self.setState({
 														showProgress: false,
-														showUpdateConfirm: false,
 														checkingPackage: false
 													});
+													$dispatch(updateShowUpdateConfirm(false))
 													alertDialog("提示", "安装包已损坏，请重新安装")
 												}
 											}
@@ -518,9 +525,9 @@ class Sign extends Component {
 												logger.error("sign page Error-Message: " + error);
 												self.setState({
 													showProgress: false,
-													showUpdateConfirm: false,
 													checkingPackage: false
 												});
+												$dispatch(updateShowUpdateConfirm(false))
 												alertDialog("提示", "安装包已损坏，请重新安装")
 											}
 											md5chksum.file(fileEntry, win, fail);
@@ -714,6 +721,7 @@ const mapStateToProps = state => {
 		adPicSrc: state.common.adPicSrc,
 		loadedInWifi: state.common.loadedInWifi,
 		justOpenApp: state.sign.justOpenApp,
+		showUpdateConfirm: state.sign.showUpdateConfirm
 	};
 };
 

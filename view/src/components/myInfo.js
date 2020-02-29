@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from "react-redux";
 import StatusBar from "./child/statusBar";
 import { List, Badge } from 'antd-mobile';
-import { onBackKeyDown } from "../services/utils";
 import { showHeadPic } from "../logic/myInfo"
 import { hideMusicController } from "../logic/common"
 
@@ -29,11 +28,6 @@ class MyInfo extends React.Component {
 		}
 		hideMusicController()
     }
-
-    listenBackFunc = () => {
-		document.addEventListener("backbutton", onBackKeyDown, false);
-    }
-
 
 	searchColumn = () => {
         window.goRoute(this, "/search_column");

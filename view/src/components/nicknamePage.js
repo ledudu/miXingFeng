@@ -5,7 +5,6 @@ import NavBar from "./child/navbar";
 class NicknamePage extends React.Component {
 
 	componentDidMount() {
-		document.addEventListener("deviceready", this.listenBackFunc);
 		const { sharedNicknames } = this.props
 		const nicknameListTemp = [], randomFontSizeArr = [14, 16, 20, 24, 26, 30,  35, 42, 45]
 		sharedNicknames.forEach(item => {
@@ -24,15 +23,6 @@ class NicknamePage extends React.Component {
 		}
 		WordCloud(document.getElementById('canvas'), options);
 
-	}
-
-    componentWillUnmount(){
-        document.removeEventListener("deviceready", this.listenBackFunc);
-        document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false);
 	}
 
 	backToMainPage = () => {

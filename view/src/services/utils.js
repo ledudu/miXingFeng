@@ -196,13 +196,17 @@ function onErrorReadFile(error) {
 }
 
 export const onBackKeyDown = () => {
-	let strUrl = window.location.href;
-	let pageName = strUrl.split("html#/")[strUrl.split("html#/").length - 1];
-	if (pageName === "main/sign" || pageName === "main/file" || pageName === "main/music" || pageName === "main/myInfo"){
+	const pageName = window.getRoute();
+	const { isFromSystemSetup } = $getState().common
+	const { showUpdateConfirm } = $getState().sign
+	if(isFromSystemSetup) return window.history.back();
+	if(showUpdateConfirm) return;
+	logger.info("onBackKeyDown pageName, isFromSystemSetup, showUpdateConfirm", pageName, isFromSystemSetup, showUpdateConfirm)
+	if (pageName === "/main/sign" || pageName === "/main/file" || pageName === "/main/music" || pageName === "/main/myInfo"){
 		window.plugins.toast.showShortCenter('再按一次离开')
 		document.removeEventListener("backbutton", onBackKeyDown, false); // 注销返回键
 		document.addEventListener("backbutton", backToDesktop, false); //绑定退出事件
-		setTimeout(function () {  // 3秒后重新注册
+		setTimeout(function () {  // 2秒后重新注册
 			document.removeEventListener("backbutton", backToDesktop, false); // 注销返回键
 			document.addEventListener("backbutton", onBackKeyDown, false); // 返回键
 		}, 2000);
@@ -524,7 +528,7 @@ export const throttle = (fn, t) => {
 }
 
 export const debounce = (fn ,t) => {
-	let debounceTimer = null;
+	let debounceTimer = null, firstTimeRun = true
 	return function(){
 		let context = this;
 		if(debounceTimer){
@@ -534,10 +538,15 @@ export const debounce = (fn ,t) => {
 				debounceTimer = null
 			}, t)
 		} else {
-			debounceTimer = setTimeout(() => {
+			if(firstTimeRun){
+				firstTimeRun = false
 				fn(context, arguments)
-				debounceTimer = null;
-			}, t)
+			} else {
+				debounceTimer = setTimeout(() => {
+					fn(context, arguments)
+					debounceTimer = null;
+				}, t)
+			}
 		}
 	}
 }

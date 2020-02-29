@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
 import StatusBar from "./child/statusBar";
-import { onBackKeyDown, confirm } from "../services/utils";
+import { confirm } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MusicPlayer from "./musicPlayer"
 import { updateMusicSubmitStatus, updateMusicUploadProgress } from "../ducks/fileServer"
@@ -28,10 +28,6 @@ class Music extends React.Component {
     componentWillUnmount(){
 		this.el.removeEventListener('change', this.handleMD5, false);
 		this.getMD5Time = null
-	}
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", onBackKeyDown, false);
 	}
 
 	handleMD5 = (e) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
 import StatusBar from "./child/statusBar";
-import { onBackKeyDown, confirm } from "../services/utils";
+import { confirm } from "../services/utils";
 import FileManage from "./fileManage"
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateFileSubmitStatus, updateFileUploadProgress } from "../ducks/fileServer"
@@ -24,10 +24,6 @@ class FileServer extends React.Component {
 		this.el.removeEventListener('change', this.handleMD5, false);
 		this.getMD5Time = null
     }
-
-    listenBackFunc = () => {
-        document.addEventListener("backbutton", onBackKeyDown, false);
-	}
 
 	handleMD5 = (e) => {
 		this.setState({
