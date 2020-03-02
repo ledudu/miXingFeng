@@ -141,12 +141,12 @@ export const downloadAdPic = () => {
 									);
 								},
 								function (error) {
-									window.logger.error("获取文件失败", error.stack||error.toString());
+									window.logger.error("downloadAdPic 获取文件失败", error.stack||error.toString());
 									alert("获取文件失败")
 								}
 						)}, function (error) {
 							alert("文件系统加载失败！")
-							window.logger.error(`文件系统加载失败！`, error);
+							window.logger.error(`downloadAdPic 文件系统加载失败！`, error);
 						})
 					});
 				})

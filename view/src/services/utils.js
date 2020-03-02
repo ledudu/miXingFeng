@@ -463,14 +463,13 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 							);
                         },
                         function (error) {
-							window.logger.error("获取文件失败", error.stack||error.toString());
-							alert("获取文件失败")
-                            rej()
+							window.logger.error("saveFileToLocal 获取文件失败", error.stack||error.toString());
+                            res()
                         }
                 	);
                 },function (error) {
 					alert("文件系统加载失败！")
-                    window.logger.error(`文件系统加载失败！`, error);
+                    window.logger.error(`saveFileToLocal 文件系统加载失败！`, error);
                 })
             });
 		})
