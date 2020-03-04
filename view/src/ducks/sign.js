@@ -12,14 +12,21 @@ const FROM_RESUME = "sign/fromResume"
 const JUST_OPEN_APP = "sign/justOpenApp"
 const SHOW_UPDATE_CONFIRM = "sign/showUpdateConfirm"
 
+let alreadySignUpPersons=[], notSignUpPersons=[]
+try{alreadySignUpPersons = localStorage.getItem("alreadySignUpPersons") ? JSON.parse(localStorage.getItem("alreadySignUpPersons")) : []}catch(err){alreadySignUpPersons=[]}
+try{notSignUpPersons = localStorage.getItem("notSignUpPersons") ? JSON.parse(localStorage.getItem("notSignUpPersons")) : []}catch(err){notSignUpPersons=[]}
+const isSignedUp = localStorage.getItem("signUpStatus") || false
+const lastSignUpTime = localStorage.getItem("lastSignUpTime") || ""
+const signedFlag = localStorage.getItem("signedFlag") || ""
+
 // initialSate
 const initialState = () => ({
-	isSignedUp: false,
-	lastSignUpTime: "",
-	alreadySignUpPersons: "",
-	notSignUpPersons: "",
+	isSignedUp,
+	lastSignUpTime,
+	alreadySignUpPersons,
+	notSignUpPersons,
 	onlinePersonsNum: 0,
-	signedFlag: "",
+	signedFlag,
 	onlinePersonsName: "",
 	directShowSignPage: false,
 	adNumber: 0,

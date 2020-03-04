@@ -2,7 +2,14 @@ import axios from 'axios';
 import { Toast } from "antd-mobile";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { alert, writeFile, alertDialog } from "../../services/utils";
-import { updatePassword, updateUsername, updateToken, updateIsFromLoginPage, updateLogOutFlag, updateForgetPasswordToken, updateForgetPasswordTokenOrigin } from "../../ducks/login";
+import { updatePassword,
+	updateUsername,
+	updateToken,
+	updateIsFromLoginPage,
+	updateLogOutFlag,
+	updateForgetPasswordToken,
+	updateForgetPasswordTokenOrigin
+} from "../../ducks/login";
 import {
 	networkErr
 } from "../../services/utils";
@@ -15,7 +22,7 @@ import {
 	updateSetHeadPic,
 	updateSetAddress,
 	updateSetRole,
-	updateSetEmail
+	updateSetEmail,
 } from "../../ducks/myInfo";
 import { CONSTANT } from "../../constants/enumeration";
 import { logoutApp, reconnectSocket, checkPassword } from "../common";
@@ -71,6 +78,10 @@ export const loginApp = (that, username, password) => {
 export const dealtWithLoginIn = (result, userProfile, that) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
+	localStorage.setItem("userProfile", JSON.stringify(userProfile))
+	localStorage.setItem("username", result.username)
+	localStorage.setItem("favoriteSongs", JSON.stringify(favoriteSongs.slice(0, 50)))
+	localStorage.setItem("role", result.role)
 	$dispatch(updateUsername(result.username));
 	$dispatch(updatePassword(result.password));
 	$dispatch(updateToken(result.token));
@@ -192,7 +203,8 @@ export const registerUsername = (that) => {
                 document.getElementsByName("register-username")[0] && (document.getElementsByName("register-username")[0].value = "");
                 document.getElementsByName("register-password")[0] && (document.getElementsByName("register-password")[0].value = "");
                 document.getElementsByName("register-password-again")[0] && (document.getElementsByName("register-password-again")[0].value = "");
-                window.$dispatch(updateUsername(usernameValue));
+				window.$dispatch(updateUsername(usernameValue));
+				localStorage.setItem("username", usernameValue)
                 window.$dispatch(updatePassword(pwdValue));
                 window.goRoute(that, "/login")
             } else if(response.data.result.response === "register_fail"){

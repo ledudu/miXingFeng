@@ -288,6 +288,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 								downloadingMusicItems.splice(index, 1)
 								window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 								$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+								localStorage.setItem("downloadingMusicItems", JSON.stringify(downloadingMusicItems.slice(0, 50)))
 								removeMusicDataByIndexFromIndexDB(param[1])
 							}
 						}
@@ -403,12 +404,14 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 															downloadedMusicList.push(downloadedDataToSaveIndexedDBObj)
 															window.eventEmit.$emit("downloadMusicFinished", downloadedMusicList)
 															$dispatch(updateDownloadedMusicList(downloadedMusicList))
+															localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicList.slice(0, 50)))
 															for(let index in downloadingMusicItems){
 																if(downloadingMusicItems[index].filenameOrigin === `downloading_${filenameOrigin}`){
 																	downloadingMusicItems.splice(index, 1)
 																	logger.info("downloadingMusicItems 下载完成", downloadingMusicItems)
 																	window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 																	$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+																	localStorage.setItem("downloadingMusicItems", JSON.stringify(downloadingMusicItems.slice(0, 50)))
 																}
 															}
 														} else {
@@ -419,6 +422,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 																}
 															})
 															$dispatch(updateFileList(fileList));
+															localStorage.setItem("fileList", JSON.stringify(fileList.slice(0, 50)))
 															for(let index in downloadingFileItems){
 																if(downloadingFileItems[index].filenameOrigin === `downloading_${filenameOrigin}`){
 																	downloadingFileItems.splice(index, 1)

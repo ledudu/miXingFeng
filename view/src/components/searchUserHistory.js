@@ -11,7 +11,7 @@ class SearchUserHistory extends Component {
         super(props)
         this.state = {
 			recordList: [],
-			searchString: this.props.username,
+			searchString: props.token ? props.username : "",
 			autoSuggestList: [],
 			clickShowMoreCount: 1,
 			showMoreText: "查看更多"
@@ -19,7 +19,8 @@ class SearchUserHistory extends Component {
     }
 
     componentDidMount(){
-        if(this.props.username){
+		const { username, token } = this.props
+        if(username && token){
             this.setState({
                 recordList: [{date: '正在查询...'}]
             }, this.searchRecord)
@@ -150,13 +151,13 @@ class SearchUserHistory extends Component {
     render(){
 		const { recordList, searchString, autoSuggestList, clickShowMoreCount, showMoreText } = this.state;
         const recordListLength = recordList.length;
-		const { username } = this.props;
+		const { username, token } = this.props;
         return (
             <div className="search-history-container">
                 <NavBar centerText="搜索签到历史" backToPreviousPage={this.backToMainPage} />
                 <div className="search-header">
                     <div className="search-input">
-                        <input className="search-input-content" value={searchString} autoComplete="off" placeholder={username || "请输入您要搜索的用户名"}
+                        <input className="search-input-content" value={searchString} autoComplete="off" placeholder={token ? username : "请输入您要搜索的用户名"}
                         	onBlur={this.blur}  onKeyDown={(event) => this.keyDownEvent(event)} onChange={this.updateValue}/>
 						<div className="ul">
 							{autoSuggestList.length ? autoSuggestList.map((item, key) => <AutoSuggest key={key} item={item} query={searchString} select={this.select} />) : null}

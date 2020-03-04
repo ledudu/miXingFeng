@@ -9,9 +9,11 @@ const REGISTER_FROM_LOGIN = "login/registerFromLogin"
 const FORGET_PASSWORD_TOKEN = "login/forgetPasswordToken"
 const FORGET_PASSWORD_TOKEN_ORIGIN = "login/forgetPasswordTokenOrigin"
 
+const username = localStorage.getItem("username") || ""
+
 // initialSate
 const initialState = () => ({
-	username: "",
+	username,
 	password: "",
 	token: "",
 	isFromLoginPage: false,

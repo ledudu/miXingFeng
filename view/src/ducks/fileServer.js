@@ -50,10 +50,17 @@ const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
 const MUSIC_PAGE_TYPE = "fileServer/musicPageType"
 const RECENT_MUSIC_LIST = "fileServer/recentMusicList"
 
+let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[]
+try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
+try {fileList = localStorage.getItem("fileList") ? JSON.parse(localStorage.getItem("fileList")) : []} catch(err){fileList=[]}
+try {musicList = localStorage.getItem("musicList") ? JSON.parse(localStorage.getItem("musicList")) : []} catch(err){musicList=[]}
+try {downloadedMusicList = localStorage.getItem("downloadedMusicList") ? JSON.parse(localStorage.getItem("downloadedMusicList")) : []} catch(err){downloadedMusicList=[]}
+try {downloadingMusicItems = localStorage.getItem("downloadingMusicItems") ? JSON.parse(localStorage.getItem("downloadingMusicItems")) : []} catch(err){downloadingMusicItems=[]}
+
 // initialSate
 const initialState = () => ({
-	fileList: [],
-	musicList: [],
+	fileList,
+	musicList,
 	soundPlaying: false,
 	soundInstance: null,
 	soundInstanceId: null,
@@ -76,13 +83,13 @@ const initialState = () => ({
 		}
 	],
 	playByOrder: true,
-	musicCollection: [],
+	musicCollection,
 	fileSubmitStatus: "上传",
 	fileUploadProgress: "",
 	musicSubmitStatus: "上传",
 	musicUploadProgress: "",
 	downloadingFileItems: [],
-	downloadingMusicItems: [],
+	downloadingMusicItems,
 	currentPlayingMusicList: [],
 	playByRandom: false,
 	lastNetEaseCloudSearchResult: [],
@@ -111,7 +118,7 @@ const initialState = () => ({
 	noMoreSearchAllQQMusicResults: false,
 	noMoreSearchAllKuGouMusicResults: false,
 	noMoreSearchAllKuWoMusicResults: false,
-	downloadedMusicList: [],
+	downloadedMusicList,
 	currentPlayingSongOriginal: "",
 	currentPlayingSongDuration: "",
 	musicPageType: "",

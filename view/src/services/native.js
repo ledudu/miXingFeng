@@ -45,7 +45,8 @@ function onDeviceReady(){
 	});
 	// 更新版本信息
 	cordova.getAppVersion.getVersionNumber().then(function (version){
-		window.$dispatch(updateAppVersion(version));
+		$dispatch(updateAppVersion(version));
+		localStorage.setItem("appVersion", version)
 	});
 
 	// pause resume

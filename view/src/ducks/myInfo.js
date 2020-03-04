@@ -14,20 +14,25 @@ const SET_EMAIL = "myInfo/setEmail";
 const SET_TEMP_EMAIL = "myInfo/setTempEmail";
 const SET_TEMP_MOBILE = "myInfo/setTempMobile";
 
+let userProfile = {}
+try {userProfile = localStorage.getItem("userProfile") ? JSON.parse(localStorage.getItem("userProfile")) : {}} catch(err){userProfile = {}}
+const setRole = localStorage.getItem("role") || ""
+const setHeadPicName = localStorage.getItem("setHeadPicName") || ""
+
 // initialSate
 const initialState = () => ({
-	setNickname: "",
-	setMobile: "",
-	setSignature: "",
-	setSex: "",
-	setBirthday: "",
-	setHeadPic: "",
-	setAddress: "",
+	setNickname: userProfile.nickname,
+	setMobile: userProfile.mobile,
+	setSignature: userProfile.signature,
+	setSex: userProfile.sex,
+	setBirthday: userProfile.birthday,
+	setHeadPic: userProfile.user_pic,
+	setAddress: userProfile.address,
 	setSystemSetupDot: false,
-	setRole: "",
-	setHeadPicName: "",
+	setRole,
+	setHeadPicName,
 	replaceHeadPic: false,
-	setEmail: "",
+	setEmail: userProfile.email,
 	setTempEmail: "",
 	setTempMobile: ""
 });

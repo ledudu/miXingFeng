@@ -24,10 +24,12 @@ const IS_FROM_SYSTEM_SETUP = "common/isFromSystemSetup"
 const AD_PIC_SRC = "common/adPicSrc"
 const LOADED_IN_WIFI = "common/loadedInWifi"
 
+const appVersion = localStorage.getItem("appVersion") || ""
+
 // initialSate
 const initialState = () => ({
 	currentLocation: "",
-	appVersion: "",
+	appVersion,
 	menuList: [{
 			title: "签到",
 			icon: "fa fa-home fa-fw",

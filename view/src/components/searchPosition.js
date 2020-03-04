@@ -14,7 +14,7 @@ class SearchPosition extends Component {
 			positionXY: props.currentXYPosition || [0, 0],
 			oppositePositionText: "",
 			oppositeXYPosition: [0, 0],
-			searchString: this.props.username,
+			searchString: props.token ? props.username : "",
 			autoSuggestList: [],
 			isSearching: false,
 			status: "在线",
@@ -190,13 +190,13 @@ class SearchPosition extends Component {
 
     render(){
 		let { positionText, isSearching, searchString, autoSuggestList, status, typedUsername} = this.state;
-		let { username } = this.props;
+		let { username, token } = this.props;
         return (
             <div className="search-history-container">
                 <NavBar centerText="搜索地理位置"  backToPreviousPage={this.backToMainPage} />
                 <div className="search-header">
                     <div className="search-input">
-                        <input className="search-input-content" value={searchString} autoComplete="off" placeholder={username || "请输入您要搜索的用户名"}
+                        <input className="search-input-content" value={searchString} autoComplete="off" placeholder={token ? username : "请输入您要搜索的用户名"}
                             onBlur={this.blur}  onKeyDown={(event) => this.keyDownEvent(event)} onChange={this.updateValue}/>
 						<div className="ul">
 							{autoSuggestList.length ? autoSuggestList.map((item, key) => <AutoSuggest key={key} item={item} query={searchString} select={this.select} />) : null}

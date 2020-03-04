@@ -19,6 +19,7 @@ export const retrieveLastLoginTime = () => {
 				let lastSignUpTime = response.data.result.lastDay;
 				if(lastSignUpTime.split(" ")[0] === date) signed();
 				window.$dispatch(updateLastSignUpTime(lastSignUpTime));
+				localStorage.setItem("lastSignUpTime", lastSignUpTime)
 			})
 			.catch(err => {
                 networkErr(err, `lastSign`);
@@ -87,8 +88,14 @@ export const signInApp = (that) => {
 
 export const signed = () => {
 	const { isSignedUp, signedFlag } = $getState().sign
-	if(!isSignedUp) $dispatch(updateSignUpStatus(true));
-	if(!signedFlag) $dispatch(updateSignedFlag('signed-flag'))
+	if(!isSignedUp){
+		$dispatch(updateSignUpStatus(true))
+		localStorage.setItem("signUpStatus", "true")
+	}
+	if(!signedFlag) {
+		$dispatch(updateSignedFlag('signed-flag'))
+		localStorage.setItem("signedFlag", 'signed-flag')
+	}
 }
 
 export const downloadAdPic = () => {

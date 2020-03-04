@@ -93,8 +93,12 @@ export const setOthersSignInfo = (data) => {
 	}
 	window.logger.info(`setOthersSignInfo signedArray`, signedArray.length);
 	window.logger.info(`setOthersSignInfo unsignedArray`, unsignedArray.length);
-	window.$dispatch(updateAlreadySignUpPersons(_.orderBy(signedArray, ['username'], ['desc'])))
-	window.$dispatch(updateNotSignUpPersons(_.orderBy(unsignedArray, ['username'], ['desc'])))
+	const alreadySignUpPersons = _.orderBy(signedArray, ['username'], ['desc'])
+	const notSignUpPersons = _.orderBy(unsignedArray, ['username'], ['desc'])
+	window.$dispatch(updateAlreadySignUpPersons(alreadySignUpPersons))
+	window.$dispatch(updateNotSignUpPersons(notSignUpPersons))
+	localStorage.setItem("alreadySignUpPersons", JSON.stringify(alreadySignUpPersons))
+	localStorage.setItem("notSignUpPersons", JSON.stringify(notSignUpPersons))
 }
 
 export const getGreeting = () => {
@@ -270,7 +274,8 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 				}
 			}
 		})
-		$dispatch(updateFileList(fileList))
+		localStorage.setItem("fileList", JSON.stringify(fileList.slice(0, 50)))
+		$dispatch(updateFileList(fileList))  // 去除共享文件里已下载的标记
 		removeRecordFromIndexedDBPromise = removeDataByIndexFromIndexDB(`downloaded_${filenameOrigin}`)
 			.then(() => {
 				window.eventEmit.$emit("fileRemoved")
@@ -290,6 +295,7 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 					}
 				})
 				$dispatch(updateDownloadedMusicList(downloadedMusicList))
+				localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicList.slice(0, 50)))
 				window.eventEmit.$emit("musicRemoved", downloadedMusicList)
 				return "success"
 			})
@@ -400,8 +406,8 @@ export const logoutApp = async(self) => {
         .then(() => {
 			$dispatch(updateToken(""));
 			$dispatch(updateLastSignUpTime(""));
-			$dispatch(updateAlreadySignUpPersons(""));
-			$dispatch(updateNotSignUpPersons(""));
+			$dispatch(updateAlreadySignUpPersons([]));
+			$dispatch(updateNotSignUpPersons([]));
 			$dispatch(updateSignUpStatus(false));
 			$dispatch(updateLogOutFlag(true));
 			$dispatch(updateSetNickname(""));
@@ -413,6 +419,15 @@ export const logoutApp = async(self) => {
 			$dispatch(updateSignedFlag(""));
 			$dispatch(updateSetRole(""));
 			$dispatch(updateMusicCollection([]));
+			$dispatch(updateSharedNicknames([]))
+			localStorage.removeItem("lastSignUpTime")
+			localStorage.removeItem("alreadySignUpPersons")
+			localStorage.removeItem("notSignUpPersons")
+			localStorage.removeItem("signUpStatus")
+			localStorage.removeItem("userProfile")
+			localStorage.removeItem("signedFlag")
+			localStorage.removeItem("role")
+			localStorage.removeItem("favoriteSongs")
 			goRoute(self, "/login");
         })
 }
@@ -586,6 +601,7 @@ export const incomingMessage = async (data) => {
 					item2.filePath = window.serverHost + item2.filePath
 				})
 				$dispatch(updateFileList(fileDataList));
+				localStorage.setItem("fileList", JSON.stringify(fileDataList.slice(0, 50)))
 				logger.info('incomingMessage get-files-array', fileDataList.length);
 				break;
 			case "get-musics-array":
@@ -603,6 +619,7 @@ export const incomingMessage = async (data) => {
 					})
 				})
 				$dispatch(updateMusicList(musicList));
+				localStorage.setItem("musicList", JSON.stringify(musicList.slice(0, 50)))
 				logger.info('incomingMessage get-musics-array', musicList.length);
 				break;
 			case "get-current-position":
@@ -861,6 +878,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 						delete item.saved
 					})
 					$dispatch(updateMusicCollection(musicCollection))
+					localStorage.setItem("favoriteSongs", JSON.stringify(musicCollection.slice(0, 50)))
 					window.eventEmit.$emit("listenMusicSaved")
 					if (hasSaved !== -1) {
 						alert('取消收藏成功')

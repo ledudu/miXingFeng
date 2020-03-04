@@ -71,7 +71,7 @@ class Sign extends Component {
 	async componentDidMount() {
 		try {
 			const { skipTime } = this.state
-			const { directShowSignPage, alwaysShowAdsPage, username, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup } = this.props;
+			const { directShowSignPage, alwaysShowAdsPage, token, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup } = this.props;
 			checkOnlinePersons()
 			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
@@ -146,7 +146,7 @@ class Sign extends Component {
 			document.addEventListener("deviceready", this.getPositionPermission);
 			if(!window.logger) window.logger = console;
 			// if no network when launch app, username will be empty string
-			if(username && !isFromLoginPage){
+			if(token && !isFromLoginPage){
 				if(isSignedUp){
 					signed();
 				}
@@ -170,6 +170,7 @@ class Sign extends Component {
 							array.forEach((item) => {
 								item.filePath = window.serverHost + item.filePath
 							})
+							localStorage.setItem("fileList", JSON.stringify(array.slice(0, 50)))
 							$dispatch(updateFileList(array));
 						})
 						.catch(err => {
@@ -184,6 +185,7 @@ class Sign extends Component {
 							})
 							if (!array.length) return;
 							$dispatch(updateMusicList(array));
+							localStorage.setItem("musicList", JSON.stringify(array.slice(0, 50)))
 							let downloadedMusicArr = [], downloadingMusicArr = []
 							const indexDBData = await readAllMusicDataFromIndexDB()
 							indexDBData.forEach(item => {
@@ -197,6 +199,8 @@ class Sign extends Component {
 							downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
 							$dispatch(updateDownloadedMusicList(downloadedMusicArr))
 							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
+							localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicArr.slice(0, 50)))
+							localStorage.setItem("downloadingMusicItems", JSON.stringify(downloadingMusicArr.slice(0, 50)))
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType music`);
@@ -579,21 +583,19 @@ class Sign extends Component {
 
 	render (){
         const { showProgress, skipTime, progress, appSize, appTotalSize, checkingPackage, loadedInWifi, adPicSrc } = this.state;
-		let {
+		const {
 			currentLocation,
 			username,
 			token,
 			alreadySignUpPersons,
-			notSignUpPersons,
-			lastSignUpTime,
+			notSignUpPersons=[],
+			lastSignUpTime=[],
 			onlinePersonsNum,
 			signedFlag,
 			setNickname,
 			directShowSignPage,
 			isFromSystemSetup
 		} = this.props;
-		alreadySignUpPersons = alreadySignUpPersons ? alreadySignUpPersons : [];
-		notSignUpPersons = notSignUpPersons ? notSignUpPersons : [];
 		return (
 			<Fragment>
 				{
