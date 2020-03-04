@@ -1444,7 +1444,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			.catch(err => {
 				return networkErr(err, `checkFilePath getFilePath: ${getFilePath} musicId: ${musicId}`);
 			})
-		const {response} = result.data.result
+		const response = result && result.data && result.data.result && result.data.result.response || {}
 		logger.info("checkFilePath axios getFilePath response", response)
 		filePath = response.filePath
 		if(filePath){
@@ -1469,7 +1469,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			return filePath
 		} else {
 			logger.warn("get no filePath songOriginal, musicId, response", songOriginal, musicId, response)
-			alertDialog("歌曲异常,请尝试其他歌曲")
+			alertDialog("歌曲链接获取异常,请尝试其他歌曲")
 			return false
 		}
 	} else {
