@@ -520,7 +520,10 @@
     	height: 350px;
     	top: 320px;
     	background-size: cover;
-    	opacity: 0.1;
+		opacity: 0.1;
+		max-width: 350px;
+		left: 50%;
+		transform: translateX(-50%);
 	}
 }
 
@@ -533,7 +536,7 @@
 	}
 }
 
-.window-music-controller{
+.window-music-controller, .music-playing-container{
 	.save-song-svg{
 		svg path#heart-color {
 			opacity: 0;
@@ -643,5 +646,100 @@
 		display: flex;
 		align-items: flex-start;
 		box-sizing: border-box;
+	}
+}
+
+.music-playing-container{
+	.music-playing-content{
+		background-color: #ccc;
+		height: calc(100vh - 50px);
+		.play-progress{
+			display: flex;
+    		width: 100%;
+    		box-sizing: border-box;
+    		padding: 0 12px;
+    		justify-content: space-between;
+    		color: #fff;
+    		height: 42px;
+    		line-height: 42px;
+    		align-items: center;
+			font-size: 12px;
+			.progress{
+				height: 1px;
+				width: calc(100vw - 110px);
+				position: relative;
+				.progress-played{
+					width: 0;
+					height: 100%;
+					background-color: red;
+					position: absolute;
+					left: 0;
+				}
+				.progress-unplayed{
+					width: calc(100vw - 124px);
+					height: 100%;
+					position: absolute;
+					left: 14px;
+					background-color: #fff;
+				}
+				.progress-out-point{
+					position: absolute;
+    				width: 14px;
+    				height: 14px;
+    				border-radius: 50%;
+    				left: 0;
+    				box-sizing: border-box;
+    				border: 1px solid #fff;
+    				top: -7px;
+				}
+				.progress-inner-point{
+					position: absolute;
+    				width: 8px;
+    				height: 8px;
+    				border-radius: 50%;
+    				background-color: #fff;
+    				left: 3px;
+    				top: -4px;
+				}
+			}
+		}
+		.bottom-controller{
+			display:flex;
+			font-size: 24px;
+			border-top: 1px solid rgba(128,128,128, 0.1);
+			height: 80px;
+    		padding: 0 42px;
+			justify-content: space-between;
+			align-items: center;
+			color: #fff;
+			.fa-heart{
+				color: #FF6347;
+			}
+			.play-previous, .play-next, .play-or-pause{
+				width: 35px;
+				display: flex;
+				justify-content: center;
+				&:active{
+					background-color: rgb(128, 128, 128, 0.5);
+					color: #fff;
+					transition: all .8s;
+				}
+			}
+			.play-or-pause{
+				height: 50px;
+				border: 1px solid #fff;
+				border-radius: 50%;
+				width: 50px;
+				display: flex;
+				align-items: center;
+				.fa{
+					padding-left: 5px;
+				}
+			}
+
+			.play-next{
+				margin-right: 10px;
+			}
+		}
 	}
 }

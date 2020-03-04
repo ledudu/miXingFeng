@@ -8,7 +8,13 @@ import {
 	updateAllowGetPosition,
 	updateSharedNicknames
 } from "../../ducks/common"
-import { writeFile, networkErr, alertDialog, saveFileToLocal, updateDownloadingStatus, alert } from "../../services/utils";
+import { writeFile,
+	networkErr,
+	saveFileToLocal,
+	updateDownloadingStatus,
+	checkFileWritePriority,
+	requestFileWritePriority,
+} from "../../services/utils";
 import { updateToken, updateLogOutFlag} from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
 import { updateSetNickname,
@@ -1205,7 +1211,7 @@ function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, s
 			})
 			if(self){ //只有刚启动app获取上一次播放歌曲的时候才没有self
 				logger.error("playMusic onloaderror error ", error)
-				logger.error("play music err filePath, filenameOrigin, musicId, songOriginal", filePath, filenameOrigin, musicId, songOriginal)
+				logger.error("play music err filePath, filenameOrigin, original", filePath, filenameOrigin, original)
 				alertDialog("歌曲播放异常,请尝试其他歌曲")
 			}
 		},
@@ -1575,4 +1581,59 @@ export const getFilenameWithoutExt = (filename) => {
 export const hideMusicController = () => {
 	$("#root .container .main-content").css("height", "100vh")
 	window.musicController && window.musicController.style && (window.musicController.style.display = "none")
+}
+
+export const saveMusicToLocal = (
+	musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self
+) => {
+	const { downloadingMusicItems, downloadedMusicList } = $getState().fileServer
+	const { token } = $getState().login
+	let isDownloading = false, musicDownloaded=false
+	if(payDownload) return alert("尊重版权,人人有责")
+	if(!token) return alert("请先登录")
+	filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
+	// 先判断音乐是否正在下载，再判断音乐是否已下载
+	if(window.isCordova){
+		downloadingMusicItems.some((item) => {
+			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
+				isDownloading = true
+				confirm(`提示`, `${filename}正在下载`, "去查看", () => {
+					window.goRoute(null, "/my_finished_musics")
+				})
+				return true
+			} else {
+				return false
+			}
+		})
+	}
+	downloadedMusicList.some((item) => {
+		if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
+			musicDownloaded = true
+			alertDialog(`${filename}已下载`)
+			return true
+		} else {
+			return false
+		}
+	})
+	if(!isDownloading && !musicDownloaded){
+		return checkFileWritePriority()
+			.then(bool => {
+				if(bool){
+					alert(`开始下载${filename}`)
+					updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
+					saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal, musicId, musicDataList, self})
+				} else {
+					return alertDialog("请授予文件读写权限，否则不能下载音乐", "", "知道了", requestFileWritePriority)
+				}
+			})
+	}
+}
+
+export const secondsToTime = ( secs ) => {
+	let hours = Math.floor( secs / 3600 )
+	,   minutes = Math.floor( secs % 3600 / 60 )
+	,   seconds = Math.ceil( secs % 3600 % 60 );
+	return ( hours == 0 ? '' : hours > 0 && hours.toString().length < 2 ? '0'+hours+':' : hours+':' )
+		+ ( minutes.toString().length < 2 ? '0'+minutes : minutes )
+		+ ':' + (seconds.toString().length < 2 ? '0'+seconds : seconds );
 }

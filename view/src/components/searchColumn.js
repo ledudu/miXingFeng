@@ -10,7 +10,7 @@ const itemColumns = [
 	{
 		displayName: "地理位置",
 		routeName: "/search_position",
-		fa: "fa-location-arrow"
+		fa: "fa-map-marker"
 	},
 	{
 		displayName: "共享文件",

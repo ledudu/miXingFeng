@@ -17,6 +17,11 @@ const itemColumns = [
 		routeName: "/recent_music_played",
 		fa: "fa-play-circle"
 	},
+	{
+		displayName: "正在播放",
+		routeName: "/music_playing",
+		fa: "fa-bar-chart"
+	},
 ]
 
 class MyDownloadMiddlePage extends React.Component {

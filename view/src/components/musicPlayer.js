@@ -15,10 +15,6 @@ import {
 import {
 	confirm,
 	networkErr,
-	saveFileToLocal,
-	updateDownloadingStatus,
-	checkFileWritePriority,
-	requestFileWritePriority,
 	onBackKeyDown
 } from "../services/utils";
 import { updateToken } from "../ducks/login";
@@ -33,7 +29,9 @@ import {
 	getMusicCurrentPlayProcess,
 	checkStatus,
 	getFilenameWithoutExt,
-	stopMusic
+	stopMusic,
+	saveMusicToLocal,
+	secondsToTime
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
@@ -225,15 +223,6 @@ class MusicPlayer extends React.Component {
 		const {  musicDataList=[] } = this.state;
 		const { original } = this.props;
 		checkSongSavedFunc(musicDataList, original)
-	}
-
-	secondsToTime = ( secs ) => {
-		let hours = Math.floor( secs / 3600 )
-		,   minutes = Math.floor( secs % 3600 / 60 )
-		,   seconds = Math.ceil( secs % 3600 % 60 );
-		return ( hours == 0 ? '' : hours > 0 && hours.toString().length < 2 ? '0'+hours+':' : hours+':' )
-			+ ( minutes.toString().length < 2 ? '0'+minutes : minutes )
-			+ ':' + (seconds.toString().length < 2 ? '0'+seconds : seconds );
 	}
 
 	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
@@ -443,8 +432,6 @@ class MusicPlayer extends React.Component {
 										})
 								})
 							} else {
-								if(payDownload) return alert("尊重版权,人人有责")
-								if(!username || !token) return alert("请先登录")
 								const musicSrc = filePath
 								//  下载觅星峰服务器上的音乐，保存的文件名为filenameOrigin,
 								//  filenameOrigin由上传者用户名加文件名加时间戳构成，filenameOrigin是文件的id，唯一且不可变
@@ -453,7 +440,7 @@ class MusicPlayer extends React.Component {
 								//  为了唯一的辨别每一个音乐，觅星峰服务器上的音乐md5由客户端随机生成，是不可靠的
 								//  所以在保存觅星峰服务器上的音乐时，保存的文件名特意为以上格式，
 								//  如果将要下载的音乐信息和已下载的音乐名称相同，则认为这个音乐已经下载了
-								this.saveMusicToLocal(filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId)
+								saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, this)
 							}
 							break;
 						case 7:
@@ -546,48 +533,6 @@ class MusicPlayer extends React.Component {
 		}
 	}
 
-	saveMusicToLocal = (filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId) => {
-		const { musicDataList } = this.state
-		const { downloadingMusicItems, downloadedMusicList } = this.props;
-		let isDownloading = false, musicDownloaded=false, self = this
-		filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
-		// 先判断音乐是否正在下载，再判断音乐是否已下载
-		if(window.isCordova){
-			downloadingMusicItems.some((item) => {
-				if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
-					isDownloading = true
-					confirm(`提示`, `${filename}正在下载`, "去查看", () => {
-						window.goRoute(null, "/my_finished_musics")
-					})
-					return true
-				} else {
-					return false
-				}
-			})
-		}
-		downloadedMusicList.some((item) => {
-			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
-				musicDownloaded = true
-				alertDialog(`${filename}已下载`)
-				return true
-			} else {
-				return false
-			}
-		})
-		if(!isDownloading && !musicDownloaded){
-			return checkFileWritePriority()
-				.then(bool => {
-					if(bool){
-						alert(`开始下载${filename}`)
-						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
-						saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal, musicId, musicDataList, self})
-					} else {
-						return alertDialog("请授予文件读写权限，否则不能下载音乐", "", "知道了", requestFileWritePriority)
-					}
-				})
-		}
-	}
-
 	updateSearchList = (original, filenameOrigin) => {
 		if(original === CONSTANT.musicOriginal.musicSearch){
 			const { lastMusicSearchResult=[], lastSearchAllMusicResult=[], pageType } = this.props;
@@ -646,12 +591,12 @@ class MusicPlayer extends React.Component {
 				<audio preload="auto" className="audio-selector" ref={ref => window["musicPlayerRef_" + filenameOrigin] = ref} >
 					<source src={filePath} />
 				</audio>
-				<div className="audio-player-time audio-player-time-current">{this.secondsToTime(currentSongTime)}</div>
+				<div className="audio-player-time audio-player-time-current">{secondsToTime(currentSongTime)}</div>
 				<div className="audio-player-bar">
 					<div className="audio-player-bar-loaded" style={{"width": "100%"}}></div>
 					<div className="audio-player-bar-played" style={{"width": (currentSongTime / duration * 100) + "%"}}></div>
 				</div>
-				<div className="audio-player-time audio-player-time-duration">{this.secondsToTime(duration)}</div>
+				<div className="audio-player-time audio-player-time-duration">{secondsToTime(duration)}</div>
 			</div>
 		)
 	}
@@ -701,7 +646,7 @@ class MusicPlayer extends React.Component {
 												<div className="upload-user">{item.uploadUsername || "未知"}</div>
 												{
 													original !== CONSTANT.musicOriginal.musicDownloading
-													?	<div className="song-duration-time">{this.secondsToTime(item.duration)}</div>
+													?	<div className="song-duration-time">{secondsToTime(item.duration)}</div>
 													:	<div className="song-duration-time">{item.progress}</div>
 												}
 											</div>
