@@ -17,7 +17,7 @@ import {
 	requestPositionPermission,
 	checkOnlinePersons
 } from "../logic/common";
-import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp, updateShowUpdateConfirm } from "../ducks/sign";
+import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp, updateShowUpdateConfirm, updateNeedRetryRequestWhenLaunch } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
@@ -71,7 +71,7 @@ class Sign extends Component {
 	async componentDidMount() {
 		try {
 			const { skipTime } = this.state
-			const { directShowSignPage, alwaysShowAdsPage, token, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup } = this.props;
+			const { directShowSignPage, alwaysShowAdsPage, token, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup, needRetryRequestWhenLaunch } = this.props;
 			checkOnlinePersons()
 			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
@@ -146,7 +146,7 @@ class Sign extends Component {
 			document.addEventListener("deviceready", this.getPositionPermission);
 			if(!window.logger) window.logger = console;
 			// if no network when launch app, username will be empty string
-			if(token && !isFromLoginPage){
+			if(token && !isFromLoginPage && !needRetryRequestWhenLaunch){
 				if(isSignedUp){
 					signed();
 				}
@@ -201,6 +201,7 @@ class Sign extends Component {
 							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
 							localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicArr.slice(0, 50)))
 							localStorage.setItem("downloadingMusicItems", JSON.stringify(downloadingMusicArr.slice(0, 50)))
+							$dispatch(updateNeedRetryRequestWhenLaunch(false))
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType music`);
@@ -723,7 +724,8 @@ const mapStateToProps = state => {
 		adPicSrc: state.common.adPicSrc,
 		loadedInWifi: state.common.loadedInWifi,
 		justOpenApp: state.sign.justOpenApp,
-		showUpdateConfirm: state.sign.showUpdateConfirm
+		showUpdateConfirm: state.sign.showUpdateConfirm,
+		needRetryRequestWhenLaunch: state.sign.needRetryRequestWhenLaunch
 	};
 };
 
