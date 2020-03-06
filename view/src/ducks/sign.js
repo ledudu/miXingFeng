@@ -16,18 +16,16 @@ const NEED_RETRY_REQUEST_WHEN_LAUNCH = "sign/needRetryRequestWhenLaunch"
 let alreadySignUpPersons=[], notSignUpPersons=[]
 try{alreadySignUpPersons = localStorage.getItem("alreadySignUpPersons") ? JSON.parse(localStorage.getItem("alreadySignUpPersons")) : []}catch(err){alreadySignUpPersons=[]}
 try{notSignUpPersons = localStorage.getItem("notSignUpPersons") ? JSON.parse(localStorage.getItem("notSignUpPersons")) : []}catch(err){notSignUpPersons=[]}
-const isSignedUp = localStorage.getItem("signUpStatus") || false
 const lastSignUpTime = localStorage.getItem("lastSignUpTime") || ""
-const signedFlag = localStorage.getItem("signedFlag") || ""
 
 // initialSate
 const initialState = () => ({
-	isSignedUp,
+	isSignedUp: false,
 	lastSignUpTime,
 	alreadySignUpPersons,
 	notSignUpPersons,
 	onlinePersonsNum: 0,
-	signedFlag,
+	signedFlag: "",
 	onlinePersonsName: "",
 	directShowSignPage: false,
 	adNumber: 0,

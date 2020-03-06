@@ -429,9 +429,7 @@ export const logoutApp = async(self) => {
 			localStorage.removeItem("lastSignUpTime")
 			localStorage.removeItem("alreadySignUpPersons")
 			localStorage.removeItem("notSignUpPersons")
-			localStorage.removeItem("signUpStatus")
 			localStorage.removeItem("userProfile")
-			localStorage.removeItem("signedFlag")
 			localStorage.removeItem("role")
 			localStorage.removeItem("favoriteSongs")
 			goRoute(self, "/login");
