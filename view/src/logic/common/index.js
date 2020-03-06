@@ -1180,7 +1180,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 			if(self) logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
 		}
 		if(self){
-			musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original)
+			await musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original, isLocalDownloadedMusicPath)
 		}
 		if(window.circleControlRef){
 			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
@@ -1193,7 +1193,34 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 	}
 }
 
-function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original){
+window.platSongNumber = 0;
+const musicPlayQueue = []
+function platSongNumberFunc(){
+	if(window.platSongNumberTimer) clearTimeout(window.platSongNumberTimer)
+	window.platSongNumberTimer = setTimeout(() => {
+		window.platSongNumber = 0
+	}, 1500)
+}
+async function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original, isLocalDownloadedMusicPath){
+	if(!isLocalDownloadedMusicPath){
+		// 屏蔽快速切换歌曲的情况,如果连续点击两首，不屏蔽，超过两首屏蔽
+		// 清除屏蔽计数
+		platSongNumberFunc()
+		if(window.platSongNumber >= 2){
+			window.platSongNumber++
+			musicPlayQueue.push(filenameOrigin)
+			await sleep(1500)
+		} else {
+			window.platSongNumber++
+		}
+		if(musicPlayQueue.length === 1){
+			musicPlayQueue.length = 0;
+		} else if(musicPlayQueue.length >= 2){
+			logger.info("musicHowlPlay cancel unnecessary song playing filenameOrigin", filenameOrigin)
+			musicPlayQueue.shift()
+			return
+		}
+	}
 	const soundInstanceModel = new Howl({
 		src: [filePath],
 		loop: !pauseWhenOver,
@@ -1241,6 +1268,12 @@ function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, s
 	$dispatch(updateSoundInstance(soundInstanceModel))
 	$dispatch(updateSoundInstanceId(soundInstanceModelId))
 	getMusicCurrentPlayProcess(false)
+}
+
+export const sleep = (t) => {
+	return new Promise(res => {
+		setTimeout(res, t)
+	})
 }
 
 export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original, self) => {
