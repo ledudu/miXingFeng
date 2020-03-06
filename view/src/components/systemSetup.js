@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { List, Button, Badge } from 'antd-mobile';
 import NavBar from "./child/navbar";
 import { logoutApp } from "../logic/common/index";
-import { exitApp } from "../services/utils"
+import { exitApp, backToPreviousPage } from "../services/utils"
 import { updateDirectShowSignPage } from "../ducks/sign";
 import { updateHideNavBar, updateSavedCurrentRoute, updateIsFromSystemSetup } from "../ducks/common"
 
@@ -17,15 +17,19 @@ class SystemSetup extends React.Component {
 
     componentWillUnmount(){
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false)
-    }
+        document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this, "/main/myInfo", {specialBack: true});
+	}
 
     backToMainPage = () => {
-        window.goRoute(this, "/main/myInfo");
+        backToPreviousPage(this, "/main/myInfo");
     }
 
     logoutApp = async() => {

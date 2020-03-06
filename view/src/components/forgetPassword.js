@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Toast } from "antd-mobile";
-import { networkErr } from "../services/utils";
+import { networkErr, backToPreviousPage} from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail, updateSetTempMobile } from "../ducks/myInfo";
@@ -16,18 +16,22 @@ export default class ForgetPassword extends Component {
 
     componentWillUnmount(){
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMain);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
         setTimeout(() => {
             StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
         }, 300)
-        document.addEventListener("backbutton", this.backToMain, false)
-    }
+        document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this, "/login", {specialBack: true});
+	}
 
     backToMain = () => {
-        window.goRoute(this, "/login")
+        backToPreviousPage(this, "/login");
     }
 
     forgetPasswordKeyDownEvent = (evt) => {

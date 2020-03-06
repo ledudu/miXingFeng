@@ -4,6 +4,7 @@ import { DatePicker, List, Picker, WingBlank, Button, ActionSheet } from 'antd-m
 import NavBar from "./child/navbar";
 import { getPhotoFunc, saveUserInfoFunc, showHeadPic } from "../logic/myInfo";
 import address from "../services/address";
+import { backToPreviousPage} from "../services/utils";
 
 const sexData = [
 	{   value: "男",
@@ -37,18 +38,26 @@ class UserProfile extends React.Component {
 
     componentWillUnmount(){
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
-        document.addEventListener("backbutton", this.backToMainPage, false)
-    }
+        document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		if(this.props.isFromSignPage){
+			backToPreviousPage(this, "/main/sign", {specialBack: true});
+		} else {
+			backToPreviousPage(this, "/main/sign", {specialBack: true});
+		}
+	}
 
     backToMainPage = () => {
 		if(this.props.isFromSignPage){
-			window.goRoute(this, "/main/sign");
+			backToPreviousPage(this, "/main/sign");
 		} else {
-			window.goRoute(this, "/main/myInfo");
+			backToPreviousPage(this, "/main/myInfo");
 		}
     }
 

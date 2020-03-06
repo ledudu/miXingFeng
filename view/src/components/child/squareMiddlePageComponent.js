@@ -1,6 +1,6 @@
 import React from 'react';
 import NavBar from "./navbar";
-import { openBrowserLink } from "../../services/utils";
+import { openBrowserLink, backToPreviousPage } from "../../services/utils";
 import { hideMusicController } from "../../logic/common"
 
 export default class SquareMiddlePageComponent extends React.Component {
@@ -12,15 +12,19 @@ export default class SquareMiddlePageComponent extends React.Component {
 
     componentWillUnmount(){
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
-		document.addEventListener("backbutton", this.backToMainPage, false)
-    }
+		document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this.props.self, "/main/myInfo", {specialBack: true});
+	}
 
     backToMainPage = () => {
-		window.goRoute(this.props.self, "/main/myInfo");
+		backToPreviousPage(this.props.self, "/main/myInfo");
     }
 
     goNextRoute = (route, name, src) => {

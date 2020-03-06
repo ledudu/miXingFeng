@@ -5,6 +5,7 @@ import { loginApp, dealtWithLoginIn} from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { reconnectSocket } from "../logic/common"
 import { updateIsFromLoginPage, updateRegisterFromLogin } from "../ducks/login"
+import { backToPreviousPage} from "../services/utils";
 
 class Login extends Component {
 
@@ -58,12 +59,12 @@ class Login extends Component {
 			StatusBar.overlaysWebView(false);
         }
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMain);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
 		StatusBar.overlaysWebView(true);
-        document.addEventListener("backbutton", this.backToMain, false);
+        document.addEventListener("backbutton", this.backKeyDownToPrevious, false);
     }
 
     keyDownEvent = (evt) => {
@@ -77,10 +78,14 @@ class Login extends Component {
 
     login = () => {
         loginApp(this, this.state.username, this.state.password);
-    }
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this, "/main/sign", {specialBack: true});
+	}
 
     backToMain = () => {
-        window.goRoute(this, "/main/sign")
+		backToPreviousPage(this, "/main/sign");
     }
 
     focus = (elem) => {

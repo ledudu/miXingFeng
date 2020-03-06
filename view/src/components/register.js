@@ -3,6 +3,7 @@ import { Button } from "antd-mobile";
 import { registerUsername} from "../logic/login";
 import NavBar from "./child/navbar";
 import { CONSTANT } from "../constants/enumeration";
+import { backToPreviousPage} from "../services/utils";
 
 export default class Register extends Component {
 
@@ -12,18 +13,23 @@ export default class Register extends Component {
 
     componentWillUnmount(){
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMain);
+        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
         setTimeout(() => {
             StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
         }, 300)
-        document.addEventListener("backbutton", this.backToMain, false)
-    }
+        document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this, "/login", {specialBack: true});
+	}
+
 
     backToMain = () => {
-        window.goRoute(this, "/login")
+        backToPreviousPage(this, "/login")
     }
 
     registerKeyDownEvent = (evt) => {

@@ -54,7 +54,15 @@ export const networkErr = function(err, originTip){
 	}
 	if(err === undefined){
 		logger.warn("network err 请检查网络连接")
-		return Toast.fail("请检查网络连接", CONSTANT.toastTime);
+		if(window.showToastFail){
+			return
+		} else {
+			window.showToastFail = true
+			setTimeout(() => {
+				window.showToastFail = false
+			}, 1000)
+			return Toast.fail("请检查网络连接", CONSTANT.toastTime);
+		}
 	} else {
 		if(Object.prototype.toString.call(err) === '[object Error]'){
 			alertDebug("[object Error]: 请检查网络连接: " + err.stack || err.toString());
@@ -195,6 +203,14 @@ function onErrorReadFile(error) {
 	window.logger.error(`读取错误!:`, error);
 }
 
+export const backToPreviousPage = (self, route, options={}) => {
+	if(options.specialBack) {
+		logger.info("backToPreviousPage route, options", route, options)
+		window.specialBack = true
+	}
+	window.goRoute(self, route);
+}
+
 export const onBackKeyDown = () => {
 	const pageName = window.getRoute();
 	const { isFromSystemSetup } = $getState().common
@@ -211,7 +227,11 @@ export const onBackKeyDown = () => {
 			document.addEventListener("backbutton", onBackKeyDown, false); // 返回键
 		}, 2000);
 	} else {
-		window.history.back();
+		if(!window.specialBack){
+			window.history.back();
+		} else {
+			window.specialBack = false
+		}
 	}
 }
 
