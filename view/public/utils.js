@@ -11,6 +11,7 @@ LOGGER_LEVEL.map(item => {
 			return;
 		} else {
 			loopTimes = 0
+			console[item](`[${getTime()}] [${item.toUpperCase()}] `, buffer, ` [ext]`, ...args)
 			return new Promise(res => {
 				buffer = JSON.stringify(buffer, function(key, value){
 					return formatDataType(value)
@@ -24,7 +25,6 @@ LOGGER_LEVEL.map(item => {
 				}
 				const content = `${buffer}` + `${extend}` + "\r\n";
 				const rawData = `[${getTime()}] [${item.toUpperCase()}] ${content}`;
-				console[item](rawData)
 				if(item === 'error' && !window.config.debug){
 					var xhr = new XMLHttpRequest();
 					xhr.open('POST', 'http://94.191.67.225:8000/get_error_log', true);
