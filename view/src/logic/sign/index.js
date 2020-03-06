@@ -78,7 +78,6 @@ export const signInApp = (that) => {
 				}
 			})
 			.catch(err => {
-				window.logger.error(`signIn, err`, err.stack||err.toString());
 				networkErr(err, `signInApp data: ${data}`);
 			})
 	} else {

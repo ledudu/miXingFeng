@@ -227,11 +227,13 @@ export const onBackKeyDown = () => {
 			document.addEventListener("backbutton", onBackKeyDown, false); // 返回键
 		}, 2000);
 	} else {
-		if(!window.specialBack){
-			window.history.back();
-		} else {
-			window.specialBack = false
-		}
+		setTimeout(() => {
+			if(!window.specialBack){
+				window.history.back();
+			} else {
+				window.specialBack = false
+			}
+		}, 50)
 	}
 }
 
