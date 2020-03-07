@@ -30,7 +30,7 @@ class MyDownloadMiddlePage extends React.Component {
         return (
             <div className="my-download-outside-container">
 				<SquareMiddlePageComponent
-					pageName="下载"
+					pageName="音乐"
 					itemColumns={itemColumns}
 					self={this}
 				/>

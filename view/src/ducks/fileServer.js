@@ -49,6 +49,7 @@ const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
 const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
 const MUSIC_PAGE_TYPE = "fileServer/musicPageType"
 const RECENT_MUSIC_LIST = "fileServer/recentMusicList"
+const CURRENT_MUSIC_ITEM_INFO = "fileServer/currentMusicItemInfo"
 
 let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[]
 try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
@@ -122,7 +123,8 @@ const initialState = () => ({
 	currentPlayingSongOriginal: "",
 	currentPlayingSongDuration: "",
 	musicPageType: "",
-	recentMusicList: []
+	recentMusicList: [],
+	currentMusicItemInfo: {}
 });
 
 // Reducer
@@ -228,6 +230,8 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {musicPageType: action.data});
 		case RECENT_MUSIC_LIST:
 			return Object.assign({}, state, {recentMusicList: action.data});
+		case CURRENT_MUSIC_ITEM_INFO:
+			return Object.assign({}, state, {currentMusicItemInfo: action.data});
 		default:
 			return state;
 	}
@@ -481,5 +485,10 @@ export const updateMusicPageType = data => ({
 
 export const updateRecentMusicList = data => ({
 	type: RECENT_MUSIC_LIST,
+	data
+})
+
+export const updateCurrentMusicItemInfo = data => ({
+	type: CURRENT_MUSIC_ITEM_INFO,
 	data
 })

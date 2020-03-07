@@ -43,7 +43,8 @@ import {
 	updatePauseWhenOver,
 	updatePlayByOrder,
 	updateMusicMenuBadge,
-	updatePlayByRandom
+	updatePlayByRandom,
+	updateCurrentMusicItemInfo
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
@@ -970,10 +971,11 @@ export const getMusicCurrentPlayProcess = (retry) => {
 }
 
 export const musicPlayingProgressFunc = () => {
-	const { currentPlayingSongDuration } = $getState().fileServer
-	if(!currentPlayingSongDuration || currentPlayingSongDuration === NaN) return
+	const { currentPlayingSongDuration, currentSongTime, currentMusicItemInfo } = $getState().fileServer
+	if(!currentPlayingSongDuration || currentPlayingSongDuration === NaN || !window.circleControlRef) return
 	if (window.circleControlRef.style.strokeDashoffset > 0) {
-		window.circleControlRef.style.strokeDashoffset -= (CONSTANT.strokeDashoffset / currentPlayingSongDuration)
+		const percent = (currentSongTime / currentMusicItemInfo.duration)
+		window.circleControlRef.style.strokeDashoffset = (CONSTANT.strokeDashoffset * (1 - percent))
 	} else {
 		window.circleControlRef.style.strokeDashoffset = 314
 	}
@@ -1043,7 +1045,7 @@ export const stopMusic = () => {
 export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self) => {
 	try {
 		const { pauseWhenOver, recentMusicList } = $getState().fileServer;
-		let currentMusicItem, isLocalDownloadedMusicPath = filePath ? filePath.indexOf("cdvfile://localhost/sdcard/miXingFeng/music/") !== -1 : false
+		let currentMusicItem={}, isLocalDownloadedMusicPath = filePath ? filePath.indexOf("cdvfile://localhost/sdcard/miXingFeng/music/") !== -1 : false
 		if(isLocalDownloadedMusicPath){
 			// 检查已下载的音乐是否被删除
 			const fileExist = await checkFileExistOrNot(removePrefixFromFileOrigin(filenameOrigin), "music")
@@ -1180,6 +1182,7 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		} else {
 			if(self) logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
 		}
+		$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(self){
 			await musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original, isLocalDownloadedMusicPath)
 		} else {
