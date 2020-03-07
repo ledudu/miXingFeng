@@ -1007,7 +1007,8 @@ export const resumeMusic = (self) => {
 			const { pauseWhenOver } = $getState().fileServer;
 			const lastPlaySongInfo = JSON.parse(localStorage.getItem('lastPlaySongInfo'))
 			const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
-			musicHowlPlay(lastPlaySongInfo.filePath, pauseWhenOver, lastPlaySongMusicDataList, lastPlaySongInfo.filenameOrigin, self, lastPlaySongInfo.original)
+			const filePath = localStorage.getItem('filePath')
+			musicHowlPlay(filePath || lastPlaySongInfo.filePath, pauseWhenOver, lastPlaySongMusicDataList, lastPlaySongInfo.filenameOrigin, self, lastPlaySongInfo.original)
 		} catch(err){
 			logger.error("resumeMusic err", err)
 			stopMusic()
@@ -1181,6 +1182,8 @@ export const playMusic = async (filePath, filenameOrigin, duration, original, mu
 		}
 		if(self){
 			await musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, self, original, isLocalDownloadedMusicPath)
+		} else {
+			localStorage.setItem('filePath', filePath)
 		}
 		if(window.circleControlRef){
 			window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
@@ -1239,12 +1242,6 @@ async function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOri
 				logger.error("play music err filePath, filenameOrigin, original", filePath, filenameOrigin, original)
 				alertDialog("歌曲播放异常,请尝试其他歌曲")
 			}
-		},
-		onload  : function(id){
-			// if(self === null) {
-			// 	self = ""
-			// 	pauseMusic()
-			// }
 		},
 		onend: function() {
 			const { pauseWhenOver, playByOrder, playByRandom } = $getState().fileServer;
