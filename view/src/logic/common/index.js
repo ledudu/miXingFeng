@@ -14,6 +14,7 @@ import { writeFile,
 	updateDownloadingStatus,
 	checkFileWritePriority,
 	requestFileWritePriority,
+	debounceOpt,
 } from "../../services/utils";
 import { updateToken, updateLogOutFlag} from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
@@ -1667,4 +1668,68 @@ export const secondsToTime = ( secs ) => {
 	return ( hours == 0 ? '' : hours > 0 && hours.toString().length < 2 ? '0'+hours+':' : hours+':' )
 		+ ( minutes.toString().length < 2 ? '0'+minutes : minutes )
 		+ ':' + (seconds.toString().length < 2 ? '0'+seconds : seconds );
+}
+
+export const touchDirection = (obj, direction, fun, touchDirectionObj) => {
+	//direction:swipeLeft,swipeRight,swipeTop,swipedown,singleTap,touchstart,touchmove,touchend
+	//   划左， 划右， 划上， 划下，点击， 开始触摸， 触摸移动， 触摸结束
+	const defaults = {x: 5, y: 5, ox: 0, oy: 0, nx: 0, ny: 0};
+	//配置：划的范围在5X5像素内当点击处理
+	obj.addEventListener("touchstart", touchStart.bind(this, defaults, direction, fun, ), false);
+	obj.addEventListener("touchmove", touchMove.bind(this, defaults, direction, fun, touchDirectionObj), false);
+	// obj.addEventListener("touchend", touchEnd.bind(this, defaults, direction, fun), false);
+}
+
+export const removeTouchDirection = (obj) => {
+	obj.removeEventListener("touchstart", touchStart, false);
+	obj.removeEventListener("touchmove", touchMove, false);
+	// obj.removeEventListener("touchend", touchEnd.bind(this, defaults, direction, fun), false);
+}
+
+function touchStart(defaults, direction, fun, event){
+	defaults.ox = event.targetTouches[0].pageX;
+	defaults.oy = event.targetTouches[0].pageY;
+	defaults.nx = defaults.ox;
+	defaults.ny = defaults.oy;
+	logger.info("touchStart defaults.ox", defaults.ox)
+	if (direction.indexOf("touchstart") != -1) fun();
+}
+
+function touchMove(defaults, direction, fun, touchDirectionObj, event){
+	debounceOpt(() => {
+		event.preventDefault();
+		defaults.nx = event.targetTouches[0].pageX;
+		defaults.ny = event.targetTouches[0].pageY;
+		if (direction.indexOf("touchmove") != -1) fun();
+		logger.info("touchMove defaults.nx", defaults.nx)
+		touchEnd(defaults, direction, fun, event)
+	}, 100, touchDirectionObj)
+}
+
+function touchEnd(defaults, direction, fun, event){
+	debounceOpt(() => {
+		const changeY = defaults.oy - defaults.ny;
+		const changeX = defaults.ox - defaults.nx;
+		if (Math.abs(changeX) > Math.abs(changeY) && Math.abs(changeX) > defaults.x) {
+			//左右事件
+			if (changeX > 0) {
+				logger.info("touchEnd left changeX", changeX)
+				if (direction.indexOf("swipeLeft") != -1) fun('left');
+			} else {
+				logger.info("touchEnd right changeX", changeX)
+				if (direction.indexOf("swipeRight") != -1) fun('right');
+			}
+		} else if (Math.abs(changeY) > Math.abs(changeX) && Math.abs(changeY) > defaults.y) {
+			//上下事件
+			if (changeY > 0) {
+				if (direction.indexOf("swipeTop") != -1) fun();
+			} else {
+				if (direction.indexOf("swipedown") != -1) fun();
+			}
+		} else {
+			//点击事件
+			if (direction.indexOf("singleTap") != -1) fun();
+		}
+		if (direction.indexOf("touchend") != -1) fun();
+	}, 100, {})
 }

@@ -650,7 +650,6 @@
 }
 
 .music-playing-container{
-	background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
 	.top-status-bar, .navbar-container{
 		background-color: transparent;
 	}
@@ -666,6 +665,7 @@
 			flex-grow: 0;
 			justify-content: center;
 			align-items: center;
+			position: relative;
 			.music{
 				position: relative;
 				width: 180px;
@@ -677,16 +677,22 @@
 				position: relative;
 				margin-top: -100px;
 
+				.line-animation {
+					animation: equalize 4s 0s infinite;
+					animation-timing-function: linear;
+					transition: .5s;
+					box-shadow: inset 0px 0px 16px -2px rgba(0, 0, 0, 0.15);
+				}
+				.line-height{
+					height: 40px !important;
+				}
+
 				.line {
 					position: absolute;
 					width: 6px;
 					min-height: 30px;
-					transition: .5s;
-					animation: equalize 4s 0s infinite;
-					animation-timing-function: linear;
 					vertical-align: middle;
 					bottom: 0 !important;
-					box-shadow: inset 0px 0px 16px -2px rgba(0, 0, 0, 0.15);
 				}
 
 				.line1 {
@@ -743,7 +749,24 @@
 			.music:after {
 				left: -25px;
 			}
-
+			.circle{
+				position: absolute;
+				bottom: 20px;
+				display:flex;
+				align-self: center;
+				.dot{
+					width: 10px;
+					height: 10px;
+					border: 1px solid #fff;
+					border-radius: 50%;
+					margin: 0 5px;
+					cursor: pointer;
+				}
+				.dot-fill{
+					transition: all .8s;
+					background-color: rgba(255, 255, 255, 0.9)
+				}
+			}
 		}
 		.play-progress{
 			display: flex;
@@ -806,13 +829,14 @@
 			justify-content: space-between;
 			align-items: center;
 			color: #fff;
-			.fa-heart{
-				color: #FF6347;
+			.save-svg{
+				cursor: pointer;
 			}
 			.play-previous, .play-next, .play-or-pause{
 				width: 35px;
 				display: flex;
 				justify-content: center;
+				cursor: pointer;
 				&:active{
 					background-color: rgb(128, 128, 128, 0.5);
 					color: #fff;
@@ -834,7 +858,34 @@
 			.play-next{
 				margin-right: 10px;
 			}
+
+			.download-song{
+				cursor: pointer;
+			}
 		}
+	}
+}
+
+.music-playing-container.head-phone-view{
+	background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
+}
+
+.music-playing-container.amazing-baby-view{
+	background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+}
+
+@keyframes opacityChange{
+	0% {
+		opacity: 0.7;
+	}
+	25% {
+		height: 0.8;
+	}
+	50% {
+		height: 0.9;
+	}
+	100% {
+		height: 1;
 	}
 }
 

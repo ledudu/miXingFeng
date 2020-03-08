@@ -559,19 +559,40 @@ export const debounce = (fn ,t) => {
 		if(debounceTimer){
 			clearTimeout(debounceTimer)
 			debounceTimer = setTimeout(() => {
-				fn(context, arguments)
+				fn.apply(context, arguments)
 				debounceTimer = null
 			}, t)
 		} else {
 			if(firstTimeRun){
 				firstTimeRun = false
-				fn(context, arguments)
+				fn.apply(context, arguments)
 			} else {
 				debounceTimer = setTimeout(() => {
-					fn(context, arguments)
+					fn.apply(context, arguments)
 					debounceTimer = null;
 				}, t)
 			}
+		}
+	}
+}
+
+export const debounceOpt = (fn, t, obj={}) => {
+	const self = this
+	if(obj.debounceTimer){
+		clearTimeout(obj.debounceTimer)
+		obj.debounceTimer = setTimeout(() => {
+			fn.apply(self, arguments)
+			obj.debounceTimer = null
+		}, t)
+	} else {
+		if(obj.firstTimeRun){
+			obj.firstTimeRun = false
+			fn.apply(context, arguments)
+		} else {
+			obj.debounceTimer = setTimeout(() => {
+				fn.apply(self, arguments)
+				obj.debounceTimer = null;
+			}, t)
 		}
 	}
 }
@@ -632,4 +653,20 @@ export const requestFileWritePriority = () => {
 			res()
 		}
 	})
+}
+
+export const IsPC = () => {
+	const userAgentInfo = navigator.userAgent;
+	const Agents = ["Android", "iPhone",
+		"SymbianOS", "Windows Phone",
+		"iPad", "iPod"
+	];
+	let flag = true;
+	for (let v = 0; v < Agents.length; v++) {
+		if (userAgentInfo.indexOf(Agents[v]) > 0) {
+			flag = false;
+			break;
+		}
+	}
+	return flag;
 }

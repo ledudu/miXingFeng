@@ -11,34 +11,39 @@ import {
 	getFilenameWithoutExt,
 	saveMusicToLocal,
 	secondsToTime,
-	hideMusicController
+	hideMusicController,
+	touchDirection,
+	removeTouchDirection
 } from "../logic/common"
-import { updateCurrentSongTime } from "../ducks/fileServer"
-import { debounce, backToPreviousPage } from "../services/utils"
+import { updateCurrentSongTime, updateIsHeadPhoneView } from "../ducks/fileServer"
+import { backToPreviousPage,IsPC } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
+import HearSvg from "./child/heartSvg"
 
 class MusicPlaying extends React.Component {
 
 	constructor(props){
 		super(props)
 		this.ifBool = false
-		this.random = Math.random()
+		this.touchDirectionObj = {
+			debounceTimer: null,
+			firstTimeRun: false
+		}
 	}
 
 	componentDidMount(){
 		document.addEventListener("deviceready", this.listenBackButton, false);
 		if(window.isCordova) StatusBar.overlaysWebView(true);
-		if(this.random > 0.5) this.musicPlayingContainer.style.backgroundImage = 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
 		this.playRef && (this.playRef.style.paddingLeft = "5px")
 		this.pauseRef && (this.pauseRef.style.paddingLeft = "0px")
-		// this.progressOutPoint.addEventListener("touchstart", this.start);
-		// this.progressOutPoint.addEventListener("mousedown", this.start);
-		// this.progressOutPoint.addEventListener("touchmove",  this.move);
-		// this.progressOutPoint.addEventListener("mousemove",  this.move);
+		this.progressRef.addEventListener("touchstart", this.start);
+		this.progressRef.addEventListener("mousedown", this.start);
+		this.progressRef.addEventListener("touchmove",  this.move);
+		this.progressRef.addEventListener("mousemove",  this.move);
 		this.progressRef.addEventListener("click", this.move);
-		// this.progressOutPoint.addEventListener("touchend", this.end);
-		// this.progressOutPoint.addEventListener("mouseup", this.end);
+		window.addEventListener("touchend", this.end);
+		window.addEventListener("mouseup", this.end);
 		const { currentSongTime } = this.props
 		this.updateProgressLine(currentSongTime)
 		if(!window.isCordova){
@@ -47,6 +52,10 @@ class MusicPlaying extends React.Component {
 			$("#root .music-playing-container .music-playing-content .top").css("height", "calc(100vh - 190px)")
 		}
 		hideMusicController()
+		window.eventEmit.$on("listenMusicSaved", () => {
+			this.forceUpdate()
+		})
+		touchDirection(this.musicPlayingTop, ['swipeLeft', 'swipeRight'], this.touchDirectionCallback, this.touchDirectionObj)
 	}
 
 	componentWillReceiveProps(nextProps){
@@ -59,16 +68,40 @@ class MusicPlaying extends React.Component {
 	componentWillUnmount(){
 		document.removeEventListener("deviceready", this.listenBackButton, false);
 		document.removeEventListener("backbutton", this.backKeyDownToPrevious, false)
-		// this.progressOutPoint.removeEventListener("touchstart", this.start);
-		// this.progressOutPoint.removeEventListener("mousedown", this.start);
-		// this.progressOutPoint.removeEventListener("touchmove", this.move);
-		// this.progressOutPoint.removeEventListener("mousemove", this.move);
+		this.progressRef.removeEventListener("touchstart", this.start);
+		this.progressRef.removeEventListener("mousedown", this.start);
+		this.progressRef.removeEventListener("touchmove", this.move);
+		this.progressRef.removeEventListener("mousemove", this.move);
 		this.progressRef.removeEventListener("click", this.move);
-		// this.progressOutPoint.removeEventListener("touchend", this.end);
-		// this.progressOutPoint.removeEventListener("mouseup", this.end);
+		window.removeEventListener("touchend", this.end);
+		window.removeEventListener("mouseup", this.end);
 		if(window.isCordova) {
 			StatusBar.overlaysWebView(false);
 			StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
+		}
+		removeTouchDirection(this.musicPlayingTop)
+	}
+
+	touchDirectionCallback = (direction) => {
+		const { isHeadPhoneView } = this.props
+		logger.info('touchDirectionCallback direction, isHeadPhoneView', direction, isHeadPhoneView)
+		if(direction === 'left'){
+			if(!isHeadPhoneView){
+				$dispatch(updateIsHeadPhoneView(true))
+				this.musicPlayingContainerRef.style.animation = "opacityChange 0.8s ease-out  1 alternate forwards"
+				setTimeout(() => {
+					this.musicPlayingContainerRef.style.animation = null
+				}, 800)
+			}
+
+		} else if(direction === 'right'){
+			if(isHeadPhoneView){
+				$dispatch(updateIsHeadPhoneView(false))
+				this.musicPlayingContainerRef.style.animation = "opacityChange 0.8s ease-out  1 alternate forwards"
+				setTimeout(() => {
+					this.musicPlayingContainerRef.style.animation = null
+				}, 800)
+			}
 		}
 	}
 
@@ -100,14 +133,15 @@ class MusicPlaying extends React.Component {
 			const x = e.clientX || e.touches[0].pageX
 			let minDivLeft = ((x - 55) > progressRestWidth) ? progressRestWidth : (x - 55)
 			minDivLeft = ((x - 55) < 0) ? 0 : minDivLeft
-			const percent = (minDivLeft / (progressRestWidth - 14)).toFixed(2)
-			logger.info("move music progress move percent", percent)
-			const debounceFunc =  debounce(() => {
-				$dispatch(updateCurrentSongTime(this.currentSongInfo.duration * percent))
-			}, 1000)
-			debounceFunc()
+			const percent = (minDivLeft / progressRestWidth).toFixed(2)
+			const seekTime = this.currentSongInfo.duration * percent
+			logger.info("move music progress move percent, seekTime", percent, seekTime)
+			$dispatch(updateCurrentSongTime(seekTime))
+			if(soundInstance && soundInstanceId) {
+				soundInstance.seek(seekTime, soundInstanceId);
+			}
 		} else {
-			if(e.clientX){
+			if(e.clientX && !IsPC()){
 				const percent = ((e.clientX - 55) / (this.progressRef.offsetWidth - 14)).toFixed(2)
 				const seekTime = this.currentSongInfo.duration * percent
 				logger.info("move music progress click percent, seekTime", percent, seekTime)
@@ -203,7 +237,8 @@ class MusicPlaying extends React.Component {
 			currentPlayingSongOriginal,
 			soundPlaying,
 			musicPageType,
-			currentSongTime
+			currentSongTime,
+			isHeadPhoneView
 		} = this.props
 		let currentSongInfo = {}
 		currentPlayingMusicList.some(item => {
@@ -224,7 +259,7 @@ class MusicPlaying extends React.Component {
 		const currentSongFilename = currentSongInfo.filename ? getFilenameWithoutExt(currentSongInfo.filename) : "当前没有播放歌曲"
 		this.currentSongInfo = currentSongInfo
 		return (
-			<div className="music-playing-container" ref={ref => this.musicPlayingContainer = ref}>
+			<div className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"}`} ref={ref => this.musicPlayingContainerRef = ref}>
 				<NavBar
 					centerText={currentSongFilename}
 					backToPreviousPage={this.backToMainPage}
@@ -232,37 +267,38 @@ class MusicPlaying extends React.Component {
 					rightTextFunc={this.gotoPlayingOrigin}
 				/>
 				<div className="music-playing-content">
-					<div className="top">
+					<div className="top" ref={ref => this.musicPlayingTop = ref}>
 						{
-							this.random > 0.5
+							!isHeadPhoneView
 							?	<AmazingBaby />
 							:	<div className='music'>
-									<span className='line line1'></span>
-									<span className='line line2'></span>
-									<span className='line line3'></span>
-									<span className='line line4'></span>
-									<span className='line line5'></span>
+									<span className={`line line1 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+									<span className={`line line2 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+									<span className={`line line3 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+									<span className={`line line4 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+									<span className={`line line5 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
 								</div>
 						}
+						<div className="circle">
+							<div className={`dot ${!isHeadPhoneView ? 'dot-fill' : ''}`} onClick={this.touchDirectionCallback.bind(this, "right")}></div>
+							<div className={`dot ${isHeadPhoneView ? 'dot-fill' : ''}`} onClick={this.touchDirectionCallback.bind(this, "left")}></div>
+						</div>
 					</div>
 					<div className="play-progress">
 						<div className="current-time">{secondsToTime(currentSongTime)}</div>
 						<div className="progress" ref={ref => this.progressRef = ref}>
-							<div className="progress-played" ref={ref => this.progressPlayedRef = ref}>
-
-							</div>
-							<div className="progress-unplayed" ref={ref => this.progressUnplayedRef = ref}>
-
-							</div>
+							<div className="progress-played" ref={ref => this.progressPlayedRef = ref}></div>
+							<div className="progress-unplayed" ref={ref => this.progressUnplayedRef = ref}></div>
 							<div className="progress-out-point" ref={ref => this.progressOutPoint = ref} ></div>
 							<div className="progress-inner-point" ref={ref => this.progressInnerPoint = ref} ></div>
 						</div>
 						<div className="duration-time">{secondsToTime(currentSongInfo.duration)}</div>
 					</div>
 					<div className="bottom-controller">
-						<i className={`fa ${songIsSaved ? 'fa-heart' : 'fa-heart-o'}`} aria-hidden="true"
-							onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}
-						></i>
+						<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}
+							onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
+							<HearSvg />
+						</div>
 						<div className="fa fa-step-backward play-previous"
 							onClick={(e) => this.playPreviousSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
 						</div>
@@ -299,6 +335,7 @@ const mapStateToProps = state => {
 		currentPlayingMusicList: state.fileServer.currentPlayingMusicList,
 		musicPageType: state.fileServer.musicPageType,
 		currentSongTime: state.fileServer.currentSongTime,
+		isHeadPhoneView: state.fileServer.isHeadPhoneView
     };
 };
 

@@ -5,7 +5,7 @@ const HeartSvg = () => {
 		<svg className="like-btn" width="56px" height="56px" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
 		    <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
 		        <g>
-		            <rect fill="#FFFFFF" fillRule="nonzero" x="0" y="0" width="56" height="56" rx="28"/>
+		            <rect fillRule="nonzero" x="0" y="0" width="56" height="56" rx="28"/>
 		            <g transform="translate(27.000000, 5.000000)" fillRule="nonzero" stroke="#FD5F66" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
 		                <path d="M1,0 L1,5" id="path-3"/>
 		                <path d="M1.5,41 L1.5,46" id="path-2"/>
