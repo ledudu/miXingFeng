@@ -255,7 +255,7 @@ class MusicPlaying extends React.Component {
 			currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
 			currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
 		}
-		const songIsSaved = currentSongInfo.saved
+		const songIsSaved = currentSongInfo.saved || currentPlayingSongOriginal === "savedSongs"
 		const currentSongFilename = currentSongInfo.filename ? getFilenameWithoutExt(currentSongInfo.filename) : "当前没有播放歌曲"
 		this.currentSongInfo = currentSongInfo
 		return (
