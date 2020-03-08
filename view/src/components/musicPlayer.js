@@ -50,7 +50,7 @@ class MusicPlayer extends React.Component {
 		super(props);
 		this.state = {
 			musicDataList: props.musicDataList,
-			showRecentSongsDownTimes: 1,
+			showSongsLoadTimes: 1,
 		}
 	}
 
@@ -64,6 +64,9 @@ class MusicPlayer extends React.Component {
 		}
 		if(original === CONSTANT.musicOriginal.musicRecent){
 			const scrollDom = document.querySelector('.recent-play-content')
+			scrollDom.addEventListener("scroll", this.handleScroll, true);
+		} else if(original === CONSTANT.musicOriginal.musicShare){
+			const scrollDom = document.querySelector('.music-container')
 			scrollDom.addEventListener("scroll", this.handleScroll, true);
 		}
 
@@ -157,6 +160,9 @@ class MusicPlayer extends React.Component {
 		if(original === CONSTANT.musicOriginal.musicRecent){
 			const scrollDom = document.querySelector('.recent-play-content')
 			scrollDom.removeEventListener("scroll", this.handleScroll);
+		} else if(original === CONSTANT.musicOriginal.musicShare){
+			const scrollDom = document.querySelector('.music-container')
+			scrollDom.removeEventListener("scroll", this.handleScroll, true);
 		}
 		window.eventEmit.$off("musicRemoved")
 		window.eventEmit.$off("downloadingMusicItems")
@@ -170,13 +176,13 @@ class MusicPlayer extends React.Component {
 			clearTimeout(this.debounceTimer)
 			this.debounceTimer = setTimeout(() => {
 				let {
-					showRecentSongsDownTimes,
+					showSongsLoadTimes,
 					musicDataList
 				} = this.state
-				if ((showRecentSongsDownTimes * 50 < musicDataList.length)) {
+				if ((showSongsLoadTimes * CONSTANT.showMusicNumberPerTime < musicDataList.length)) {
 					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
 						this.setState({
-							showRecentSongsDownTimes: ++showRecentSongsDownTimes
+							showSongsLoadTimes: ++showSongsLoadTimes
 						})
 					}
 				}
@@ -185,13 +191,13 @@ class MusicPlayer extends React.Component {
 		} else {
 			this.debounceTimer = setTimeout(() => {
 				let {
-					showRecentSongsDownTimes,
+					showSongsLoadTimes,
 					musicDataList
 				} = this.state
-				if ((showRecentSongsDownTimes * 50 < musicDataList.length)) {
+				if ((showSongsLoadTimes * CONSTANT.showMusicNumberPerTime < musicDataList.length)) {
 					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
 						this.setState({
-							showRecentSongsDownTimes: ++showRecentSongsDownTimes
+							showSongsLoadTimes: ++showSongsLoadTimes
 						})
 					}
 				}
@@ -603,10 +609,10 @@ class MusicPlayer extends React.Component {
 
 	render() {
 		let { currentPlayingSong, currentSongTime, soundPlaying, original, pageType } = this.props;
-		let { musicDataList=[], showRecentSongsDownTimes } = this.state
+		let { musicDataList=[], showSongsLoadTimes } = this.state
 		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
-		if(pageType === CONSTANT.musicOriginal.musicRecent){
-			musicDataList = musicDataList.slice(0, 50 * showRecentSongsDownTimes)
+		if(pageType === CONSTANT.musicOriginal.musicRecent || pageType === CONSTANT.musicOriginal.musicShare){
+			musicDataList = musicDataList.slice(0, CONSTANT.showMusicNumberPerTime * showSongsLoadTimes)
 		}
 		return (
 			<div className="music-list-container">

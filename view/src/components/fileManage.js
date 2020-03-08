@@ -9,6 +9,7 @@ import { updateToken } from "../ducks/login"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { openDownloadedFile, removeFileFromDownload, removeDuplicateObjectList, removePrefixFromFileOrigin } from "../logic/common"
 import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
+import { CONSTANT } from "../constants/enumeration"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
 let wrapProps;
@@ -26,7 +27,8 @@ class FileManage extends React.Component {
 		this.state = {
 			indexDBData: [],
 			downloadingFileItems: props.fileDataList,
-			searchFileDataList: props.fileDataList
+			searchFileDataList: props.fileDataList,
+			showFilesLoadTimes: 1,
 		}
 	}
 
@@ -68,6 +70,10 @@ class FileManage extends React.Component {
 				})
 			}
 		})
+		if(this.props.original === "fileShare"){
+			const scrollDom = document.querySelector('.file-container')
+			scrollDom.addEventListener("scroll", this.handleScroll);
+		}
 	}
 
 	componentWillReceiveProps(nextProps){
@@ -88,6 +94,10 @@ class FileManage extends React.Component {
 		window.eventEmit.$off("fileDownloading")
 		window.eventEmit.$off("clearAllFiles")
 		window.eventEmit.$off("fileRemoved")
+		if(this.props.original === "fileShare"){
+			const scrollDom = document.querySelector('.file-container')
+			scrollDom.removeEventListener("scroll", this.handleScroll);
+		}
 	}
 
 	listenBackFunc = () => {
@@ -367,15 +377,48 @@ class FileManage extends React.Component {
 		})
 	}
 
+	handleScroll = (e) => {
+		if (this.debounceTimer) {
+			clearTimeout(this.debounceTimer)
+			this.debounceTimer = setTimeout(() => {
+				let { showFilesLoadTimes } = this.state
+				const { fileDataList } = this.props
+				if ((showFilesLoadTimes * CONSTANT.showFileNumberPerTime < fileDataList.length)) {
+					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
+						this.setState({
+							showFilesLoadTimes: ++showFilesLoadTimes
+						})
+					}
+				}
+				this.debounceTimer = null
+			}, 100)
+		} else {
+			this.debounceTimer = setTimeout(() => {
+				let { showFilesLoadTimes } = this.state
+				const { fileDataList } = this.props
+				if ((showFilesLoadTimes * CONSTANT.showFileNumberPerTime < fileDataList.length)) {
+					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 100) {
+						this.setState({
+							showFilesLoadTimes: ++showFilesLoadTimes
+						})
+					}
+				}
+				this.debounceTimer = null;
+			}, 4)
+		}
+	}
+
     render() {
 		let { fileDataList=[], original } = this.props;
-		const { indexDBData, downloadingFileItems, searchFileDataList } = this.state
+		const { indexDBData, downloadingFileItems, searchFileDataList, showFilesLoadTimes } = this.state
 		if(original === "fileFinished"){
 			fileDataList = indexDBData
 		} else if(original === "fileDownloading"){
 			fileDataList = downloadingFileItems
 		} else if(original === "fileSearch"){
 			fileDataList = searchFileDataList
+		} else if(original === "fileShare"){
+			fileDataList = fileDataList.slice(0, CONSTANT.showFileNumberPerTime * showFilesLoadTimes)
 		}
 		fileDataList = removeDuplicateObjectList(fileDataList, 'filenameOrigin')
         return (
