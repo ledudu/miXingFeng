@@ -2,8 +2,8 @@ import React, { Fragment } from 'react';
 import { connect } from "react-redux";
 import { List, Button, Badge } from 'antd-mobile';
 import NavBar from "./child/navbar";
-import { logoutApp } from "../logic/common/index";
-import { exitApp, backToPreviousPage } from "../services/utils"
+import { logoutApp } from "../logic/common";
+import { exitApp, backToPreviousPage, saveFileToLocal } from "../services/utils"
 import { updateDirectShowSignPage } from "../ducks/sign";
 import { updateHideNavBar, updateSavedCurrentRoute, updateIsFromSystemSetup } from "../ducks/common"
 
@@ -34,7 +34,11 @@ class SystemSetup extends React.Component {
 
     logoutApp = async() => {
         await logoutApp(this);
-    }
+	}
+
+	downloadApp = () => {
+		saveFileToLocal("browser begin to download app", 'http://192.144.213.72:2000/Images/app-release.apk')
+	}
 
     quitApp = () => {
         exitApp()
@@ -111,6 +115,13 @@ class SystemSetup extends React.Component {
                         {token ? <List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.logoutApp}>
 							<span style={{ marginLeft: 12 }}>退出登录</span>
                         </List.Item> : null}
+						{
+							!window.isCordova
+							?	<List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.downloadApp}>
+									<span style={{ marginLeft: 12 }}>下载app</span>
+                        		</List.Item>
+							:	null
+						}
                     </List>
                     {window.isCordova ? <div className="quit-button" onClick={this.quitApp}>
                         <Button type="warning" className="button" value="退出">退出</Button>
