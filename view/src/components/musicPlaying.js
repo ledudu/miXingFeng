@@ -28,7 +28,10 @@ class MusicPlaying extends React.Component {
 		this.ifBool = false
 		this.touchDirectionObj = {
 			debounceTimer: null,
-			firstTimeRun: false
+			firstTimeRun: false,
+		}
+		this.state = {
+			showSelectedAnimation: false
 		}
 	}
 
@@ -123,6 +126,9 @@ class MusicPlaying extends React.Component {
 		e.stopPropagation();
 		this.ifBool = true;
 		logger.info("鼠标按下")
+		this.setState({
+			showSelectedAnimation: true
+		})
 	}
 
 	move = (e) => {
@@ -157,6 +163,9 @@ class MusicPlaying extends React.Component {
 		e.stopPropagation();
 		logger.info("鼠标弹起")
 		this.ifBool = false;
+		this.setState({
+			showSelectedAnimation: false
+		})
 	}
 
 	backKeyDownToPrevious = () => {
@@ -230,6 +239,7 @@ class MusicPlaying extends React.Component {
 	}
 
     render() {
+		const { showSelectedAnimation } = this.state
 		const {
 			currentPlayingSong,
 			currentPlayingMusicList=[],
@@ -289,7 +299,7 @@ class MusicPlaying extends React.Component {
 						<div className="progress" ref={ref => this.progressRef = ref}>
 							<div className="progress-played" ref={ref => this.progressPlayedRef = ref}></div>
 							<div className="progress-unplayed" ref={ref => this.progressUnplayedRef = ref}></div>
-							<div className="progress-out-point" ref={ref => this.progressOutPoint = ref} ></div>
+							<div className={`progress-out-point ${showSelectedAnimation ? "selected-animation" : ""}`} ref={ref => this.progressOutPoint = ref} ></div>
 							<div className="progress-inner-point" ref={ref => this.progressInnerPoint = ref} ></div>
 						</div>
 						<div className="duration-time">{secondsToTime(currentSongInfo.duration)}</div>

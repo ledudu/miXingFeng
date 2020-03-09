@@ -1703,7 +1703,7 @@ function touchMove(defaults, direction, fun, touchDirectionObj, event){
 		if (direction.indexOf("touchmove") != -1) fun();
 		logger.info("touchMove defaults.nx", defaults.nx)
 		touchEnd(defaults, direction, fun, event)
-	}, 100, touchDirectionObj)
+	}, 10, touchDirectionObj)
 }
 
 function touchEnd(defaults, direction, fun, event){
@@ -1731,5 +1731,5 @@ function touchEnd(defaults, direction, fun, event){
 			if (direction.indexOf("singleTap") != -1) fun();
 		}
 		if (direction.indexOf("touchend") != -1) fun();
-	}, 100, {})
+	}, 10, {})
 }
