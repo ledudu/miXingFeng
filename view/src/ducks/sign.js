@@ -12,6 +12,7 @@ const FROM_RESUME = "sign/fromResume"
 const JUST_OPEN_APP = "sign/justOpenApp"
 const SHOW_UPDATE_CONFIRM = "sign/showUpdateConfirm"
 const NEED_RETRY_REQUEST_WHEN_LAUNCH = "sign/needRetryRequestWhenLaunch"
+const SHOW_DOWNLOAD_APP_TIP = "sign/showDownloadAppTip"
 
 let alreadySignUpPersons=[], notSignUpPersons=[]
 try{alreadySignUpPersons = localStorage.getItem("alreadySignUpPersons") ? JSON.parse(localStorage.getItem("alreadySignUpPersons")) : []}catch(err){alreadySignUpPersons=[]}
@@ -32,7 +33,8 @@ const initialState = () => ({
 	fromResume: false,
 	justOpenApp: true,
 	showUpdateConfirm: false,
-	needRetryRequestWhenLaunch: true
+	needRetryRequestWhenLaunch: true,
+	showDownloadAppTip: true
 });
 
 // Reducer
@@ -89,6 +91,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case NEED_RETRY_REQUEST_WHEN_LAUNCH:
 			return Object.assign({}, state, {
 				needRetryRequestWhenLaunch: action.data
+			});
+		case SHOW_DOWNLOAD_APP_TIP:
+			return Object.assign({}, state, {
+				showDownloadAppTip: action.data
 			});
 		default:
 			return state;
@@ -156,5 +162,10 @@ export const updateShowUpdateConfirm = data => ({
 
 export const updateNeedRetryRequestWhenLaunch = data => ({
 	type: NEED_RETRY_REQUEST_WHEN_LAUNCH,
+	data
+})
+
+export const updateShowDownloadAppTip = data => ({
+	type: SHOW_DOWNLOAD_APP_TIP,
 	data
 })

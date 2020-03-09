@@ -1,7 +1,19 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from "react-redux";
 import Loadable from 'react-loadable';
-import { confirm, getAndReadFile, writeFile, onBackKeyDown, checkPreviousLogin, isEmptyFileFunc, alertDialog, networkErr, debounce } from "../services/utils";
+import { NoticeBar } from "antd-mobile"
+import {
+	confirm,
+	getAndReadFile,
+	writeFile,
+	onBackKeyDown,
+	checkPreviousLogin,
+	isEmptyFileFunc,
+	alertDialog,
+	networkErr,
+	debounce,
+	saveFileToLocal
+} from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
 import { updateToken, updateIsFromLoginPage } from "../ducks/login";
@@ -17,13 +29,27 @@ import {
 	requestPositionPermission,
 	checkOnlinePersons
 } from "../logic/common";
-import { updateDirectShowSignPage, updateFromResume, updateJustOpenApp, updateShowUpdateConfirm, updateNeedRetryRequestWhenLaunch } from "../ducks/sign";
+import {
+	updateDirectShowSignPage,
+	updateFromResume,
+	updateJustOpenApp,
+	updateShowUpdateConfirm,
+	updateNeedRetryRequestWhenLaunch,
+	updateShowDownloadAppTip
+} from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems, updateRecentMusicList } from "../ducks/fileServer";
-import { updateIsFromSignPage, updateSavedCurrentRoute, updateHideNavBar, updateIsFromSystemSetup, updateAdPicSrc, updateLoadedInWifi } from "../ducks/common"
+import {
+	updateIsFromSignPage,
+	updateSavedCurrentRoute,
+	updateHideNavBar,
+	updateIsFromSystemSetup,
+	updateAdPicSrc,
+	updateLoadedInWifi
+} from "../ducks/common"
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
 import { readAllRecentMusicDataFromIndexDB } from "../services/indexDBRecentMusic"
@@ -582,6 +608,11 @@ class Sign extends Component {
 		window.goRoute(this, "/user_profile")
 	}
 
+	downloadApp = () => {
+		$dispatch(updateShowDownloadAppTip(false))
+		saveFileToLocal("browser begin to download app", 'http://192.144.213.72:2000/Images/app-release.apk')
+	}
+
 	render (){
         const { showProgress, skipTime, progress, appSize, appTotalSize, checkingPackage, loadedInWifi, adPicSrc } = this.state;
 		const {
@@ -595,7 +626,8 @@ class Sign extends Component {
 			signedFlag,
 			setNickname,
 			directShowSignPage,
-			isFromSystemSetup
+			isFromSystemSetup,
+			showDownloadAppTip
 		} = this.props;
 		return (
 			<Fragment>
@@ -609,6 +641,16 @@ class Sign extends Component {
 							</div>
 							<div className="body">
         						<div className="sign-area">
+									{
+										(!window.isCordova && showDownloadAppTip)
+										?	<div className="show-download-app-tips">
+												<NoticeBar mode="link" onClick={this.downloadApp} action={<span>去下载</span>}>
+													下载app体验更佳
+												</NoticeBar>
+											</div>
+										: null
+									}
+
         							<div className={`sign ${!signedFlag && 'flick-animation'} ${signedFlag}`} onClick={this.signIn}>
 										<div className="sign-text">{signedFlag ? "已签到" : "签到"}</div>
 										<div id="now-time">
@@ -725,7 +767,8 @@ const mapStateToProps = state => {
 		loadedInWifi: state.common.loadedInWifi,
 		justOpenApp: state.sign.justOpenApp,
 		showUpdateConfirm: state.sign.showUpdateConfirm,
-		needRetryRequestWhenLaunch: state.sign.needRetryRequestWhenLaunch
+		needRetryRequestWhenLaunch: state.sign.needRetryRequestWhenLaunch,
+		showDownloadAppTip: state.sign.showDownloadAppTip
 	};
 };
 
