@@ -141,7 +141,7 @@ class FileManage extends React.Component {
 		}
 	}
 
-	showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin) => {
+	showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin, date) => {
 		try {
 			const urlLocation = window.location.href
 			logger.info("fileManage showMenu urlLocation", urlLocation)
@@ -167,12 +167,17 @@ class FileManage extends React.Component {
 					}
 				})
 			}
+			if(original === "fileDownloading" || original === "fileFinished"){
+				date = ""
+			} else {
+				date = ` ${date}`
+			}
 			let buttons = [firstItem, '删除', '取消'];
 			const showActionSheetWithOptionsConfig = {
 				options: buttons,
 				cancelButtonIndex: buttons.length - 1,
 				destructiveButtonIndex:  buttons.length - 2,
-				message: `大小: ${calcSize(fileSize)}`,
+				message: `大小: ${calcSize(fileSize)}${date}`,
 				title: filename,
 				maskClosable: true,
 				'data-seed': 'logId',
@@ -408,6 +413,13 @@ class FileManage extends React.Component {
 		}
 	}
 
+	dealWithFileUploadTime = (date) => {
+		const { original } = this.props;
+		if(!date) return
+		if(original === "fileDownloading" || original === "fileFinished") return
+		return " " + date.split(" ")[0]
+	}
+
     render() {
 		let { fileDataList=[], original } = this.props;
 		const { indexDBData, downloadingFileItems, searchFileDataList, showFilesLoadTimes } = this.state
@@ -435,7 +447,9 @@ class FileManage extends React.Component {
 									</div>
 									{
 										original !== "fileFinished" && <div className="upload-info">
-											<div className="upload-user">{item.uploadUsername}</div>
+											<div className="upload-user">
+												{`${item.uploadUsername}${this.dealWithFileUploadTime(item.date)}`}
+											</div>
 											{
 												(original === "fileShare" || original === "fileSearch")
 												?	<div className="file-size">{calcSize(item.fileSize)}</div>
@@ -447,7 +461,7 @@ class FileManage extends React.Component {
 							</div>
 							{
 								original !== "fileDownloading"
-								?   <div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filePath, item.uploadUsername, item.filenameOrigin)}>
+								?   <div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filePath, item.uploadUsername, item.filenameOrigin, item.date)}>
 								    	<div className="dot"></div>
 								    	<div className="dot"></div>
 								    	<div className="dot"></div>

@@ -231,7 +231,7 @@ class MusicPlayer extends React.Component {
 		checkSongSavedFunc(musicDataList, original)
 	}
 
-	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId) => {
+	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date) => {
 		try {
 			const {
 				pauseWhenOver,
@@ -261,12 +261,17 @@ class MusicPlayer extends React.Component {
 			if(soundPlaying && filenameOrigin === currentPlayingSong){
 				buttons[0] = "暂停"
 			}
+			if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
+				date = ` ${date}`
+			} else {
+				date = ""
+			}
 			const showActionSheetWithOptionsConfig = {
 				options: buttons,
 				cancelButtonIndex: buttons.length - 1,
 				destructiveButtonIndex:  buttons.length - 2,
 				badges: musicMenuBadgeCopy,
-				message: fileSize ? `大小: ${calcSize(fileSize)}` : "",
+				message: fileSize ? `大小: ${calcSize(fileSize)}${date}` : date,
 				title: filename,
 				maskClosable: true,
 				'data-seed': 'logId',
@@ -607,6 +612,16 @@ class MusicPlayer extends React.Component {
 		)
 	}
 
+	dealWithMusicUploadTime = (date) => {
+		const { original } = this.props;
+		if(!date) return ""
+		if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
+			return " " + date.split(" ")[0]
+		} else {
+			return ""
+		}
+	}
+
 	render() {
 		let { currentPlayingSong, currentSongTime, soundPlaying, original, pageType } = this.props;
 		let { musicDataList=[], showSongsLoadTimes } = this.state
@@ -649,7 +664,7 @@ class MusicPlayer extends React.Component {
 										currentPlayingSong === item.filenameOrigin
 										? 	this.playingComponent(item.filePath, currentSongTime, item.duration, item.filenameOrigin)
 										:	<div className="upload-duration">
-												<div className="upload-user">{item.uploadUsername || "未知"}</div>
+												<div className="upload-user">{item.uploadUsername || "未知"}{this.dealWithMusicUploadTime(item.date)}</div>
 												{
 													original !== CONSTANT.musicOriginal.musicDownloading
 													?	<div className="song-duration-time">{secondsToTime(item.duration)}</div>
@@ -668,7 +683,7 @@ class MusicPlayer extends React.Component {
 							</div>
 							{
 								original !== CONSTANT.musicOriginal.musicDownloading
-								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id)}>
+								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date)}>
 										<div className="dot"></div>
 										<div className="dot"></div>
 										<div className="dot"></div>
