@@ -18,9 +18,12 @@ import "./services/JPush";
 import "./services/native";
 import './themes/css/index.less';
 
+window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
+window.isDevModel = window.config.dev
+
 //apply Reducer
 const middleware = [thunk];
-if(window.config && window.config.dev){
+if(window.config && window.isDevModel){
 	middleware.push(createLogger({
 		collapsed: false,
 	}));
@@ -42,7 +45,7 @@ window.alert = (text) => {
 }
 window.alertDebug = (text) => {
 	// don't comment this function content in production
-	if(window.config && window.config.dev){
+	if(window.isDevModel){
 		if(window.isCordova){
 			// window.plugins.toast.showShortCenter(text)
 			alertDialog(text)
@@ -81,6 +84,13 @@ axios.interceptors.request.use(function (config) {
 	logger.info("axios.interceptors.request userId", userId)
     if (token) {
 		config.headers.Authorization = token;
+	}
+	if(config.method === 'get'){
+		if(/[?]/.test(config.url)){
+			config.url = `${config.url}&userId=${userId}`
+		} else {
+			config.url = `${config.url}?userId=${userId}`
+		}
 	}
 	if(config.method === "post"){
 		config.data.userId = userId

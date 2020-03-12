@@ -34,7 +34,7 @@ const initialState = () => ({
 	justOpenApp: true,
 	showUpdateConfirm: false,
 	needRetryRequestWhenLaunch: true,
-	showDownloadAppTip: true
+	showDownloadAppTip: !window.isDevModel
 });
 
 // Reducer

@@ -177,7 +177,6 @@ class Routers extends Component {
 
     componentDidMount(){
 		$("#root").removeClass("loading-text").removeClass("animate-flicker")
-		window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
 		// 初始化websocket
 		initWebsocket()
 		// 首次启动不是主页自动返回主页
