@@ -8,8 +8,10 @@ const HAS_FORGET_PASSWORD = "login/hasForgetPassword"
 const REGISTER_FROM_LOGIN = "login/registerFromLogin"
 const FORGET_PASSWORD_TOKEN = "login/forgetPasswordToken"
 const FORGET_PASSWORD_TOKEN_ORIGIN = "login/forgetPasswordTokenOrigin"
+const USER_ID = "sign/userId"
 
 const username = localStorage.getItem("username") || ""
+const userId = localStorage.getItem("userId") || ""
 
 // initialSate
 const initialState = () => ({
@@ -22,6 +24,7 @@ const initialState = () => ({
 	registerFromLogin: false,
 	forgetPasswordToken: "",
 	forgetPasswordTokenOrigin: "",
+	userId,
 });
 
 // Reducer
@@ -62,6 +65,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case FORGET_PASSWORD_TOKEN_ORIGIN:
 			return Object.assign({}, state, {
 				forgetPasswordTokenOrigin: action.data
+			});
+		case USER_ID:
+			return Object.assign({}, state, {
+				userId: action.data
 			});
 		default:
 			return state;
@@ -111,5 +118,10 @@ export const updateForgetPasswordToken = data => ({
 
 export const updateForgetPasswordTokenOrigin = data => ({
 	type: FORGET_PASSWORD_TOKEN_ORIGIN,
+	data
+})
+
+export const updateUserId = data => ({
+	type: USER_ID,
 	data
 })

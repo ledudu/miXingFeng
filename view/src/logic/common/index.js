@@ -16,7 +16,7 @@ import { writeFile,
 	requestFileWritePriority,
 	debounceOpt,
 } from "../../services/utils";
-import { updateToken, updateLogOutFlag} from "../../ducks/login";
+import { updateToken, updateLogOutFlag, updateUserId } from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
 import { updateSetNickname,
 	updateSetMobile,
@@ -494,7 +494,7 @@ export const reconnectAndSend = (log="websocket interval check") => {
 			logger.debug("reconnectAndSend window.ws.readyState !== 1", log)
 			reconnectSocket(`heart beat: ${log}`)
 		} else {
-			let message = Object.assign({},{ type:'check-connect', userId: window.localStorage.getItem("userId"), data: "ping", date: Date.now() });
+			let message = Object.assign({},{ type:'check-connect', userId: $getState().login.userId, data: "ping", date: Date.now() });
 			window.ws.send(JSON.stringify(message));
 			receiveServerSocketPong = false;
 			//  10秒超时，如何收不到服务端pong响应则表示服务端已主动断开连接，此时需客户端重新开启websocket连接
@@ -514,9 +514,11 @@ export const initWebsocket = () => {
 	if('localStorage' in window){
 		if(window.localStorage.getItem("userId")){
 			userId = window.localStorage.getItem("userId")
+			$dispatch(updateUserId(userId))
 		} else {
 			userId = "ls" + Math.random().toString(36).slice(2, 6)
 			window.localStorage.setItem("userId", userId);
+			$dispatch(updateUserId(userId))
 		}
 	}
 	if(window.WebSocket){
@@ -534,7 +536,7 @@ export const initWebsocket = () => {
 }
 
 export const reconnectSocket = (logInfo) => {
-	const userId = window.localStorage.getItem("userId")
+	const userId = $getState().login.userId
 	if(window.ws && window.ws.close) window.ws.close(1000)
 	if(window.websocketHeartBeatInterval) clearInterval(window.websocketHeartBeatInterval)
 	logger.debug("正在重新建立websocket连接...", logInfo);
@@ -558,7 +560,7 @@ export const openWS = (readyState, userId) => {
 
 export const incomingMessage = async (data) => {
 	try {
-		const userId = window.localStorage.getItem("userId")
+		const userId = $getState().login.userId
 		const logger = window.logger || console;
 		data = JSON.parse(data.data);
 		switch(data.type){
@@ -685,7 +687,7 @@ function reconnectNetwork(){
 				window.plugins.toast.showShortBottom('网络已恢复')
 				networkFlag = false;
 				logger.warn("addEventListener online websocket 正在重新建立连接...");
-				const userId = localStorage.getItem("userId")
+				const userId = $getState().login.userId
 				setTimeout(() => {
 					window.ws = new WebSocket(window.config.debug ? `ws://${window.config.host}:${window.config.socketPort}` : `wss://${window.config.socketUrl}`);
 					window.ws.onopen = () => openWS(window.ws.readyState, userId);
@@ -839,7 +841,7 @@ export const removePrefixFromFileOrigin = (filenameOrigin) => {
 }
 
 export const checkOnlinePersons = () => {
-	const userId = localStorage.getItem("userId")
+	const userId = $getState().login.userId
 	const msg = Object.assign({},{
 		type:'try-connect',
 		userId,
@@ -1745,7 +1747,7 @@ export const logActivity = (data={}) => {
 	const { musicCollection, playByOrder, pauseWhenOver, currentMusicItemInfo } = $getState().fileServer
 	const { isSignedUp, lastSignUpTime, onlinePersonsNum } = $getState().sign
 	const obj = {
-		userId: localStorage.getItem('userId'),
+		userId: $getState().login.userId,
 		url: window.getRoute(),
 		username,
 		appVersion,

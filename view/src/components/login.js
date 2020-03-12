@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { loginApp, dealtWithLoginIn} from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { reconnectSocket } from "../logic/common"
-import { updateIsFromLoginPage, updateRegisterFromLogin } from "../ducks/login"
+import { updateIsFromLoginPage, updateRegisterFromLogin, updateUserId } from "../ducks/login"
 import { backToPreviousPage} from "../services/utils";
 
 class Login extends Component {
@@ -19,12 +19,14 @@ class Login extends Component {
 		window.$dispatch(updateIsFromLoginPage(true));
 		if (this.props.logOutFlag) {
 			//  为了加快注销速度，把更换websocket id的任务放在注销后跳往登录的逻辑里
-			const original = window.localStorage.getItem("userId");
+			const original = this.props.userId;
 			const newOne = window.localStorage ?
 				"ls" + Math.random().toString(36).slice(2, 6) :
 				"no_ls" + Math.random().toString(36).slice(2, 6)
 			window.localStorage.removeItem("userId");
 			window.localStorage.setItem("userId", newOne);
+			$dispatch(updateUserId(newOne))
+			logger.info("Login replace userId original, newOne", original, newOne)
 			const data = {
 				original,
 				newOne
@@ -244,7 +246,8 @@ const mapStateToProps = state => {
 		username: state.login.username,
 		password: state.login.password,
 		token: state.login.token,
-		logOutFlag: state.login.logOutFlag
+		logOutFlag: state.login.logOutFlag,
+		userId: state.login.userId,
     };
 };
 

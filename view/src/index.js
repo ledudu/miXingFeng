@@ -85,8 +85,7 @@ window.getRoute = () => {
 }
 
 axios.interceptors.request.use(function (config) {
-	const { token } = window.$getState().login
-	const userId = localStorage.getItem('userId')
+	const { token, userId } = window.$getState().login
 	logger.info("axios.interceptors.request userId", userId)
     if (token) {
 		config.headers.Authorization = token;

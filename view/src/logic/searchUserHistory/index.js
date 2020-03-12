@@ -9,7 +9,7 @@ export const searchFunc = (username="", slice) => {
 	window.$dispatch(updateSearchString(username));
 	let url = ""
 	if(!slice){
-		url =  HTTP_URL.searchPosition + username + `&positiveUsername=${window.localStorage.getItem("userId")}`;
+		url =  HTTP_URL.searchPosition + username + `&positiveUsername=${$getState().login.userId}`;
 		if(username === $getState().login.username){
 			const obj = {
 				positionText: $getState().common.currentLocation,

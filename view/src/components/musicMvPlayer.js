@@ -32,7 +32,7 @@ export default class MusicMvPlayer extends React.Component {
 		} else {
 			return
 		}
-		return axios.get(getMvLinkUrl.format({id: mvId, userId: localStorage.getItem("userId")}))
+		return axios.get(getMvLinkUrl.format({id: mvId, userId: $getState().login.userId}))
 			.then((response) => {
 				const result = response.data.result
 				if(result.response){

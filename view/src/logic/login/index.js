@@ -8,7 +8,8 @@ import { updatePassword,
 	updateIsFromLoginPage,
 	updateLogOutFlag,
 	updateForgetPasswordToken,
-	updateForgetPasswordTokenOrigin
+	updateForgetPasswordTokenOrigin,
+	updateUserId
 } from "../../ducks/login";
 import {
 	networkErr
@@ -121,9 +122,10 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 			})
 	},false);
 
-	const original = window.localStorage.getItem("userId");
+	const original = $getState().login.userId;
 	const newOne = result.username
 	window.localStorage.setItem("userId", newOne);
+	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
 	if(that){
 		if(window.isCordova){
