@@ -8,6 +8,7 @@ import thunk from "redux-thunk";
 import { createStore, applyMiddleware, compose } from 'redux';
 import { createLogger } from 'redux-logger';
 import { Provider } from "react-redux";
+import Logger from "cordova-logger"
 
 import reducer from "./ducks";
 import { updateToken } from "./ducks/login";
@@ -20,6 +21,11 @@ import './themes/css/index.less';
 
 window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
 window.isDevModel = window.config.dev
+window.logger = new Logger({
+	folder: "miXingFeng",
+	column: "log",
+	filename: "miXingFeng.txt"
+})
 
 //apply Reducer
 const middleware = [thunk];
