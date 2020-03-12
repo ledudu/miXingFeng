@@ -27,7 +27,8 @@ import {
 	autoLogin,
 	reconnectAndSend,
 	requestPositionPermission,
-	checkOnlinePersons
+	checkOnlinePersons,
+	logActivity
 } from "../logic/common";
 import {
 	updateDirectShowSignPage,
@@ -479,6 +480,9 @@ class Sign extends Component {
 
 	checkUpdate = (fileUrl, appName, MD5) => {
 		const self = this;
+		logActivity({
+			msg: "start to upgrade app in sign page"
+		})
 		return new Promise(function (res) {
 			window.resolveLocalFileSystemURL(
 				window.cordova.file.externalApplicationStorageDirectory,
@@ -538,6 +542,9 @@ class Sign extends Component {
 													$dispatch(updateShowUpdateConfirm(false))
 													confirm("提示","下载完成","立即安装", function(){
 														entry.file(data => {
+															logActivity({
+																msg: "start to install app in sign page"
+															})
 															res(self.preview(fileEntry, data.type));
 															// 此处data.type可以直接得到文件的MIME-TYPE类型
 														});

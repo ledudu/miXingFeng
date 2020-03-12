@@ -5,7 +5,7 @@ import { confirm } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MusicPlayer from "./musicPlayer"
 import { updateMusicSubmitStatus, updateMusicUploadProgress } from "../ducks/fileServer"
-import { checkFileMD5Func, calcFileMD5, checkSongSavedFunc } from "../logic/common"
+import { checkFileMD5Func, calcFileMD5, checkSongSavedFunc, logActivity } from "../logic/common"
 import { CONSTANT } from "../constants/enumeration"
 
 class Music extends React.Component {
@@ -127,6 +127,9 @@ class Music extends React.Component {
 			if(checkResult === "上传成功") {
 				this.startToUpload = false;
 				$dispatch(updateMusicSubmitStatus("上传"))
+				logActivity({
+					msg: "second upload music success"
+				})
 				return  alertDialog('秒传成功')
 			}
 			if(checkResult === "没有匹配"){
@@ -172,6 +175,9 @@ class Music extends React.Component {
 									} else if (xhr.responseText.response === "more_than_100mb") {
 										alertDialog('文件大小超过100MB');
 									} else {
+										logActivity({
+											msg: "upload music success"
+										})
 										alert('上传成功！');
 									}
 								} else {

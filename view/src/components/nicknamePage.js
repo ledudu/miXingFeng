@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
+import { logActivity } from "../logic/common"
 
 class NicknamePage extends React.Component {
 
@@ -22,7 +23,9 @@ class NicknamePage extends React.Component {
 			shuffle: false,
 		}
 		WordCloud(document.getElementById('canvas'), options);
-
+		logActivity({
+			msg: 'Looking at nickname page'
+		})
 	}
 
 	backToMainPage = () => {

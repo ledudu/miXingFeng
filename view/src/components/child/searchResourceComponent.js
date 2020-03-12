@@ -34,7 +34,7 @@ import {
 } from "../../ducks/fileServer"
 import { networkErr } from "../../services/utils"
 import { CONSTANT } from "../../constants/enumeration"
-import { removePrefixFromFileOrigin } from "../../logic/common"
+import { removePrefixFromFileOrigin, logActivity } from "../../logic/common"
 
 class SearchResourceComponent extends Component {
 
@@ -289,6 +289,9 @@ class SearchResourceComponent extends Component {
 				this.dispatchSearchResult(qqMusicType, result.qqMusic)
 				this.dispatchSearchResult(kuGouMusicType, result.kuGouMusic)
 				this.dispatchSearchResult(kuWoMusicType, result.kuWoMusic)
+				logActivity({
+					msg: ('search online music query: ' + query)
+				})
 			})
 			.catch((err) => {
 				this.setState({

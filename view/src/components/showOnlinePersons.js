@@ -4,7 +4,7 @@ import { HTTP_URL } from "../constants/httpRoute";
 import NavBar from "./child/navbar";
 import { updateOnlinePersonsName, updateOnlinePersons } from "../ducks/sign"
 import { networkErr } from "../services/utils"
-import { checkOnlinePersons } from "../logic/common"
+import { checkOnlinePersons, logActivity } from "../logic/common"
 
 class ShowOnlinePersons extends React.Component {
 
@@ -28,6 +28,9 @@ class ShowOnlinePersons extends React.Component {
 				$dispatch(updateOnlinePersons(result.length));
 				this.setState({
 					isSearching: false
+				})
+				logActivity({
+					msg: "ShowOnlinePersons"
 				})
 			})
 			.catch(function(error) {

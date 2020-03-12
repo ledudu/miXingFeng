@@ -9,7 +9,7 @@ import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { confirm, alertDialog } from "../services/utils";
 import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize } from "../ducks/common"
-import { previewNew, checkExternalFileExistOrNot } from "../logic/common/index";
+import { previewNew, checkExternalFileExistOrNot, logActivity } from "../logic/common/index";
 
 const itemColumns = [
 	{
@@ -84,6 +84,9 @@ class About extends React.Component {
 	checkDownloadedOrNot = async (fileUrl, appName, MD5) => {
 		const isAppExisted = await checkExternalFileExistOrNot(appName)
 		const self = this
+		logActivity({
+			msg: "start to upgrade app in about page"
+		})
 		if(isAppExisted){
 			window.resolveLocalFileSystemURL(
 				window.cordova.file.externalApplicationStorageDirectory,
@@ -232,6 +235,9 @@ class About extends React.Component {
 							// 此处data.type可以直接得到文件的MIME-TYPE类型
 						});
 					}
+					logActivity({
+						msg: "start to install app in about page"
+					})
 					res(true);
 				})
 			} else{

@@ -5,7 +5,7 @@ import { confirm } from "../services/utils";
 import FileManage from "./fileManage"
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateFileSubmitStatus, updateFileUploadProgress } from "../ducks/fileServer"
-import { checkFileMD5Func, calcFileMD5  } from "../logic/common"
+import { checkFileMD5Func, calcFileMD5, logActivity } from "../logic/common"
 
 class FileServer extends React.Component {
 
@@ -119,6 +119,9 @@ class FileServer extends React.Component {
 			if(checkResult === "上传成功"){
 				$dispatch(updateFileSubmitStatus("上传"))
 				this.startToUpload = false;
+				logActivity({
+					msg: "second upload file success"
+				})
 				return  alertDialog('秒传成功')
 			}
 			if(checkResult === "没有匹配"){
@@ -155,6 +158,9 @@ class FileServer extends React.Component {
 							alert('上传成功！');
 							// 依靠websocket来更新文件列表
 							delete self.currentUploadFileNum
+							logActivity({
+								msg: "upload file success"
+							})
 						}
 					} else {
 						logger.error("xhr.onreadystatechange not 200, xhr.status", xhr.status, 'xhr.responseText', xhr.responseText)

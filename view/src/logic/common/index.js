@@ -1738,3 +1738,37 @@ function touchEnd(defaults, direction, fun, event){
 		if (direction.indexOf("touchend") != -1) fun();
 	}, 10, {})
 }
+
+export const logActivity = (data={}) => {
+	const { username } = $getState().login
+	const { appVersion, currentLocation, deviceInfo, allowOthersGetPosition, allowShareMyNickname, adPicSrc } = $getState().common
+	const { musicCollection, playByOrder, pauseWhenOver, currentMusicItemInfo } = $getState().fileServer
+	const { isSignedUp, lastSignUpTime, onlinePersonsNum } = $getState().sign
+	const obj = {
+		userId: localStorage.getItem('userId'),
+		url: window.getRoute(),
+		username,
+		appVersion,
+		currentLocation,
+		deviceInfo,
+		allowOthersGetPosition,
+		allowShareMyNickname,
+		adPicSrc,
+		musicCollectionLength: musicCollection.length,
+		playByOrder,
+		pauseWhenOver,
+		currentMusicItemInfo,
+		isSignedUp,
+		lastSignUpTime,
+		onlinePersonsNum,
+		...data
+	}
+	return axios.post(HTTP_URL.userActivity, obj)
+		.then(() => {
+			logger.info("logActivity success url", window.getRoute())
+		})
+		.catch(err => {
+			logger.error("logActivity err", err)
+			alertDebug('logActivity err')
+		})
+}

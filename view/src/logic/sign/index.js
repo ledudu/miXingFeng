@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { alert } from "../../services/utils";
 import { HTTP_URL } from "../../constants/httpRoute";
-import { retrieveOthers } from "../common/index";
+import { retrieveOthers, logActivity } from "../common";
 import { updateToken } from "../../ducks/login";
 import { updateSignUpStatus, updateLastSignUpTime, updateSignedFlag } from "../../ducks/sign";
 import { networkErr } from "../../services/utils"
@@ -48,6 +48,9 @@ export const signInApp = (that) => {
 		axios.post(HTTP_URL.goSign, data)
 			.then((response) => {
 				signFlag = false;
+				logActivity({
+					msg: "sign in success"
+				})
 				window.logger.info(`signIn  response`, response.data);
 				if (response.data.result.str === "already_signed") {
 					alert("已签到");
