@@ -616,8 +616,14 @@ class Sign extends Component {
 	}
 
 	downloadApp = () => {
+		if(this.cancelTips) return
 		$dispatch(updateShowDownloadAppTip(false))
 		saveFileToLocal("browser begin to download app", 'http://192.144.213.72:2000/Images/app-release.apk')
+	}
+
+	cancelShowTip = (e) => {
+		this.cancelTips = true
+		$dispatch(updateShowDownloadAppTip(false))
 	}
 
 	render (){
@@ -650,8 +656,8 @@ class Sign extends Component {
         						<div className="sign-area">
 									{
 										(!window.isCordova && showDownloadAppTip)
-										?	<div className="show-download-app-tips">
-												<NoticeBar mode="link" onClick={this.downloadApp} action={<span>去下载</span>}>
+										?	<div className="show-download-app-tips" onClick={this.downloadApp}>
+												<NoticeBar mode="closable" onClick={(e) => this.cancelShowTip(e)}>
 													下载app体验更佳
 												</NoticeBar>
 											</div>

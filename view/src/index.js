@@ -26,6 +26,7 @@ window.logger = new Logger({
 	column: "log",
 	filename: "miXingFeng.txt"
 })
+console.log("logger", logger)
 
 //apply Reducer
 const middleware = [thunk];
