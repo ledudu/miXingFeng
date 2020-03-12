@@ -27,9 +27,9 @@ export const retrieveLastLoginTime = () => {
 	}
 }
 
+let signFlag;
 export const signInApp = (that) => {
 	if(window.$getState().sign.isSignedUp) return;
-    let signFlag;
 	if (signFlag) return;
     signFlag = true;
     let { currentLocation } = window.$getState().common;
@@ -78,9 +78,11 @@ export const signInApp = (that) => {
 				}
 			})
 			.catch(err => {
+				signFlag = false;
 				networkErr(err, `signInApp data: ${data}`);
 			})
 	} else {
+		signFlag = false;
 		window.goRoute(that, "/login");
 	}
 }
