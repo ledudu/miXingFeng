@@ -186,6 +186,7 @@ class About extends React.Component {
 										if (progressPercent > 1 || progressPercent === 1) {
 											setTimeout(() => {
 												self.checkAppMD5(fileEntry, MD5, entry, res, self, true)
+												$dispatch(updateUpgradeProgressPercent(0))
 											})
 										}
 									},
