@@ -16,7 +16,7 @@ import {
 	removeTouchDirection
 } from "../logic/common"
 import { updateCurrentSongTime, updateIsHeadPhoneView } from "../ducks/fileServer"
-import { backToPreviousPage,IsPC } from "../services/utils"
+import { backToPreviousPage,IsPC, alert } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
 import HearSvg from "./child/heartSvg"
@@ -37,7 +37,6 @@ class MusicPlaying extends React.Component {
 
 	componentDidMount(){
 		document.addEventListener("deviceready", this.listenBackButton, false);
-		if(window.isCordova) StatusBar.overlaysWebView(true);
 		this.playRef && (this.playRef.style.paddingLeft = "5px")
 		this.pauseRef && (this.pauseRef.style.paddingLeft = "0px")
 		this.progressRef.addEventListener("touchstart", this.start);
@@ -49,11 +48,6 @@ class MusicPlaying extends React.Component {
 		window.addEventListener("mouseup", this.end);
 		const { currentSongTime } = this.props
 		this.updateProgressLine(currentSongTime)
-		if(!window.isCordova){
-			$("#root .music-playing-container .top-status-bar").css("height", "15px")
-			$("#root .music-playing-container .music-playing-content").css("height", "calc(100vh - 50px)")
-			$("#root .music-playing-container .music-playing-content .top").css("height", "calc(100vh - 190px)")
-		}
 		hideMusicController()
 		window.eventEmit.$on("listenMusicSaved", () => {
 			this.forceUpdate()
@@ -78,10 +72,6 @@ class MusicPlaying extends React.Component {
 		this.progressRef.removeEventListener("click", this.move);
 		window.removeEventListener("touchend", this.end);
 		window.removeEventListener("mouseup", this.end);
-		if(window.isCordova) {
-			StatusBar.overlaysWebView(false);
-			StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
-		}
 		removeTouchDirection(this.musicPlayingTop)
 	}
 
@@ -187,6 +177,7 @@ class MusicPlaying extends React.Component {
 	}
 
 	saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self) => {
+		if(!filename && !filenameOrigin) return alert('请选择一首歌曲播放')
 		saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self)
 	}
 
@@ -234,6 +225,7 @@ class MusicPlaying extends React.Component {
 				if(urlHash !== "/onlineMusicSearchALl") window.goRoute(this, "search_all")
 				break
 			default:
+				alert("当前没有播放的歌曲")
 				break
 		}
 	}
@@ -302,7 +294,7 @@ class MusicPlaying extends React.Component {
 							<div className={`progress-out-point ${showSelectedAnimation ? "selected-animation" : ""}`} ref={ref => this.progressOutPoint = ref} ></div>
 							<div className="progress-inner-point" ref={ref => this.progressInnerPoint = ref} ></div>
 						</div>
-						<div className="duration-time">{secondsToTime(currentSongInfo.duration)}</div>
+						<div className="duration-time">{secondsToTime(currentSongInfo.duration || 0)}</div>
 					</div>
 					<div className="bottom-controller">
 						<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}

@@ -21,12 +21,17 @@ import './themes/css/index.less';
 
 window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
 window.isDevModel = window.config.dev
-window.logger = new Logger({
-	folder: "miXingFeng",
-	column: "log",
-	filename: "miXingFeng.txt"
-})
-console.log("logger", logger)
+const allowReadAndWriteFile = localStorage.getItem("allowReadAndWriteFile")
+if(allowReadAndWriteFile){
+	window.logger = new Logger({
+		folder: "miXingFeng",
+		column: "log",
+		filename: "miXingFeng.txt"
+	})
+} else {
+	// 安装后首次打开需要有文件读写权限才能记录日志,没得到权限之前使用console
+	window.logger = console
+}
 
 //apply Reducer
 const middleware = [thunk];
@@ -136,23 +141,15 @@ axios.interceptors.response.use(
 })
 
 window.addEventListener('rejectionhandled', event => {
-	if(!window.logger) {
-		console.error('rejectionhandled', event.reason)
-	} else {
-		logger.error('rejectionhandled', event.reason)
-	}
+	logger.error('rejectionhandled', event.reason)
 })
 
 window.onerror = function(errorMessage, scriptURI, lineNo, columnNo, error){
-	if(!window.logger){
-		console.log('errorMessage: ' + errorMessage); // 异常信息
-   		console.log('scriptURI: ' + scriptURI); // 异常文件路径
-   		console.log('lineNo: ' + lineNo); // 异常行号
-   		console.log('columnNo: ' + columnNo); // 异常列号
-   		console.log('error: ' + error); // 异常堆栈信息
-	} else {
-		logger.error('onerror errorMessage', errorMessage)
-	}
+	logger.error('onerror errorMessage', errorMessage) // 异常信息
+	logger.error('onerror scriptURI: ' + scriptURI); // 异常文件路径
+	logger.error('onerror lineNo: ' + lineNo); // 异常行号
+	logger.error('onerror columnNo: ' + columnNo); // 异常列号
+	logger.error('onerror error: ' + error); // 异常堆栈信息
 }
 
 ReactDOM.render(

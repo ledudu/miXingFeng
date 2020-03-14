@@ -20,9 +20,6 @@ export default class ForgetPassword extends Component {
     }
 
     listenBackButton = () => {
-        setTimeout(() => {
-            StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
-        }, 300)
         document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
 	}
 

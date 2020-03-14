@@ -1,4 +1,5 @@
 ﻿import { Modal, Toast } from "antd-mobile";
+import Logger from "cordova-logger"
 import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
@@ -271,6 +272,7 @@ export const stopPropagation = (e) => {
 }
 
 export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
+	if(!filenameOrigin || !fileUrl) return
 	if(fromMusic){
 		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, options.self)
 		if(!fileUrl) return
@@ -639,10 +641,20 @@ export const requestFileWritePriority = () => {
 								"tmp",
 								{create: true, exclusive: false},
 								function (fileEntry) {
-									res()
+									const allowReadAndWriteFile = localStorage.getItem("allowReadAndWriteFile")
+									if(!allowReadAndWriteFile){
+										localStorage.setItem("allowReadAndWriteFile", "yes")
+										window.logger = new Logger({
+											folder: "miXingFeng",
+											column: "log",
+											filename: "miXingFeng.txt"
+										})
+									}
+									res(fileEntry)
 								},
 								function (error) {
-									res()
+									logger.error("requestFileWritePriority error", error)
+									res(error)
 								}
 							)
 						}
@@ -650,7 +662,7 @@ export const requestFileWritePriority = () => {
 				})
 			})
 		} else {
-			res()
+			res(false)
 		}
 	})
 }

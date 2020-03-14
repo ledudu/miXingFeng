@@ -1625,6 +1625,7 @@ export const hideMusicController = () => {
 export const saveMusicToLocal = (
 	musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self
 ) => {
+	if(!filenameOrigin || !musicSrc) return
 	const { downloadingMusicItems, downloadedMusicList } = $getState().fileServer
 	const { token } = $getState().login
 	let isDownloading = false, musicDownloaded=false

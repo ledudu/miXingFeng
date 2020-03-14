@@ -4,17 +4,8 @@ import UpdateUserInfoComponent from "./updateUserInfoComponent";
 import { updateSetTempMobile } from "../../ducks/myInfo";
 import NavBar from "../child/navbar";
 import { updateRegisterFromLogin } from "../../ducks/login"
-import { CONSTANT } from "../../constants/enumeration";
 
 class SetMobile extends React.Component {
-
-	componentDidMount(){
-		if(window.isCordova){
-			setTimeout(() => {
-				StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
-			}, 300)
-		}
-	}
 
     backToMainPage = () => {
 		const { registerFromLogin } = this.props

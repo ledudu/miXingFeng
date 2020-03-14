@@ -26,7 +26,6 @@ import {
 	getGreeting,
 	autoLogin,
 	reconnectAndSend,
-	requestPositionPermission,
 	checkOnlinePersons,
 	logActivity
 } from "../logic/common";
@@ -40,7 +39,6 @@ import {
 } from "../ducks/sign";
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
-import { CONSTANT } from "../constants/enumeration";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems, updateRecentMusicList } from "../ducks/fileServer";
 import {
@@ -119,8 +117,10 @@ class Sign extends Component {
 							Loadable.preloadAll()
 							$dispatch(updateDirectShowSignPage(true))
 							$dispatch(updateHideNavBar(false))
-							await this.gettingPermissions();
-							document.addEventListener("deviceready", this.backgroundColorByHexString);
+							// await this.gettingPermissions();
+							setTimeout(() => {
+								window.navigator.splashscreen.hide();
+							}, 800)
 						} else {
 							$(".ads-container").hide()
 							Loadable.preloadAll()
@@ -132,6 +132,7 @@ class Sign extends Component {
 									$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
 									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
 									this.getAdsConfig();
+									// 刚安装app时打开不要检查更新
 									if(justOpenApp){
 										this.checkUpdateSignTimer = setTimeout(() => {
 											document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
@@ -139,11 +140,7 @@ class Sign extends Component {
 									}
 								}, 10)
 							} catch (err) {
-								if(window.logger){
-									window.logger.error("splashscreen err", err.stack || err.toString())
-								} else {
-									console.error("splashscreen err", err.stack || err.toString())
-								}
+								window.logger.error("splashscreen err", err.stack || err.toString())
 							}
 						}
 					} else {
@@ -161,17 +158,14 @@ class Sign extends Component {
 			} else {
 				logger.info("componentDidMount alwaysShowAdsPage", alwaysShowAdsPage);
 				Loadable.preloadAll()
-				document.addEventListener("deviceready", this.backgroundColorByHexString);
 				setTimeout(() => {
 					if(window.isCordova){
 						window.navigator.splashscreen.hide();
 					}
-				}, 500)
+				}, 800)
 			}
 			getGreeting();  // go to this page from other page
 			document.addEventListener("deviceready", this.listenBackKeyDown);
-			document.addEventListener("deviceready", this.getPositionPermission);
-			if(!window.logger) window.logger = console;
 			// if no network when launch app, username will be empty string
 			if(token && !isFromLoginPage && !needRetryRequestWhenLaunch){
 				if(isSignedUp){
@@ -260,7 +254,7 @@ class Sign extends Component {
 					window.$dispatch(updateIsFromLoginPage(false));
 				}
 			}
-			await this.dealWithOthersWhenDidMount();
+			this.dealWithOthersWhenDidMount();
 			setTimeout(() => {
 				reconnectAndSend("homeSocket check")
 			}, 5000)
@@ -280,12 +274,9 @@ class Sign extends Component {
 
 	componentWillUnmount(){
 		window.clockTimer = false;
-		localStorage.setItem("leaveSignPage", "yes")
 		if(window.clockIntervalTimer) clearInterval(window.clockIntervalTimer)
 		if(this.checkUpdateSignTimer) clearTimeout(this.checkUpdateSignTimer)
 		document.removeEventListener("deviceready", this.listenBackKeyDown, false);
-		document.removeEventListener("deviceready", this.backgroundColorByHexString, false);
-		document.removeEventListener("deviceready", this.getPositionPermission, false);
 		document.removeEventListener("backbutton", this.onBackKeyDownSign, false);
 		document.removeEventListener("deviceready", this.checkUpdateSign, false);
 		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
@@ -304,26 +295,14 @@ class Sign extends Component {
 			permissions.requestPermissions(list, success, error);
 			function error() {
 				logger.warn('permission is not turned on fail');
-				window.navigator.splashscreen.hide();
 				res()
 			}
 			function success(status) {
 				if (!status.hasPermission) error();
 				logger.info("getting  permissions success")
-				window.navigator.splashscreen.hide()
 				res()
 			}
 		})
-	}
-
-	getPositionPermission = () => {
-		if(localStorage.getItem("usePosition") !== "no" && localStorage.getItem("leaveSignPage") === 'yes'){
-			requestPositionPermission()
-		}
-	}
-
-	overlaysWebView = (bool) => {
-        StatusBar.overlaysWebView(bool);
 	}
 
 	getAdsConfig = () => {
@@ -350,7 +329,6 @@ class Sign extends Component {
 		})
 		$dispatch(updateDirectShowSignPage(true))
 		$dispatch(updateHideNavBar(false))
-		if(window.isCordova) this.backgroundColorByHexString(1)
 		if(savedCurrentRoute){
 			$dispatch(updateSavedCurrentRoute(""))
 			window.goRoute(this, savedCurrentRoute);
@@ -364,21 +342,10 @@ class Sign extends Component {
 	listenBackKeyDown = () => {
 		// from login page, need set StatusBar background
 		logger.info("this.props.isFromLoginPage", this.props.isFromLoginPage)
-		if(this.props.isFromLoginPage){
-			this.backgroundColorByHexString();
-		}
 		document.addEventListener("backbutton", this.onBackKeyDownSign, false); //back button logic
 	}
 
-	backgroundColorByHexString = (t=200) => {
-		setTimeout(() => {
-			logger.info("backgroundColorByHexString #81AFED")
-			window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
-		}, t)
-	}
-
-	dealWithOthersWhenDidMount = async () => {
-		window.SELF = this;
+	dealWithOthersWhenDidMount = () => {
 		if(window.isCordova){
 			this.props.allowGetPosition && document.addEventListener("deviceready", getUserPosition, false)
 		} else {

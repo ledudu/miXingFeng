@@ -57,19 +57,18 @@
     <noscript>
         You need to enable JavaScript to run this app.
 	</noscript>
-	<script src="./utils.js"></script>
-
 	<script>
 		// cordova-plugin-file 会覆盖下面的两个全局变量，通过浏览器的方式获取md5需要用到这两个全局变量
 		window.BrowserFileReader = window.FileReader
 		window.BrowserFile = window.File
 		window.isCordova = window._cordovaNative;
 		if (window.isCordova) {
-			var scriptCordova = document.createElement("script");
+			const scriptCordova = document.createElement("script");
 			scriptCordova.src = "./cordova.js";
 			document.body.appendChild(scriptCordova);
 		};
 	</script>
+	<script src="./utils.js"></script>
     <div id="root" class="loading-text animate-flicker">觅星峰</div>
 </body>
 <script src="./base64.js"></script>

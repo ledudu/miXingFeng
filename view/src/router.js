@@ -4,9 +4,9 @@ import { HashRouter as Router, Route, Switch  } from 'react-router-dom';
 import MyLoadable from './Loadable';
 import { updateAlwaysShowAdsPage, updateHideNavBar, updateAllowGetPosition, updateAllowOthersGetPosition } from "./ducks/common"
 import { updateDirectShowSignPage } from "./ducks/sign";
-import { checkMusicPlayWays, checkLastMusicPlayInfo, stopMusic } from "./logic/common"
+import { checkMusicPlayWays, checkLastMusicPlayInfo, stopMusic, requestPositionPermission } from "./logic/common"
 import { initWebsocket } from "./logic/common" ;
-import { onBackKeyDown } from "./services/utils"
+import { onBackKeyDown, requestFileWritePriority } from "./services/utils"
 
 const Login = MyLoadable({
     loader: () => import('./components/login')
@@ -218,7 +218,16 @@ class Routers extends Component {
 	}
 
 	listenBackFunc = () => {
-        document.addEventListener("backbutton", onBackKeyDown, false);
+		document.addEventListener("backbutton", onBackKeyDown, false);
+		const allowReadAndWriteFile = localStorage.getItem("allowReadAndWriteFile")
+		const allowGetPosition = localStorage.getItem("usePosition")
+		let requestPermission = Promise.resolve()
+		if(!allowReadAndWriteFile){
+			requestPermission = requestFileWritePriority()
+		}
+		if(!allowGetPosition){
+			requestPermission.then(requestPositionPermission)
+		}
 	}
 
     render(){

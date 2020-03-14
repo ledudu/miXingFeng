@@ -57,15 +57,11 @@ class Login extends Component {
     }
 
     componentWillUnmount(){
-        if(window.isCordova){
-			StatusBar.overlaysWebView(false);
-        }
         document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backKeyDownToPrevious);
+		document.removeEventListener("backbutton", this.backKeyDownToPrevious);
     }
 
     listenBackButton = () => {
-		StatusBar.overlaysWebView(true);
         document.addEventListener("backbutton", this.backKeyDownToPrevious, false);
     }
 
