@@ -52,6 +52,7 @@ import {
 import { readAllDataFromIndexDB } from "../services/indexDB"
 import { readAllMusicDataFromIndexDB } from "../services/indexDBMusic"
 import { readAllRecentMusicDataFromIndexDB } from "../services/indexDBRecentMusic"
+import { CONSTANT } from "../constants/enumeration"
 
 class Sign extends Component {
 
@@ -114,10 +115,10 @@ class Sign extends Component {
 					if(window.isCordova){
 						if(!window.localStorage.getItem('everLaunched')){
 							window.localStorage.setItem('everLaunched', 'true');
+							window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
 							Loadable.preloadAll()
 							$dispatch(updateDirectShowSignPage(true))
 							$dispatch(updateHideNavBar(false))
-							// await this.gettingPermissions();
 							setTimeout(() => {
 								window.navigator.splashscreen.hide();
 							}, 800)
@@ -160,6 +161,7 @@ class Sign extends Component {
 				Loadable.preloadAll()
 				setTimeout(() => {
 					if(window.isCordova){
+						window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
 						window.navigator.splashscreen.hide();
 					}
 				}, 800)
@@ -282,29 +284,6 @@ class Sign extends Component {
 		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
 	}
 
-	gettingPermissions = () => {
-		return new Promise(res => {
-			const permissions = cordova.plugins.permissions;
-			const list = [
-				permissions.ACCESS_COARSE_LOCATION,
-				permissions.ACCESS_FINE_LOCATION,
-				permissions.ACCESS_LOCATION_EXTRA_COMMANDS,
-				permissions.WRITE_EXTERNAL_STORAGE
-			];
-			logger.info("getting  permissions")
-			permissions.requestPermissions(list, success, error);
-			function error() {
-				logger.warn('permission is not turned on fail');
-				res()
-			}
-			function success(status) {
-				if (!status.hasPermission) error();
-				logger.info("getting  permissions success")
-				res()
-			}
-		})
-	}
-
 	getAdsConfig = () => {
 		let { skipTime } = this.state
 		logger.info("getAdsConfig skipTime", skipTime)
@@ -328,6 +307,11 @@ class Sign extends Component {
 			skipTime: 0
 		})
 		$dispatch(updateDirectShowSignPage(true))
+		if(window.isCordova){
+			setTimeout(() => {
+				window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
+			}, 1)
+		}
 		$dispatch(updateHideNavBar(false))
 		if(savedCurrentRoute){
 			$dispatch(updateSavedCurrentRoute(""))
@@ -340,7 +324,6 @@ class Sign extends Component {
 	}
 
 	listenBackKeyDown = () => {
-		// from login page, need set StatusBar background
 		logger.info("this.props.isFromLoginPage", this.props.isFromLoginPage)
 		document.addEventListener("backbutton", this.onBackKeyDownSign, false); //back button logic
 	}
