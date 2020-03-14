@@ -174,7 +174,7 @@ class Sign extends Component {
 					signed();
 				}
 			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
-				if(justOpenApp){
+				if(justOpenApp || needRetryRequestWhenLaunch){
 					$dispatch(updateJustOpenApp(false))
 					// get file list
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))

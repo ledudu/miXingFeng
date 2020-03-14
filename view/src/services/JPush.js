@@ -134,7 +134,6 @@ function uploadRegisterID(){
 				})
 				.catch(err => {
 					logger.error('uploadRegistrationID', err);
-					alertDebug(`uploadRegistrationID: ${err}`)
 				})
 	// }
 }
