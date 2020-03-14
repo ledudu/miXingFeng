@@ -8,8 +8,8 @@ import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { confirm, alertDialog } from "../services/utils";
-import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize } from "../ducks/common"
-import { previewNew, checkExternalFileExistOrNot, logActivity } from "../logic/common/index";
+import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize, updateUpgradeProgressPercent } from "../ducks/common"
+import { previewNew, checkExternalFileExistOrNot, logActivity } from "../logic/common";
 
 const itemColumns = [
 	{
@@ -168,6 +168,7 @@ class About extends React.Component {
 										let progressLine = e.loaded / e.total;
 										// 显示下载进度
 										progressPercent = (progressLine * 100).toFixed(0);
+										$dispatch(updateUpgradeProgressPercent(progressPercent + "%"))
 										cordova.plugins.notification.local.update({
 											text: `正在下载: ${progressPercent}%`,
 											progressBar: { value: progressPercent },
@@ -265,7 +266,7 @@ class About extends React.Component {
 	}
 
 	render() {
-		const { appVersion, setSystemSetupDot } = this.props;
+		const { appVersion, setSystemSetupDot, upgradeProgressPercent } = this.props;
         return (
             <div className="sites-container">
 				<MyInfoMiddlePageComponent
@@ -275,6 +276,7 @@ class About extends React.Component {
 					backToPage="system_setup"
 					callback1={this.checkUpdateFunc}
 					setSystemSetupDot={setSystemSetupDot}
+					upgradeProgressPercent={upgradeProgressPercent}
 				/>
 				{appVersion ? <div className="show-version">版本号：{appVersion}</div> : null}
             </div>
@@ -288,6 +290,7 @@ const mapStateToProps = state => {
 		setSystemSetupDot: state.myInfo.setSystemSetupDot,
 		appUpdating: state.common.appUpdating,
 		appSize: state.common.appSize,
+		upgradeProgressPercent: state.common.upgradeProgressPercent,
 	};
 };
 

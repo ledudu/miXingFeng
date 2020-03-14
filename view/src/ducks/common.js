@@ -23,6 +23,7 @@ const APP_SIZE = "common/appSize"
 const IS_FROM_SYSTEM_SETUP = "common/isFromSystemSetup"
 const AD_PIC_SRC = "common/adPicSrc"
 const LOADED_IN_WIFI = "common/loadedInWifi"
+const UPGRADE_PROGRESS_PERCENT = "common/upgradeProgressPercent"
 
 const appVersion = localStorage.getItem("appVersion") || ""
 
@@ -83,7 +84,8 @@ const initialState = () => ({
 	appSize: 0,
 	isFromSystemSetup: false,
 	adPicSrc: `./ads/ad0.png`,
-	loadedInWifi: ""
+	loadedInWifi: "",
+	upgradeProgressPercent: ""
 });
 
 // Reducer
@@ -184,6 +186,10 @@ export default function reducer(state = initialState(), action = {}) {
 		case LOADED_IN_WIFI:
 			return Object.assign({}, state, {
 				loadedInWifi: action.data
+			});
+		case UPGRADE_PROGRESS_PERCENT:
+			return Object.assign({}, state, {
+				upgradeProgressPercent: action.data
 			});
 		default:
 			return state;
@@ -303,5 +309,10 @@ export const updateAdPicSrc = data => ({
 
 export const updateLoadedInWifi = data => ({
 	type: LOADED_IN_WIFI,
+	data
+})
+
+export const updateUpgradeProgressPercent= data => ({
+	type: UPGRADE_PROGRESS_PERCENT,
 	data
 })

@@ -34,7 +34,11 @@ export default class MyInfoMiddlePageComponent extends React.Component {
     }
 
     render() {
-		const { pageName, itemColumns, setSystemSetupDot } = this.props
+		const { pageName, itemColumns, setSystemSetupDot, upgradeProgressPercent } = this.props
+		let upgradeProgressPercentNumber = ""
+		if(upgradeProgressPercent){
+			upgradeProgressPercentNumber = ` ${upgradeProgressPercent}`
+		}
         return (
             <div className="middle-page-container">
 				<NavBar
@@ -50,7 +54,7 @@ export default class MyInfoMiddlePageComponent extends React.Component {
 									?	<List.Item style={{height: "60px"}}
 											onClick={() => this.goNextRoute(null, item.name)}
 										>
-											<span style={{ marginLeft: 12 }}>{item.displayName}</span>
+											<span style={{ marginLeft: 12 }}>{item.displayName + upgradeProgressPercentNumber}</span>
 											&nbsp;&nbsp;
 											<Badge text={setSystemSetupDot && 'new'}/>
 										</List.Item>
