@@ -13,6 +13,7 @@ const REPLACE_HEAD_PIC = "myInfo/replaceHeadPic";
 const SET_EMAIL = "myInfo/setEmail";
 const SET_TEMP_EMAIL = "myInfo/setTempEmail";
 const SET_TEMP_MOBILE = "myInfo/setTempMobile";
+const CARRIER_OPERATOR = "myInfo/carrierOperator"
 
 let userProfile = {}
 try {userProfile = localStorage.getItem("userProfile") ? JSON.parse(localStorage.getItem("userProfile")) : {}} catch(err){userProfile = {}}
@@ -34,7 +35,8 @@ const initialState = () => ({
 	replaceHeadPic: false,
 	setEmail: userProfile.email,
 	setTempEmail: "",
-	setTempMobile: ""
+	setTempMobile: "",
+	carrierOperator: ""
 });
 
 // Reducer
@@ -96,6 +98,10 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {
 				setTempMobile: action.data
 			});
+		case CARRIER_OPERATOR:
+			return Object.assign({}, state, {
+				carrierOperator: action.data
+			});
 		default:
 			return state;
 	}
@@ -156,5 +162,9 @@ export const updateSetTempEmail = data => ({
 })
 export const updateSetTempMobile = data => ({
 	type: SET_TEMP_MOBILE,
+	data
+})
+export const updateCarrierOperator = data => ({
+	type: CARRIER_OPERATOR,
 	data
 })

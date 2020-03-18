@@ -46,11 +46,12 @@ class UpdateUserInfoComponent extends React.Component {
 				return;
 			}
         }
-        let {username, token} = window.$getState().login;
+		const {username, token} = $getState().login;
+		const { setMobile } = $getState().myInfo;
         if(!token && !registerFromLogin) {
             return alert("没有token")
         }
-		const data = Object.assign({}, {username, token, userInfo: { [name]: value }, registerFromLogin })
+		const data = Object.assign({}, {username: username || setMobile, token, userInfo: { [name]: value }, registerFromLogin })
 		if(!this.startToSubmit){
 			this.startToSubmit = true
 			if(pageTitle === "填写邮箱" || pageTitle === "填写手机号"){

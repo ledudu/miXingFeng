@@ -2,7 +2,7 @@ import React, { Component } from "react"
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
 import { HTTP_URL } from "../constants/httpRoute";
-import { networkErr } from "../services/utils";
+import { networkErr, alertDialog } from "../services/utils";
 
 class LoginRecord extends Component {
 	constructor(props){
@@ -13,13 +13,18 @@ class LoginRecord extends Component {
 	}
 
 	componentDidMount(){
-		const { token, username } = this.props;
-		axios.get(HTTP_URL.getLoginRecord.format({token, username}))
+		const { token, username, setMobile } = this.props;
+		axios.get(HTTP_URL.getLoginRecord.format({token, username: username||setMobile}))
 			.then((response) => {
-				logger.info('getLoginRecord', response.data.response)
-				this.setState({
-					records: response.data.result.response
-				})
+				const getLoginRecord = response.data.result.response
+				logger.info('getLoginRecord', getLoginRecord)
+				if(getLoginRecord === "no_username"){
+					return alertDialog("用户不存在")
+				} else if(Array.isArray(getLoginRecord)){
+					this.setState({
+						records: getLoginRecord
+					})
+				}
 			})
 			.catch(err => {
 				networkErr(err, `getLoginRecord`)
@@ -49,7 +54,8 @@ class LoginRecord extends Component {
 const mapStateToProps = state => {
     return {
         username: state.login.username,
-        token: state.login.token
+		token: state.login.token,
+		setMobile: state.myInfo.setMobile,
     };
 };
 

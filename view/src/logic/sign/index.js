@@ -17,7 +17,11 @@ export const retrieveLastLoginTime = () => {
 				window.logger.info(`retrieveLastLoginTime  response`, response.data.result.lastDay)
 				const date = new Date().format("yyyy-MM-dd");
 				let lastSignUpTime = response.data.result.lastDay;
-				if(lastSignUpTime.split(" ")[0] === date) signed();
+				if(!lastSignUpTime) {
+					logger.warn("no such user")
+					alertDebug("用户不存在")
+				}
+				if(lastSignUpTime && lastSignUpTime.split(" ")[0] === date) signed();
 				window.$dispatch(updateLastSignUpTime(lastSignUpTime));
 				localStorage.setItem("lastSignUpTime", lastSignUpTime)
 			})
@@ -37,7 +41,7 @@ export const signInApp = (that) => {
 	currentLocation = typeof(currentLocation) === 'object' ? currentLocation.formatted_address : currentLocation;
 	currentLocation = currentLocation || "";
 	const date = new Date().format("yyyy-MM-dd");
-	let { token } = window.$getState().login;
+	const { token } = window.$getState().login;
 	if(token){
 		let data = Object.assign({}, {
 			token,
@@ -58,12 +62,11 @@ export const signInApp = (that) => {
 					return;
 				} else if (response.data.result.str === "token_expired"){
 					window.logger.error(`身份已过期,请重新登录页`);
-					window.$dispatch(updateToken(""));
-					let { username } = window.$getState().login;
-					document.getElementsByName("username")[0] && (document.getElementsByName("username")[0].value = username);
+					$dispatch(updateToken(""));
+					window.goRoute(that, "/login");
 				} else if (response.data.result.str === "no_sign") {
 					//更新token
-					window.$dispatch(updateToken(response.data.result.token));
+					$dispatch(updateToken(response.data.result.token));
 					alert("签到成功");
 					signed();
 					const date = new Date().format("yyyy-MM-dd hh:mm:ss");
@@ -77,6 +80,7 @@ export const signInApp = (that) => {
 				} else if(response.data.result.str === "no_exist_username"){
 					alert("用户不存在!");
 				} else {
+					logger.warn("signInApp warn", response.data)
 					alertDebug(response.data)
 				}
 			})

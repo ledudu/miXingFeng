@@ -36,6 +36,8 @@ class CheckEmail extends React.Component {
 				const previous = --number
 				this[`inputValueRef${previous}`].value = ""
 				this[`inputValueRef${previous}`].focus()
+				this.clearInputColor()
+				this[`inputValueRef${previous}`].style.borderBottom = "1px solid #81AFED"
 			}
 			return;
 		}
@@ -56,6 +58,8 @@ class CheckEmail extends React.Component {
 					this.submit()
 				} else {
 					this[`inputValueRef${++number}`].focus()
+					this.clearInputColor()
+					this[`inputValueRef${number}`].style.borderBottom = "1px solid #81AFED"
 				}
 			}, 10)
 		} else {
@@ -69,6 +73,13 @@ class CheckEmail extends React.Component {
 				}
 			}, 10)
 		}
+	}
+
+	clearInputColor = () => {
+		this.inputValueRef1.style.borderBottom = "1px solid #000"
+		this.inputValueRef2.style.borderBottom = "1px solid #000"
+		this.inputValueRef3.style.borderBottom = "1px solid #000"
+		this.inputValueRef4.style.borderBottom = "1px solid #000"
 	}
 
 	submit = () => {

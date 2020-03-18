@@ -245,7 +245,8 @@ class MusicPlayer extends React.Component {
 				soundPlaying,
 				playByRandom,
 				currentPlayingSong,
-				pageType
+				pageType,
+				setMobile
 			} = this.props
 			const self = this
 			const urlLocation = window.location.href
@@ -459,9 +460,9 @@ class MusicPlayer extends React.Component {
 							if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
 								return
 							}
-							if(!username || !token) return alert("请先登录")
+							if(!token) return alert("请先登录")
 							const dataInfo = {
-								username,
+								username: username || setMobile,
 								token,
 								filename,
 								type: "default-music"
@@ -721,6 +722,7 @@ const mapStateToProps = state => {
 		currentPlayingSongOriginal: state.fileServer.currentPlayingSongOriginal,
 		recentMusicList: state.fileServer.recentMusicList,
 		musicPageType: state.fileServer.musicPageType,
+		setMobile: state.myInfo.setMobile,
     };
 };
 

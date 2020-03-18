@@ -89,12 +89,12 @@ export const setOthersSignInfo = (data) => {
 	for (let i = 0, l = info.length; i < l; i++) {
 		if (info[i].date && info[i].date.split(' ')[0] === date) {
 			signedArray.push({
-				username: info[i].username,
+				username: info[i].username || info[i].mobile,
 				origin: info[i].origin
 			});
 		} else {
 			unsignedArray.push({
-				username: info[i].username,
+				username: info[i].username  || info[i].mobile,
 				origin: info[i].origin
 			});
 		}
@@ -858,7 +858,8 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 		if(e) e.stopPropagation();
 		if(currentFileIndex === -1 || currentFileIndex === null) return alert("请选择一首歌播放")
 		const { username, token } = $getState().login
-		if (!username || !token) return alert("请先登录")
+		const { setMobile } = $getState().myInfo
+		if (!token) return alert("请先登录")
 		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
 		if (hasSaved !== -1) {
 			musicCollection.splice(hasSaved, 1)
@@ -873,7 +874,7 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 			musicCollection.push(willSavedSong)
 		}
 		const dataObj = {
-			username,
+			username: username || setMobile,
 			token,
 			musicCollection
 		}

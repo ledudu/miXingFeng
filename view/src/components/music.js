@@ -54,8 +54,8 @@ class Music extends React.Component {
 		try {
 			const files = $('#fileToUpload')[0].files;
 			if(!files[0]) return;
-			const { username, token, musicList } = this.props;
-			if(!username || !token){
+			const { token, musicList } = this.props;
+			if(!token){
 				alert("请先登录");
 				return;
 			}
@@ -89,7 +89,7 @@ class Music extends React.Component {
 	uploadMusicFunc = async(filename, fileSize, files) => {
 		const self = this;
 		const { MD5Value, MD5ValueError } = this.state;
-		const { username } = this.props;
+		const { username, setMobile } = this.props;
 		if (!/\.mp3$|\.MPEG$|\.OPUS$|\.OGG$|\.OGA$|\.WAV$|\.AAC$|\.CAF$|\.M4A$|\.MP4$|\.WEBA$|\.WEBM$|\.DOLBY$|\.FLAC$/gi.test(filename)) {
 			const filenameArr = filename.split('.')
 			if(filenameArr.length > 1){
@@ -119,7 +119,7 @@ class Music extends React.Component {
 		$dispatch(updateMusicSubmitStatus("上传中"))
 		if(MD5Value){
 			const willUploadMusicSrc = window.webkitURL.createObjectURL(files[0]);
-			const checkResult = await checkFileMD5Func(filename, username, MD5Value, "default-music", "music")
+			const checkResult = await checkFileMD5Func(filename, username || setMobile, MD5Value, "default-music", "music")
 			if(checkResult === "缺少字段"){
 				this.startToUpload = false;
 				return alertDialog('缺少字段')
@@ -151,11 +151,11 @@ class Music extends React.Component {
 						const duration = $(".will-upload-music")[0].duration;
 						logger.info("uploadMusic duration, isNaN(duration)", duration, isNaN(duration))
 						if(!isNaN(duration)){
-							logger.info("uploadMusicFunc username, duration, MD5Value", username, duration, MD5Value)
+							logger.info("uploadMusicFunc username, duration, MD5Value", username||setMobile, duration, MD5Value)
 							clearInterval(getTimeInterval);
 							const formData = new FormData();
 							formData.append('files', files[0]);
-							formData.append("username", username);
+							formData.append("username", username||setMobile);
 							formData.append("type", 'music');
 							formData.append("duration", duration);
 							formData.append("md5", MD5Value);
@@ -250,6 +250,7 @@ const mapStateToProps = state => {
 		token: state.login.token,
 		musicSubmitStatus: state.fileServer.musicSubmitStatus,
 		musicUploadProgress: state.fileServer.musicUploadProgress,
+		setMobile: state.myInfo.setMobile,
     };
 };
 

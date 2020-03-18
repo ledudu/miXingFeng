@@ -37,7 +37,7 @@ class Feedback extends React.Component {
 		if(hasPic){
 			extname = files[0]['file']['name'].split('.').pop()
 		}
-		const username = $getState().login.username || $getState().login.userId
+		const username = $getState().login.username || getState().myInfo.setMobile || $getState().login.userId
 		const needUploadLog = uploadLog && window.isCordova
 		const data = Object.assign({}, { username }, { feedbackContent: arr }, {extname, needUploadLog})
 		// 提交反馈的文字内容

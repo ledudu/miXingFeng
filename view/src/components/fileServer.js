@@ -54,8 +54,8 @@ class FileServer extends React.Component {
 	}
 
 	submitFile = (fileNum) => {
-		const { fileList, username, token } = this.props;
-		if(!username || !token){
+		const { fileList, token } = this.props;
+		if(!token){
 			alert("请先登录");
 			return;
 		}
@@ -90,7 +90,7 @@ class FileServer extends React.Component {
 	uploadFile = async(fileNum) => {
 		const self = this;
 		const { MD5Value, MD5ValueError } = this.state
-		const { username } = this.props;
+		const { username, setMobile } = this.props;
 		const files = this.el.files;
 		const filename = this.el.files[this.currentUploadFileNum].name;
 		const fileSize = this.el.files[this.currentUploadFileNum].size;
@@ -111,7 +111,7 @@ class FileServer extends React.Component {
 		logger.info("fileServer uploadFile MD5Value", MD5Value)
 		$dispatch(updateFileSubmitStatus("上传中"))
 		if(MD5Value){
-			const checkResult = await checkFileMD5Func(filename, username, MD5Value, "default-file", "file")
+			const checkResult = await checkFileMD5Func(filename, (username || setMobile), MD5Value, "default-file", "file")
 			if(checkResult === "缺少字段") {
 				this.startToUpload = false;
 				return  alert('缺少字段')
@@ -127,7 +127,7 @@ class FileServer extends React.Component {
 			if(checkResult === "没有匹配"){
 				const formData = new FormData();
 				formData.append('files', files[self.currentUploadFileNum]);
-				formData.append("username", username);
+				formData.append("username", username || setMobile);
 				formData.append("type", 'file');
 				formData.append("md5", MD5Value);
 				formData.append("registrationID", localStorage.getItem("registrationID") || "");
@@ -231,6 +231,7 @@ const mapStateToProps = state => {
 		token: state.login.token,
 		fileSubmitStatus: state.fileServer.fileSubmitStatus,
 		fileUploadProgress: state.fileServer.fileUploadProgress,
+		setMobile: state.myInfo.setMobile,
     };
 };
 

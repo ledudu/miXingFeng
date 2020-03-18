@@ -590,7 +590,8 @@ class Sign extends Component {
 			setNickname,
 			directShowSignPage,
 			isFromSystemSetup,
-			showDownloadAppTip
+			showDownloadAppTip,
+			setMobile=""
 		} = this.props;
 		return (
 			<Fragment>
@@ -600,7 +601,7 @@ class Sign extends Component {
 							<StatusBar />
         					<div className="header">
 								<span className="greetings"></span>
-								<span className="user" onClick={this.gotoUserProfile}>{token ? setNickname ? setNickname : username : ""}</span>
+								<span className="user" onClick={this.gotoUserProfile}>{token ? setNickname ? setNickname : username ? username : setMobile: ""}</span>
 							</div>
 							<div className="body">
         						<div className="sign-area">
@@ -731,7 +732,8 @@ const mapStateToProps = state => {
 		justOpenApp: state.sign.justOpenApp,
 		showUpdateConfirm: state.sign.showUpdateConfirm,
 		needRetryRequestWhenLaunch: state.sign.needRetryRequestWhenLaunch,
-		showDownloadAppTip: state.sign.showDownloadAppTip
+		showDownloadAppTip: state.sign.showDownloadAppTip,
+		setMobile: state.myInfo.setMobile
 	};
 };
 

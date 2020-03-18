@@ -49,5 +49,6 @@ export const HTTP_URL = {
 	"getAdPicture": hostname + "/get_ad_picture",
 	"getNetEaseCloudMvLink": hostname + "/get_net_ease_cloud_mv_link?id={id}&userId={userId}",
 	"getQQMvLink": hostname + "/get_qq_mv_link?id={id}&userId={userId}",
-	"userActivity": hostname + "/user_activity"
+	"userActivity": hostname + "/user_activity",
+	"jiGuangVerify": hostname + "/ji_guang_verify"
 }

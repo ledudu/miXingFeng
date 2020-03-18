@@ -150,7 +150,7 @@ class FileManage extends React.Component {
 			}
 			document.addEventListener("deviceready", this.listenBackFunc);
 
-			const { username, token, original } = this.props;
+			const { username, token, original, setMobile } = this.props;
 			let firstItem = "下载";
 			let isFileFinished = (original === "fileFinished")
 			if(isFileFinished){
@@ -206,9 +206,9 @@ class FileManage extends React.Component {
 										})
 								})
 							} else {
-								if(!username || !token) return alert("请先登录")
+								if(!token) return alert("请先登录")
 								const dataInfo = {
-									username,
+									username: username || setMobile,
 									token,
 									filename,
 									type: "default-file"
@@ -321,8 +321,8 @@ class FileManage extends React.Component {
 	}
 
 	saveFileToLocalFunc = async (filename, uploadUsername, fileSize, filePath, retry, filenameOrigin) => {
-		const { username, token, downloadingFileItems } = this.props;
-		if(!username || !token) return alert("请先登录")
+		const { token, downloadingFileItems } = this.props;
+		if(!token) return alert("请先登录")
 		if(!window.isCordova){
 			return saveFileToLocal(filenameOrigin, filePath)
 		}
@@ -482,7 +482,8 @@ const mapStateToProps = state => {
 		token: state.login.token,
 		downloadingFileItems: state.fileServer.downloadingFileItems,
 		lastFileSearchResult: state.fileServer.lastFileSearchResult,
-		lastSearchAllFileResult: state.fileServer.lastSearchAllFileResult
+		lastSearchAllFileResult: state.fileServer.lastSearchAllFileResult,
+		setMobile: state.myInfo.setMobile,
     };
 };
 

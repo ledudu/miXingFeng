@@ -4,8 +4,9 @@ import { connect } from "react-redux";
 import { loginApp, dealtWithLoginIn} from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { reconnectSocket } from "../logic/common"
-import { updateIsFromLoginPage, updateRegisterFromLogin, updateUserId } from "../ducks/login"
-import { backToPreviousPage} from "../services/utils";
+import { updateIsFromLoginPage, updateRegisterFromLogin, updateUserId, updateToken } from "../ducks/login"
+import { backToPreviousPage, alertDialog} from "../services/utils";
+import { updateCarrierOperator, updateSetMobile } from "../ducks/myInfo"
 
 class Login extends Component {
 
@@ -62,6 +63,10 @@ class Login extends Component {
     }
 
     listenBackButton = () => {
+		if(window.isCordova){
+			JGJVerificationPlugin.setDebugMode(true);
+			JGJVerificationPlugin.init();
+		}
         document.addEventListener("backbutton", this.backKeyDownToPrevious, false);
     }
 
@@ -173,8 +178,87 @@ class Login extends Component {
 	}
 
 	register = () => {
-		$dispatch(updateRegisterFromLogin(true))
-		window.goRoute(this, "/set_mobile")
+		if(window.isCordova){
+			var json = {
+				setPrivacyState:true,
+				setPrivacyTextSize: 14,
+				setPrivacyCheckboxSize: 16
+            }
+			json = JSON.stringify(json);
+			JGJVerificationPlugin.setCustomUIWithConfig(json);
+			JGJVerificationPlugin.loginAuth(true, function(response){
+				// {"code":6000,"content":"ok","operator":"CM"}
+				logger.info("loginAuth response1", response)
+				logger.info('typeof(response)', typeof(response))
+				alertDebug(response)
+				response = JSON.parse(response)
+				logger.info("loginAuth response", response)
+				if(response.code !== 6000 && response.code !== 6002){
+					logger.warn("一键登录失败 response", response)
+					logger.warn("一键登录失败 response.code", response.code)
+					return alertDialog("登录失败，请稍后重试")
+				} else {
+					let mobileCarrierOperator = ""
+					if(response.operator === "CM"){
+						mobileCarrierOperator = "中国移动"
+					} else if(response.operator === "CU"){
+						mobileCarrierOperator = "中国联通"
+					} else if(response.operator === "CT"){
+						mobileCarrierOperator = "中国电信"
+					} else {
+						logger.warn("一键登录失败")
+					}
+					$dispatch(updateCarrierOperator(mobileCarrierOperator))
+					const { userId } = $getState().login
+					const data = {
+						JVerifyToken: response.content,
+						userId,
+						mobileCarrierOperator
+					}
+					return axios.post(HTTP_URL.jiGuangVerify, data)
+						.then((response) => {
+							const { result } = response.data
+							logger.info("login register jiGuangVerify result", result)
+							if(result.response === "register_success"){
+								window.goRoute(this, "/register")
+							} else if(result.response === "existed"){
+								window.goRoute(this, "/main/sign")
+							} else {
+								logger.error("login register jiGuangVerify  not success result", result)
+								return alertDialog("登录失败，请稍后重试"+JSON.stringify(result))
+							}
+							const { mobile } = result
+							$dispatch(updateToken(result.token))
+							$dispatch(updateSetMobile(mobile))
+							$dispatch(updateUserId(mobile))
+							window.localStorage.setItem("userId", mobile);
+							let dataSaved = Object.assign({}, {"mobile": mobile}, {"token": result.token});
+							dataSaved = JSON.stringify(dataSaved);
+							let b = new window.Base64();
+							dataSaved = b.encode(dataSaved);
+							writeFile(dataSaved, 'sign.txt', false);
+							const data = { original: userId, newOne: mobile }
+							axios.post(HTTP_URL.replaceSocketLink, data)
+								.then(response => {
+									if (response.data.result.response === "success") {
+										logger.info("logout success and reconnect websocket")
+										reconnectSocket()
+									}
+								})
+						})
+						.catch((err) => {
+							logger.error("login register jiGuangVerify  catch error", err)
+							return alertDialog("登录超时，请稍后重试"+err)
+						})
+				}
+			}, (result) => {
+				// {"code":1,"content":"login activity closed."}
+				logger.info("loginAuth result", result)
+			})
+		} else {
+			$dispatch(updateRegisterFromLogin(true))
+			window.goRoute(this, "/set_mobile")
+		}
 	}
 
     render() {
@@ -220,7 +304,7 @@ class Login extends Component {
                     </div>
                     <div className="foot">
                         <span onClick={this.register}>
-                            注册用户名
+                            {window.isCordova ? '一键登录' : "注册用户名"}
                         </span>
                         <Link to="/forget_password">
                             忘记密码

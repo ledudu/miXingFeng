@@ -67,8 +67,8 @@ class MyInfo extends React.Component {
 
     render() {
 		let { headPicAddress } = this.state;
-		let { username, token, nickname, signature, setHeadPic, setSystemSetupDot, replaceHeadPic } = this.props;
-		const avatarText = nickname || username;
+		let { username, token, nickname, signature, setHeadPic, setSystemSetupDot, replaceHeadPic, setMobile } = this.props;
+		const avatarText = nickname || username || setMobile;
 		nickname = nickname || "昵称未设置";
 		setSystemSetupDot = setSystemSetupDot ? "inline-block" : "none";
 		if(replaceHeadPic){
@@ -86,7 +86,7 @@ class MyInfo extends React.Component {
                     </div>
                     <div className="user-name">
                         <div className="nickname">{nickname}</div>
-                        <div className="username">账号: {username}</div>
+                        <div className="username">账号: {username || setMobile}</div>
                     </div>
                     <div className="right-arrow" onClick={this.backToMainPage}>
                         <i className="fa fa-angle-right" aria-hidden="true"></i>
@@ -159,6 +159,7 @@ const mapStateToProps = state => {
 		setSystemSetupDot: state.myInfo.setSystemSetupDot,
 		setHeadPicName: state.myInfo.setHeadPicName,
 		replaceHeadPic: state.myInfo.replaceHeadPic,
+		setMobile: state.myInfo.setMobile
     };
 };
 

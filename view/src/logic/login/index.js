@@ -24,6 +24,7 @@ import {
 	updateSetAddress,
 	updateSetRole,
 	updateSetEmail,
+	updateCarrierOperator
 } from "../../ducks/myInfo";
 import { CONSTANT } from "../../constants/enumeration";
 import { logoutApp, reconnectSocket, checkPassword } from "../common";
@@ -95,6 +96,7 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 	$dispatch(updateSetAddress(userProfile.address));
 	$dispatch(updateAllowShareMyNickname(shareNickname));
 	$dispatch(updateSetEmail(userProfile.email));
+	$dispatch(updateCarrierOperator(userProfile.mobileCarrierOperator));
 	$dispatch(updateMusicCollection(favoriteSongs));
 	if($getState().login.logOutFlag) $dispatch(updateLogOutFlag(false));
 	$dispatch(updateSetRole(result.role));
