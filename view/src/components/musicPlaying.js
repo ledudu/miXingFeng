@@ -177,7 +177,7 @@ class MusicPlaying extends React.Component {
 	}
 
 	saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self) => {
-		if(!filename && !filenameOrigin) return alert('请选择一首歌曲播放')
+		if(!filename && !filenameOrigin) return alert('请选择一首歌播放')
 		saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self)
 	}
 
