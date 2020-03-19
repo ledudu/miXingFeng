@@ -17,19 +17,24 @@ export default class Register extends Component {
     }
 
     listenBackButton = () => {
-        setTimeout(() => {
-            StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
-        }, 300)
         document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
 	}
 
 	backKeyDownToPrevious = () => {
-		backToPreviousPage(this, "/login", {specialBack: true});
+		if($getState().login.token){
+			backToPreviousPage(this, "/main/sign", {specialBack: true})
+		} else {
+			backToPreviousPage(this, "/login", {specialBack: true});
+		}
 	}
 
 
     backToMain = () => {
-        backToPreviousPage(this, "/login")
+		if($getState().login.token){
+			backToPreviousPage(this, "/main/sign")
+		} else {
+			backToPreviousPage(this, "/login")
+		}
     }
 
     registerKeyDownEvent = (evt) => {

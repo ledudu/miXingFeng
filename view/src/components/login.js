@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
 import { loginApp, dealtWithLoginIn} from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
-import { reconnectSocket } from "../logic/common"
+import { reconnectSocket, autoLogin } from "../logic/common"
 import { updateIsFromLoginPage, updateRegisterFromLogin, updateUserId, updateToken } from "../ducks/login"
-import { backToPreviousPage, alertDialog} from "../services/utils";
+import { backToPreviousPage, alertDialog } from "../services/utils";
 import { updateCarrierOperator, updateSetMobile } from "../ducks/myInfo"
 
 class Login extends Component {
@@ -179,25 +179,25 @@ class Login extends Component {
 
 	register = () => {
 		if(window.isCordova){
-			var json = {
+			let json = {
 				setPrivacyState:true,
 				setPrivacyTextSize: 14,
 				setPrivacyCheckboxSize: 16
-            }
+			}
 			json = JSON.stringify(json);
 			JGJVerificationPlugin.setCustomUIWithConfig(json);
 			JGJVerificationPlugin.loginAuth(true, function(response){
 				// {"code":6000,"content":"ok","operator":"CM"}
 				logger.info("loginAuth response1", response)
 				logger.info('typeof(response)', typeof(response))
-				alertDebug(response)
+				// alertDebug(response)
 				response = JSON.parse(response)
 				logger.info("loginAuth response", response)
 				if(response.code !== 6000 && response.code !== 6002){
 					logger.warn("一键登录失败 response", response)
 					logger.warn("一键登录失败 response.code", response.code)
 					return alertDialog("登录失败，请稍后重试")
-				} else {
+				} else if(response.code === 6000){
 					let mobileCarrierOperator = ""
 					if(response.operator === "CM"){
 						mobileCarrierOperator = "中国移动"
@@ -205,8 +205,6 @@ class Login extends Component {
 						mobileCarrierOperator = "中国联通"
 					} else if(response.operator === "CT"){
 						mobileCarrierOperator = "中国电信"
-					} else {
-						logger.warn("一键登录失败")
 					}
 					$dispatch(updateCarrierOperator(mobileCarrierOperator))
 					const { userId } = $getState().login
@@ -215,40 +213,29 @@ class Login extends Component {
 						userId,
 						mobileCarrierOperator
 					}
+					logger.info("register jiGuangVerify data", data)
 					return axios.post(HTTP_URL.jiGuangVerify, data)
 						.then((response) => {
 							const { result } = response.data
 							logger.info("login register jiGuangVerify result", result)
-							if(result.response === "register_success"){
-								window.goRoute(this, "/register")
-							} else if(result.response === "existed"){
-								window.goRoute(this, "/main/sign")
-							} else {
-								logger.error("login register jiGuangVerify  not success result", result)
-								return alertDialog("登录失败，请稍后重试"+JSON.stringify(result))
-							}
 							const { mobile } = result
 							$dispatch(updateToken(result.token))
 							$dispatch(updateSetMobile(mobile))
 							$dispatch(updateUserId(mobile))
 							window.localStorage.setItem("userId", mobile);
-							let dataSaved = Object.assign({}, {"mobile": mobile}, {"token": result.token});
-							dataSaved = JSON.stringify(dataSaved);
-							let b = new window.Base64();
-							dataSaved = b.encode(dataSaved);
-							writeFile(dataSaved, 'sign.txt', false);
-							const data = { original: userId, newOne: mobile }
-							axios.post(HTTP_URL.replaceSocketLink, data)
-								.then(response => {
-									if (response.data.result.response === "success") {
-										logger.info("logout success and reconnect websocket")
-										reconnectSocket()
-									}
-								})
+							if(result.response === "register_success"){
+								window.goRoute(this, "/register")
+							} else if(result.response === "existed"){
+								window.goRoute(this, "/main/sign")
+								return autoLogin(result.token, this)
+							} else {
+								logger.error("login register jiGuangVerify  not success result", result)
+								return alertDialog("登录失败，请稍后重试"+JSON.stringify(result))
+							}
 						})
 						.catch((err) => {
 							logger.error("login register jiGuangVerify  catch error", err)
-							return alertDialog("登录超时，请稍后重试"+err)
+							return alertDialog("登录超时，请稍后重试")
 						})
 				}
 			}, (result) => {

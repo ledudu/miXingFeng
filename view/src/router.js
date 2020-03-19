@@ -173,6 +173,10 @@ const MusicPlaying = MyLoadable({
 	loader: () => import("./components/musicPlaying")
 })
 
+const SetUsername = MyLoadable({
+	loader: () => import("./components/updateUserInfo/setUsername")
+})
+
 class Routers extends Component {
 
     componentDidMount(){
@@ -278,6 +282,7 @@ class Routers extends Component {
 							<Route path="/recent_music_played" component={RecentMusicPlayed} />
 							<Route path="/music_mv_player" component={MusicMvPlayer} />
 							<Route path="/music_playing" component={MusicPlaying} />
+							<Route path="/set_username" component={SetUsername} />
                     	    <Route path="/" exact component={Entry} />
     					</Switch>
 					</div>

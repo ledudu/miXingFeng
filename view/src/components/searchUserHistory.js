@@ -91,7 +91,7 @@ class SearchUserHistory extends Component {
 		if (timer) clearTimeout(timer);
         timer = setTimeout(function() {
             getAutoSuggest();
-        }, 200);
+        }, 500);
 		function getAutoSuggest(){
 			axios.get(HTTP_URL.signRecordTypeahead.format({query}))
 				.then((msg) => {

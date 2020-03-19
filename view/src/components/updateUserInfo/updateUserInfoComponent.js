@@ -12,17 +12,13 @@ class UpdateUserInfoComponent extends React.Component {
 		super(props);
 		const { placeholder } = this.props
 		let inputValue = placeholder
-		if(placeholder === "最多10个字" || placeholder === "请输入手机号" || placeholder === "请输入签名" || placeholder === '请输入邮箱' ){
+		if(placeholder === "最多10个字" || placeholder === "请输入手机号" || placeholder === "请输入签名" || placeholder === '请输入邮箱' || placeholder === '用户名可用于登录，全网唯一，设置后不可修改'){
 			inputValue = ""
 		}
 		this.state={
 			inputValue
 		}
 	}
-
-    backToMainPage = () => {
-        window.goRoute(this, "/user_profile");
-    }
 
     saveUserInfo = () => {
         let {infoLength, infoErrorTip, updateUserInfoDispatch, pageTitle, name, backToMainPage, self, registerFromLogin} = this.props;
@@ -45,8 +41,16 @@ class UpdateUserInfoComponent extends React.Component {
             } else if(value === $getState().myInfo.setEmail){
 				return;
 			}
+        } else if (pageTitle === "设置用户名"){
+            if(!/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/.test(value)){
+				logger.info("saveUserInfo 用户名只能由字母,数字或中文组成", value)
+				return alertDialog("用户名只能由字母，数字或中文组成");
+			} else if(/^[0-9]/i.test(value)){
+				logger.info("saveUserInfo 用户名首字母不能是数字", value)
+				return alertDialog("用户名首字母不能是数字");
+			}
         }
-		const {username, token} = $getState().login;
+		const { username, token} = $getState().login;
 		const { setMobile } = $getState().myInfo;
         if(!token && !registerFromLogin) {
             return alert("没有token")
@@ -57,6 +61,7 @@ class UpdateUserInfoComponent extends React.Component {
 			if(pageTitle === "填写邮箱" || pageTitle === "填写手机号"){
 				Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
 			}
+			logger.info("UpdateUserInfoComponent saveUserInfo data", data)
 			axios.post(HTTP_URL.updateUserInfo, data)
             	.then((response) => {
 					this.startToSubmit = false

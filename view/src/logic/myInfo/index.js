@@ -6,41 +6,42 @@ import { CONSTANT } from "../../constants/enumeration";
 import { updateToken } from "../../ducks/login"
 
 export const saveUserInfoFunc = (name, info, self) => {
-    let {username, token} = window.$getState().login;
-        if(!token) {
-            return Toast.fail('请先登录', CONSTANT.toastTime);
-        }
-        if(name === 'sex'){
-            info = info.join();
-        } else if(name === 'birthday'){
-            info = info.format("yyyy-MM-dd");
-        } else if(name === "address"){
-            info = info[2];
-        }
-		const data = Object.assign({}, {username, token, userInfo: { [name]: info } })
-		if(!self.startToSubmit){
-			self.startToSubmit = true
-			axios.post(HTTP_URL.updateUserInfo, data)
-            	.then((response) => {
-					self.startToSubmit = false
-            	    if(response.data.result.response === "modify_success"){
-            	        Toast.success('保存成功', CONSTANT.toastTime);
-            	        if(name === 'sex'){
-            	            window.$dispatch(updateSetSex(info));
-            	        } else if(name === 'birthday'){
-            	            window.$dispatch(updateSetBirthday(info));
-            	        } else if(name === 'address'){
-            	            window.$dispatch(updateSetAddress(info));
-            	        }
-            	    } else {
-            	        Toast.fail('设置失败', CONSTANT.toastTime);
-            	    }
-            	})
-            	.catch(err => {
-					self.startToSubmit = false
-					return networkErr(err, `saveUserInfoFunc updateUserInfo data: ${JSON.stringify(data)}`);
-            	})
-		}
+	const {username, token} = window.$getState().login;
+	const {setMobile} = window.$getState().myInfo;
+    if(!token) {
+        return Toast.fail('请先登录', CONSTANT.toastTime);
+    }
+    if(name === 'sex'){
+        info = info.join();
+    } else if(name === 'birthday'){
+        info = info.format("yyyy-MM-dd");
+    } else if(name === "address"){
+        info = info[2];
+    }
+	const data = Object.assign({}, {username: username || setMobile, token, userInfo: { [name]: info } })
+	if(!self.startToSubmit){
+		self.startToSubmit = true
+		axios.post(HTTP_URL.updateUserInfo, data)
+        	.then((response) => {
+				self.startToSubmit = false
+        	    if(response.data.result.response === "modify_success"){
+        	        Toast.success('保存成功', CONSTANT.toastTime);
+        	        if(name === 'sex'){
+        	            window.$dispatch(updateSetSex(info));
+        	        } else if(name === 'birthday'){
+        	            window.$dispatch(updateSetBirthday(info));
+        	        } else if(name === 'address'){
+        	            window.$dispatch(updateSetAddress(info));
+        	        }
+        	    } else {
+        	        Toast.fail('设置失败', CONSTANT.toastTime);
+        	    }
+        	})
+        	.catch(err => {
+				self.startToSubmit = false
+				return networkErr(err, `saveUserInfoFunc updateUserInfo data: ${JSON.stringify(data)}`);
+        	})
+	}
 }
 
 export const getPhotoFunc = (index) => {
@@ -63,12 +64,13 @@ export const getPhotoFunc = (index) => {
 }
 
 const onPhotoURISuccess = (imageURI) => {
-    let { username } = window.$getState().login;
+	const { username } = $getState().login;
+	const { setMobile } = $getState().myInfo;
     logger.info('onPhotoURISuccess', imageURI);
     let options = new FileUploadOptions();
     options.chunkedMode = false;
     options.fileKey = "file";
-    options.fileName = username;
+    options.fileName = username || setMobile;
     options.mimeType = "image/jpeg";
     options.httpMethod = "POST";
     let fileTransfer = new FileTransfer();
@@ -85,7 +87,7 @@ const onPhotoURISuccess = (imageURI) => {
 		$dispatch(updateSetHeadPic(result.newFilePath));
 		$dispatch(updateReplaceHeadPic(true));
 		$dispatch(updateToken(result.token));
-		saveHeadPicToLocal(result.newFilePath, username, 'onPhotoURISuccess');
+		saveHeadPicToLocal(result.newFilePath, username || setMobile, 'onPhotoURISuccess');
         Toast.success('上传成功', CONSTANT.toastTime);
     }
     let errorCallback = function (error) {
@@ -105,10 +107,10 @@ const onPhotoURISuccess = (imageURI) => {
 
 export const searchShellCommand = (self, command) => {
 	const { username, token } = $getState().login;
-	const { setRole } = $getState().myInfo;
+	const { setRole, setMobile } = $getState().myInfo;
 	if(!token) return alert("请先登录");
 	if(!command) return;
-	const data = Object.assign({ username, token, command, role: setRole })
+	const data = Object.assign({ username: username||setMobile, token, command, role: setRole })
 	logger.info('searchShellCommand data', data)
 	self.setState({
 		isSearching: true

@@ -60,9 +60,8 @@ export const loginApp = (that, username, password) => {
                 return;
             } else if(response.data.result.token){
                 const result = response.data.result;
-				const userProfile = result.userProfile || {};
 				$dispatch(updateIsFromLoginPage(true));
-				dealtWithLoginIn(result, userProfile, that)
+				dealtWithLoginIn(result, result.userProfile , that)
 				Toast.hide();
             } else {
 				alert("")
@@ -77,14 +76,14 @@ export const loginApp = (that, username, password) => {
         })
 }
 
-export const dealtWithLoginIn = (result, userProfile, that) => {
+export const dealtWithLoginIn = (result, userProfile={}, that) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
 	localStorage.setItem("username", result.username)
 	localStorage.setItem("favoriteSongs", JSON.stringify(favoriteSongs.slice(0, 50)))
 	localStorage.setItem("role", result.role)
-	$dispatch(updateUsername(result.username));
+	$dispatch(updateUsername(result.username || ""));
 	$dispatch(updatePassword(result.password));
 	$dispatch(updateToken(result.token));
 	$dispatch(updateSetNickname(userProfile.nickname));
@@ -125,13 +124,13 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 	},false);
 
 	const original = $getState().login.userId;
-	const newOne = result.username
+	const newOne = (result.username || result.mobile)
 	window.localStorage.setItem("userId", newOne);
 	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
 	if(that){
 		if(window.isCordova){
-			let dataSaved = Object.assign({}, {"username": newOne}, {"token": result.token});
+			let dataSaved = Object.assign({}, {"username": result.username, "mobile": result.mobile, "token": result.token});
 			dataSaved = JSON.stringify(dataSaved);
 			let b = new window.Base64();
 			dataSaved = b.encode(dataSaved);
@@ -143,7 +142,7 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 					logger.info("login success and reconnect websocket")
 					reconnectSocket()
 				} else {
-					alert("登录失败")
+					alertDebug("replaceSocketLink fail")
 					logger.error("replaceSocketLink err", res.data.result)
 				}
 			})
@@ -151,7 +150,6 @@ export const dealtWithLoginIn = (result, userProfile, that) => {
 				logger.error("loginApp replaceSocketLink", err.stack || err.toString())
 			})
 			.finally(() => {
-				Toast.hide();
 				window.goRoute(that, "/main/sign");
 			})
 	}
@@ -186,8 +184,8 @@ export const registerUsername = (that) => {
         alertDialog("两次输入的密码不一致，请重新输入");
         return;
 	}
-	const { setTempMobile } = $getState().myInfo
-    const data = { username: usernameValue , pwd: pwdValue, mobile: setTempMobile }
+	const { setTempMobile, setMobile } = $getState().myInfo
+    const data = { username: usernameValue , pwd: pwdValue, mobile: setMobile || setTempMobile }
     Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.registerVerify , (data))
         .then((response) => {

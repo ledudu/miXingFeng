@@ -124,9 +124,10 @@ document.addEventListener("jpush.receiveMessage", onReceiveMessage, false);
 function uploadRegisterID(){
 	// upload Registration ID
 	const username = $getState().login.username
+	const mobile = $getState().myInfo.setMobile
 	logger.info(`localStorage.getItem("registrationID")`, localStorage.getItem("registrationID"))
 	// if (registrationID !== localStorage.getItem("registrationID")) {
-			const data = { registrationID, username }
+			const data = { registrationID, username: username || mobile }
 			logger.info("uploadRegistrationID", data)
 			axios.post(HTTP_URL.uploadRegistrationID, data)
 				.then((response) => {

@@ -49,7 +49,7 @@ class UserProfile extends React.Component {
 		if(this.props.isFromSignPage){
 			backToPreviousPage(this, "/main/sign", {specialBack: true});
 		} else {
-			backToPreviousPage(this, "/main/sign", {specialBack: true});
+			backToPreviousPage(this, "/main/myInfo", {specialBack: true});
 		}
 	}
 
@@ -65,13 +65,15 @@ class UserProfile extends React.Component {
         window.goRoute(this, "/set_nickname");
 	}
 
+	setUsernameFunc = () => {
+		if(!this.props.username){
+			window.goRoute(this, "/set_username");
+		}
+	}
+
 	setEmailFunc = () => {
 		window.goRoute(this, "/set_email");
 	}
-
-    setMobileFunc = () => {
-        window.goRoute(this, "/set_mobile");
-    }
 
     setSignatureFunc = () => {
         window.goRoute(this, "/set_signature");
@@ -115,8 +117,7 @@ class UserProfile extends React.Component {
 
     render() {
 		let { headPicAddress } = this.state;
-        let { username, setNickname, setMobile, setSignature, setSex, setBirthday, setHeadPic, token, setAddress, replaceHeadPic, setEmail } = this.props;
-		username = (username && token) ? username : "";
+        const { username, setNickname, setMobile, setSignature, setSex, setBirthday, setHeadPic, setAddress, replaceHeadPic, setEmail } = this.props;
 		if(replaceHeadPic){
 			headPicAddress = window.serverHost + "/" + setHeadPic
 		}
@@ -134,7 +135,7 @@ class UserProfile extends React.Component {
                         <List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.setNicknameFunc} extra={setNickname} >
                             <span style={{ marginLeft: 12 }}>昵称</span>
                         </List.Item>
-                        <List.Item style={{height: "60px"}} extra={username} >
+                        <List.Item style={{height: "60px"}} arrow={username ? "" : "horizontal"} onClick={this.setUsernameFunc} extra={username} >
                             <span style={{ marginLeft: 12 }}>账号</span>
                         </List.Item>
 						<List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.setEmailFunc} extra={setEmail} >
@@ -143,7 +144,7 @@ class UserProfile extends React.Component {
                         <Picker data={sexData} cols={1} extra={setSex} onOk={sex => this.saveUserInfo("sex", sex)}>
                             <List.Item className="select-sex">性别</List.Item>
                         </Picker>
-                        <List.Item style={{height: "60px"}} arrow="horizontal" onClick={this.setMobileFunc} extra={setMobile} >
+                        <List.Item style={{height: "60px"}} extra={setMobile} >
                             <span style={{ marginLeft: 12 }}>手机号</span>
                         </List.Item>
                         <DatePicker mode="date" title="选择日期" extra={setBirthday} minDate={minDate} maxDate={maxDate} onChange={date => this.saveUserInfo("birthday", date)} >

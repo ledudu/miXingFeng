@@ -101,12 +101,12 @@ export const setOthersSignInfo = (data) => {
 	}
 	window.logger.info(`setOthersSignInfo signedArray`, signedArray.length);
 	window.logger.info(`setOthersSignInfo unsignedArray`, unsignedArray.length);
-	const alreadySignUpPersons = _.orderBy(signedArray, ['username'], ['desc'])
-	const notSignUpPersons = _.orderBy(unsignedArray, ['username'], ['desc'])
-	window.$dispatch(updateAlreadySignUpPersons(alreadySignUpPersons))
-	window.$dispatch(updateNotSignUpPersons(notSignUpPersons))
-	localStorage.setItem("alreadySignUpPersons", JSON.stringify(alreadySignUpPersons))
-	localStorage.setItem("notSignUpPersons", JSON.stringify(notSignUpPersons))
+	// const alreadySignUpPersons = _.orderBy(signedArray, ['username'], ['desc'])
+	// const notSignUpPersons = _.orderBy(unsignedArray, ['username'], ['desc'])
+	window.$dispatch(updateAlreadySignUpPersons(signedArray))
+	window.$dispatch(updateNotSignUpPersons(unsignedArray))
+	localStorage.setItem("alreadySignUpPersons", JSON.stringify(signedArray))
+	localStorage.setItem("notSignUpPersons", JSON.stringify(unsignedArray))
 }
 
 export const getGreeting = () => {
@@ -438,15 +438,14 @@ export const logoutApp = async(self) => {
         })
 }
 
-export const autoLogin = function(token){
+export const autoLogin = function(token, self){
 	return new Promise((res,rej) => {
 		const data = Object.assign({}, { token })
 		return axios.post(HTTP_URL.tokenLogin, data)
 			.then((response) => {
 				let result = response.data.result;
-				if (result.token && result.username) {
-					let userProfile = result.userProfile || {};
-					dealtWithLoginIn(result, userProfile)
+				if (result.token) {
+					dealtWithLoginIn(result, result.userProfile, self)
 					res()
 				} else if (result === 'token_expired') {
 					window.logger.warn("身份已过期,请重新登录");
@@ -1626,7 +1625,7 @@ export const hideMusicController = () => {
 export const saveMusicToLocal = (
 	musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self
 ) => {
-	if(!filenameOrigin || !musicSrc) return
+	if(!filenameOrigin) return
 	const { downloadingMusicItems, downloadedMusicList } = $getState().fileServer
 	const { token } = $getState().login
 	let isDownloading = false, musicDownloaded=false

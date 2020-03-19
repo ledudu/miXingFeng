@@ -250,6 +250,7 @@ class Sign extends Component {
 						retrieveLastLoginTime();  //get last sign time
 					}
 				}
+				logger.info("sign isFromLoginPage", isFromLoginPage)
 				if(isFromLoginPage){
 					retrieveOthers();
 					retrieveLastLoginTime();

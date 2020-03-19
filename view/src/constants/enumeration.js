@@ -1,7 +1,7 @@
 export const CONSTANT = {
 	statusBarColor: "#81AFED",
 	toastLoadingTime: 900,
-	toastTime: 2,
+	toastTime: 1,
 	strokeDashoffset: 314,
 	musicOriginal: {
 		netEaseCloud: "netEaseCloud",
