@@ -91,7 +91,7 @@
 			"cordova-plugin-screen-orientation": {},
 			"cordova-plugin-insomnia": {},
 			"jg-jverification-cordova-plugin": {
-				"APP_KEY": "6373dbebb829d2867eab0878",
+				"APP_KEY": "put your key",
 				"CHANNEL": "developer-default"
 			}
 		}
