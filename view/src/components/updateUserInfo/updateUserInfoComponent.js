@@ -80,6 +80,9 @@ class UpdateUserInfoComponent extends React.Component {
 					} else if(result.response === "email_existed"){
 						Toast.hide();
 						alertDialog("此邮箱已绑定到其他账号，请更换邮箱后重试")
+					} else if(result.response === "username_existed"){
+						Toast.hide();
+						alertDialog("此用户名已被注册，请更换后重试")
 					} else if(result.response === "send_email_success"){
 						Toast.hide();
 						alert("验证码已发送邮箱，请注意查收")

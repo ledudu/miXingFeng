@@ -14,7 +14,7 @@ class SearchPosition extends Component {
 			positionXY: props.currentXYPosition || [0, 0],
 			oppositePositionText: "",
 			oppositeXYPosition: [0, 0],
-			searchString: props.token ? props.username : "",
+			searchString: props.token ? (props.username || props.setMobile) : "",
 			autoSuggestList: [],
 			isSearching: false,
 			status: "在线",
@@ -23,7 +23,8 @@ class SearchPosition extends Component {
     }
 
     componentDidMount(){
-        if(this.props.username){
+		const { setMobile, username } = this.props
+        if(username || setMobile){
 			this.searchPosition()
 		} else {
 			this.setState({
@@ -34,22 +35,22 @@ class SearchPosition extends Component {
     }
 
     searchPosition = () => {
-		if(!this.props.token) return alert("请先登录")
+		const { token, username, setMobile } = this.props
+		if(!token) return alert("请先登录")
 		const { searchString } = this.state
 		this.setState({
 			isSearching: true
 		})
-		const username = searchString || this.props.username
-        return searchFunc(username)
+        return searchFunc(searchString)
             .then(result => {
 				this.setState({
 					positionText: result.positionText || "位置不可用",
 					oppositeXYPosition: result.currentXYPosition || [0, 0],
 					isSearching: false,
 					status: result.status,
-					typedUsername: username
+					typedUsername: searchString
 				}, () => {
-					if(this.props.username === searchString) {
+					if(username === searchString || setMobile === searchString) {
 						this.updateBaiduMap()
 					} else {
 						if(result.positionText && result.positionText !== "位置不可用" && result.currentXYPosition && result.currentXYPosition[0] !== 0){
@@ -138,7 +139,7 @@ class SearchPosition extends Component {
 
 	updateBaiduMap = () => {
 		let {positionText, positionXY, searchString, oppositeXYPosition} = this.state;
-		let {username, currentProvince} = this.props;
+		let {username, currentProvince, setMobile} = this.props;
 		if(positionXY[0] === 0 && positionXY[1] === 0) {
 			if(oppositeXYPosition[0] !== 0 && oppositeXYPosition[1] !== 0){  //user has no position, opposite has position
 				username = searchString
@@ -155,7 +156,7 @@ class SearchPosition extends Component {
 		}
 		let map = new BMap.Map('map_canvas');
 		map.enableScrollWheelZoom();
-		if(searchString === username){
+		if(searchString === username || searchString === setMobile){
 			const point = new BMap.Point(positionXY[0], positionXY[1]);
 			map.centerAndZoom(point, 12);
 			var myGeo = new BMap.Geocoder();
@@ -226,7 +227,8 @@ const mapStateToProps = state => {
 		token: state.login.token,
 		currentLocation: state.common.currentLocation,
 		currentXYPosition: state.common.currentXYPosition,
-		currentProvince: state.common.currentProvince
+		currentProvince: state.common.currentProvince,
+		setMobile: state.myInfo.setMobile
 	};
 };
 

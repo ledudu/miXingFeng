@@ -10,7 +10,7 @@ export const searchFunc = (username="", slice) => {
 	let url = ""
 	if(!slice){
 		url =  HTTP_URL.searchPosition + username + `&positiveUsername=${$getState().login.userId}`;
-		if(username === $getState().login.username){
+		if(username === $getState().login.username || username === $getState().myInfo.setMobile ){
 			const obj = {
 				positionText: $getState().common.currentLocation,
 				status: "在线"

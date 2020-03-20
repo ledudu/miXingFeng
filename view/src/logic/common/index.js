@@ -419,7 +419,6 @@ export const logoutApp = async(self) => {
 			$dispatch(updateSignUpStatus(false));
 			$dispatch(updateLogOutFlag(true));
 			$dispatch(updateSetNickname(""));
-			$dispatch(updateSetMobile(""));
 			$dispatch(updateSignature(""));
 			$dispatch(updateSetSex(""));
 			$dispatch(updateSetBirthday(""));
@@ -438,14 +437,14 @@ export const logoutApp = async(self) => {
         })
 }
 
-export const autoLogin = function(token, self){
+export const autoLogin = function(token){
 	return new Promise((res,rej) => {
 		const data = Object.assign({}, { token })
 		return axios.post(HTTP_URL.tokenLogin, data)
 			.then((response) => {
 				let result = response.data.result;
 				if (result.token) {
-					dealtWithLoginIn(result, result.userProfile, self)
+					dealtWithLoginIn(result, result.userProfile)
 					res()
 				} else if (result === 'token_expired') {
 					window.logger.warn("身份已过期,请重新登录");

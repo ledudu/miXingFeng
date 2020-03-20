@@ -57,7 +57,7 @@ export default class Register extends Component {
                 <NavBar centerText="填写信息" backToPreviousPage={this.backToMain} />
                 <div className="input-content" style={{marginTop: "10px"}}>
                     <div className="content">
-                        <input type="text" id="register-username" name="register-username" placeholder="请输入用户名" className="form" size="26" onKeyDown={(event) => this.registerKeyDownEvent(event)} />
+                        <input type="text" id="register-username" name="register-username" placeholder="用户名可用于登录" className="form" size="26" onKeyDown={(event) => this.registerKeyDownEvent(event)} />
 						<div className="new-password-text">用户名</div>
                     </div>
                 </div>

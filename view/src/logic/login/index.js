@@ -32,7 +32,7 @@ import { updateDeviceInfo, updateAllowShareMyNickname } from "../../ducks/common
 import { saveHeadPicToLocal } from "../myInfo";
 import { updateMusicCollection } from "../../ducks/fileServer";
 
-export const loginApp = (that, username, password) => {
+export const loginApp = (username, password) => {
     let loginFlag;
     if(loginFlag) return;
     loginFlag = false;
@@ -61,7 +61,7 @@ export const loginApp = (that, username, password) => {
             } else if(response.data.result.token){
                 const result = response.data.result;
 				$dispatch(updateIsFromLoginPage(true));
-				dealtWithLoginIn(result, result.userProfile , that)
+				dealtWithLoginIn(result, result.userProfile)
 				Toast.hide();
             } else {
 				alert("")
@@ -76,11 +76,12 @@ export const loginApp = (that, username, password) => {
         })
 }
 
-export const dealtWithLoginIn = (result, userProfile={}, that) => {
+export const dealtWithLoginIn = (result, userProfile={}) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
-	localStorage.setItem("username", result.username)
+	localStorage.setItem("username", (result.username || ""))
+	localStorage.setItem("mobile", result.mobile)
 	localStorage.setItem("favoriteSongs", JSON.stringify(favoriteSongs.slice(0, 50)))
 	localStorage.setItem("role", result.role)
 	$dispatch(updateUsername(result.username || ""));
@@ -128,31 +129,35 @@ export const dealtWithLoginIn = (result, userProfile={}, that) => {
 	window.localStorage.setItem("userId", newOne);
 	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
-	if(that){
-		if(window.isCordova){
-			let dataSaved = Object.assign({}, {"username": result.username, "mobile": result.mobile, "token": result.token});
-			dataSaved = JSON.stringify(dataSaved);
-			let b = new window.Base64();
-			dataSaved = b.encode(dataSaved);
-			writeFile(dataSaved, 'sign.txt', false);
-		}
-		axios.post(HTTP_URL.replaceSocketLink, data)
-			.then(res => {
-				if (res.data.result.response === "success"){
-					logger.info("login success and reconnect websocket")
-					reconnectSocket()
-				} else {
-					alertDebug("replaceSocketLink fail")
-					logger.error("replaceSocketLink err", res.data.result)
-				}
-			})
-			.catch(err => {
-				logger.error("loginApp replaceSocketLink", err.stack || err.toString())
-			})
-			.finally(() => {
-				window.goRoute(that, "/main/sign");
-			})
+	if(window.isCordova){
+		logger.info('result1', result)
+		let dataSaved = Object.assign({}, {"username": (result.username || result.mobile), "token": result.token});
+		dataSaved = JSON.stringify(dataSaved);
+		let b = new window.Base64();
+		dataSaved = b.encode(dataSaved);
+		writeFile(dataSaved, 'sign.txt', false);
 	}
+	if(original !== newOne){
+		axios.post(HTTP_URL.replaceSocketLink, data)
+		.then(res => {
+			if (res.data.result.response === "success"){
+				logger.info("login success and reconnect websocket")
+				reconnectSocket()
+			} else {
+				alertDebug("replaceSocketLink fail")
+				logger.error("replaceSocketLink err", res.data.result)
+			}
+		})
+		.catch(err => {
+			logger.error("loginApp replaceSocketLink", err.stack || err.toString())
+		})
+		.finally(() => {
+			if(window.getRoute() !== "/main/sign"){
+				window.goRoute(null, "/main/sign");
+			}
+		})
+	}
+
 }
 
 export const registerUsername = (that) => {

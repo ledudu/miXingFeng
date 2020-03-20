@@ -141,7 +141,12 @@ export const searchShellCommand = (self, command) => {
 			})
 			logger.error('err', err)
             return networkErr(err, `rpcCall data: ${data}`);
-        })
+		})
+		.finally(() => {
+			self.setState({
+				isSearching: false
+			})
+		})
 }
 
 export const showHeadPic = (setHeadPic, headPicAddress, setHeadPicName) => {

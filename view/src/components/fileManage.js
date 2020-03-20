@@ -415,8 +415,8 @@ class FileManage extends React.Component {
 
 	dealWithFileUploadTime = (date) => {
 		const { original } = this.props;
-		if(!date) return
-		if(original === "fileDownloading" || original === "fileFinished") return
+		if(!date) return ""
+		if(original === "fileDownloading" || original === "fileFinished") return ""
 		return " " + date.split(" ")[0]
 	}
 

@@ -9,14 +9,14 @@ export default class TypeShell extends React.Component {
 		super(props)
 		this.state={
 			isSearching: false,
-			value: $getState().login.token ? "tail -100 server.log" : "",
+			value: props.token ? "tail -100 miXingFeng.log" : "",
 			shellResponse: ""
 		}
 	}
 
 	componentDidMount(){
-		const { username, token } = $getState().login;
-		if(username && token) {
+		const { token } = $getState().login;
+		if(token) {
 			this.search()
 		}
 	}
@@ -46,7 +46,7 @@ export default class TypeShell extends React.Component {
                     <div className="submit-shell">
                         <Button type="primary" className="button" onClick={this.search}>{isSearching ? '查询中...' : '查询'}</Button>
                     </div>
-					<div className="shell-tips">普通用户只可以输入'free -h'或'tail -100 server.log'或‘cat error.log’</div>
+					<div className="shell-tips">普通用户只可以输入'free -h'或'tail -100 server.log'或‘cat error.log’或'tail -100 miXingFeng.log'</div>
 					{shellResponse && <div className="line-out"></div>}
 					<div className="shell-response" dangerouslySetInnerHTML={{ __html: shellResponse }}></div>
                 </div>

@@ -11,7 +11,7 @@ class SearchUserHistory extends Component {
         super(props)
         this.state = {
 			recordList: [],
-			searchString: props.token ? props.username : "",
+			searchString: props.token ? (props.username || props.setMobile) : "",
 			autoSuggestList: [],
 			clickShowMoreCount: 1,
 			showMoreText: "查看更多"
@@ -19,8 +19,8 @@ class SearchUserHistory extends Component {
     }
 
     componentDidMount(){
-		const { username, token } = this.props
-        if(username && token){
+		const { token } = this.props
+        if(token){
             this.setState({
                 recordList: [{date: '正在查询...'}]
             }, this.searchRecord)
@@ -29,7 +29,7 @@ class SearchUserHistory extends Component {
 
     searchRecord = (slice=30) => {
 		if(!this.props.token) return alert("请先登录")
-		const username = this.state.searchString ? this.state.searchString : this.props.username
+		const username = this.state.searchString ? this.state.searchString : (this.props.username || this.props.setMobile)
         return searchFunc(username, slice)
             .then(result => {
 				if(!result){
@@ -193,7 +193,8 @@ const mapStateToProps = state => {
 	return {
 		searchString: state.searchUserHistory.searchString,
 		username: state.login.username,
-		token: state.login.token
+		token: state.login.token,
+		setMobile: state.myInfo.setMobile
 	};
 };
 

@@ -13,8 +13,8 @@ class Login extends Component {
     constructor(props){
         super(props);
         this.state = {
-			username: this.props.username || "",
-			password: this.props.password || "",
+			username: props.username || props.setMobile || props.setEmail || "",
+			password: props.password || "",
 			showAsPassword: "password"
 		}
 		window.$dispatch(updateIsFromLoginPage(true));
@@ -44,11 +44,6 @@ class Login extends Component {
 
     componentDidMount(){
 		document.addEventListener("deviceready", this.listenBackButton, false);
-		const { username, password } = this.props;
-		this.setState({
-			username,
-			password
-		})
 		$('.login-btn .button').on("touchstart", function () {
 			$(this).addClass("active");
 		});
@@ -80,7 +75,7 @@ class Login extends Component {
     }
 
     login = () => {
-        loginApp(this, this.state.username, this.state.password);
+        loginApp(this.state.username, this.state.password);
 	}
 
 	backKeyDownToPrevious = () => {
@@ -161,7 +156,7 @@ class Login extends Component {
 					.then((response) => {
 						const data = response.data;
 						if(data.status === 'SUCCESS'){
-							dealtWithLoginIn(data.result, {}, this)
+							dealtWithLoginIn(data.result, {})
 						} else {
 							logger.error("HTTP_URL.thirdLogin data", data)
 							alert("登录异常，请稍后重试")
@@ -315,6 +310,8 @@ const mapStateToProps = state => {
 		token: state.login.token,
 		logOutFlag: state.login.logOutFlag,
 		userId: state.login.userId,
+		setMobile: state.myInfo.setMobile,
+		setEmail: state.myInfo.setEmail
     };
 };
 
