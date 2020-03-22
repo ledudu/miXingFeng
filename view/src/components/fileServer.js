@@ -15,7 +15,7 @@ class FileServer extends React.Component {
 	}
 
     componentDidMount(){
-		this.el = document.getElementsByClassName('file-to-upload')[0];
+		this.el = this.fileToUpload
 		this.el.addEventListener('change', this.handleMD5, false);
 		this.getMD5Time = 0
     }
@@ -64,7 +64,7 @@ class FileServer extends React.Component {
 			if(this.currentUploadFileNum === undefined || this.currentUploadFileNum === NaN){
 				this.currentUploadFileNum = 0
 			}
-			const filename = $('.file-to-upload')[0].files[this.currentUploadFileNum].name;
+			const filename = this.fileToUpload.files[this.currentUploadFileNum].name;
 			let overwriteSameFilename = false
 			for(let item of fileList){
 				if(item.filename === filename){
@@ -210,7 +210,7 @@ class FileServer extends React.Component {
                 <StatusBar />
                 <h2 className='head'> 文件列表 </h2>
                 <div className="upload-area">
-                    <input type="file" className="file-to-upload" style={{"backgroundImage": "none"}} />
+                    <input type="file" className="file-to-upload" ref={ref => this.fileToUpload = ref} style={{"backgroundImage": "none"}} />
                     <div className="upload">
                         <input type="button" name="submit" value={fileSubmitStatus} onClick={this.uploadFiles} />
                         <div className='file-progress'>{fileUploadProgress}</div>

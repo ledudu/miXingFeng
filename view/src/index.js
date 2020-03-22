@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from "jquery";
 import _ from "lodash";
 import axios from 'axios';
 import { Toast } from "antd-mobile";
@@ -22,15 +21,20 @@ import './themes/css/index.less';
 window.serverHost = window.config.debug ? (window.config.domain + ":" + window.config.port) :  window.config.domainUrl
 window.isDevModel = window.config.dev
 const allowReadAndWriteFile = localStorage.getItem("allowReadAndWriteFile")
-if(allowReadAndWriteFile){
-	window.logger = new Logger({
-		folder: "miXingFeng",
-		column: "log",
-		filename: "miXingFeng.txt"
-	})
+if(window.isCordova){
+	if(allowReadAndWriteFile){
+		window.logger = new Logger({
+			folder: "miXingFeng",
+			column: "log",
+			filename: "miXingFeng.txt"
+		})
+	} else {
+		// 安装后首次打开需要有文件读写权限才能记录日志,没得到权限之前使用console
+		window.logger = console
+	}
 } else {
-	// 安装后首次打开需要有文件读写权限才能记录日志,没得到权限之前使用console
-	window.logger = console
+	// h5端打印log带上时间
+	window.logger = new Logger()
 }
 
 //apply Reducer
@@ -45,7 +49,6 @@ window.store = store;
 window.$dispatch = store.dispatch;
 window.$getState = store.getState;
 window.$subscribe = store.subscribe;
-window.$ = $;
 window._ = _;
 window.axios = axios;
 window.alert = (text) => {

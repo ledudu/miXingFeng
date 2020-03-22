@@ -11,6 +11,7 @@ import { checkEmail, checkMobilePhone } from "../logic/common"
 export default class ForgetPassword extends Component {
 
     componentDidMount(){
+		this.emailInput.focus()
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 
@@ -86,6 +87,7 @@ export default class ForgetPassword extends Component {
 					})
 					.catch(err => {
 						this.startToSubmit = false
+						Toast.hide();
 						return networkErr(err, `forgetPassword`);
 					})
 			}

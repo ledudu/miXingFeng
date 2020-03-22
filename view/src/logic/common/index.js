@@ -8,15 +8,17 @@ import {
 	updateAllowGetPosition,
 	updateSharedNicknames
 } from "../../ducks/common"
-import { writeFile,
+import {
 	networkErr,
 	saveFileToLocal,
 	updateDownloadingStatus,
 	checkFileWritePriority,
 	requestFileWritePriority,
 	debounceOpt,
+	generateRandomUserId,
+	confirm,
 } from "../../services/utils";
-import { updateToken, updateLogOutFlag, updateUserId } from "../../ducks/login";
+import { updateToken, updateLogOutFlag, updateUserId, updateUsername } from "../../ducks/login";
 import { updateLastSignUpTime, updateAlreadySignUpPersons, updateNotSignUpPersons, updateSignUpStatus, updateSignedFlag } from "../../ducks/sign";
 import { updateSetNickname,
 	updateSetMobile,
@@ -25,6 +27,7 @@ import { updateSetNickname,
 	updateSetBirthday,
 	updateSetHeadPic,
 	updateSetRole,
+	updateSetEmail,
 } from "../../ducks/myInfo";
 import {
 	updateFileList,
@@ -53,6 +56,7 @@ import { dealtWithLoginIn } from "../../logic/login"
 import { removeMusicDataByIndexFromIndexDB } from "../../services/indexDBMusic"
 import { CONSTANT } from "../../constants/enumeration"
 import { addRecentMusicDataFromIndexDB, removeRecentMusicDataByIndexFromIndexDB } from "../../services/indexDBRecentMusic"
+import { updateSearchString } from "../../ducks/searchUserHistory";
 
 const logger = window.logger || console;
 let receiveServerSocketPong = false;
@@ -107,47 +111,6 @@ export const setOthersSignInfo = (data) => {
 	window.$dispatch(updateNotSignUpPersons(unsignedArray))
 	localStorage.setItem("alreadySignUpPersons", JSON.stringify(signedArray))
 	localStorage.setItem("notSignUpPersons", JSON.stringify(unsignedArray))
-}
-
-export const getGreeting = () => {
-	//update clock time
-	if (!window.clockTimer && $('#now-time').length) {
-		logger.info("window.clockTimer", window.clockTimer)
-		window.clockTimer = true
-		clockFunc()
-		window.clockIntervalTimer = setInterval(() => {
-			clockFunc()
-		}, 1000)
-	}
-}
-
-function clockFunc(){
-	let minute = new Date().getMinutes(),
-		hour = new Date().getHours();
-	if (hour < 6) {
-		$(".greetings").html("凌晨好！&nbsp;")
-	} else if (hour < 8) {
-		$(".greetings").html("早上好！&nbsp;")
-	} else if (hour < 11) {
-		$(".greetings").html("上午好！&nbsp;")
-	} else if (hour < 14) {
-		$(".greetings").html("中午好！&nbsp;")
-	} else if (hour < 17) {
-		$(".greetings").html("下午好！&nbsp;")
-	} else if (hour < 19) {
-		$(".greetings").html("傍晚好！&nbsp;")
-	} else if (hour < 24) {
-		$(".greetings").html("晚上好！&nbsp;")
-	}
-	if (minute < 10) minute = "0" + minute;
-	if (hour < 10) hour = "0" + hour;
-	$('#now-time .hour').html(hour);
-	$('#now-time .minute').html(minute);
-	if ($('#now-time .middle').html() === ":") {
-		$('#now-time .middle').html("&nbsp;")
-	} else {
-		$('#now-time .middle').html(":")
-	}
 }
 
 //cordova version
@@ -205,7 +168,6 @@ export const getLocation = () => {
 		window.watchID = navigator.geolocation.watchPosition(showPosition, showError, { enableHighAccuracy: true });
 	} else {
 		window.logger.info('浏览器不支持地理定位。')
-		// $("#position-location").html("浏览器不支持地理定位。");
 	}
 }
 
@@ -342,31 +304,28 @@ function showPosition(position) {
 		var latlon = position.coords.latitude + ',' + position.coords.longitude;
 		window.logger.info(`latlon`, latlon);
 		//baidu
-		var url = `http://api.map.baidu.com/geocoder/v2/?ak=p8bpCj4slGspApTOUQsVng7KsPtVI2Bo&callback=renderReverse&location=${latlon}&output=json&pois=0`;
-		$.ajax({
-			type: "GET",
-			dataType: "jsonp",
-			url: url,
-			beforeSend: function () {
-				// $("#position-location").html('正在定位...');
-			},
-			success: function (json) {
-				if (json.status === 0) {
-					try{
-						window.logger.info(`您当前的位置`, json.result);
-						window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
-						window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
-						window.$dispatch(updateCurrentLocation(json.result.formatted_address));
-					} catch (err){
-						logger.error('showPosition err', err)
-					}
-				}
-			},
-			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				window.logger.error(`地址位置获取失败`, JSON.stringify(latlon));
-				// $("#position-location").html(latlon+"地址位置获取失败");
-			}
-		});
+		const url = `http://api.map.baidu.com/geocoder/v2/?ak=p8bpCj4slGspApTOUQsVng7KsPtVI2Bo&callback=renderReverse&location=${latlon}&output=json&pois=0&callback=${handLeResponse}`;
+		// return axios.get(url)
+		// 	.then((json) => {
+		// 		if (json.status === 0) {
+		// 			try{
+		// 				window.logger.info(`您当前的位置`, json.result);
+		// 				window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
+		// 				window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
+		// 				window.$dispatch(updateCurrentLocation(json.result.formatted_address));
+		// 			} catch (err){
+		// 				logger.error('showPosition err', err)
+		// 			}
+		// 		}
+		// 	})
+		// 	.catch(err => {
+		// 		window.logger.error(`地址位置获取失败`, JSON.stringify(latlon), err);
+		// 	})
+		function handLeResponse(success, error){
+			console.log("success", success)
+			console.log("error", error)
+		}
+		loadScript(url)
 }
 
 function showError (error) {
@@ -374,67 +333,49 @@ function showError (error) {
 	switch(error.code) {
 		case error.PERMISSION_DENIED:
 			window.logger.warn("定位失败,用户拒绝请求地理定位")
-			// $("#position-location").html("定位失败,用户拒绝请求地理定位");
 			break;
 		case error.POSITION_UNAVAILABLE:
 			window.logger.warn("定位失败,位置信息是不可用")
-			// $("#position-location").html("定位失败,位置信息是不可用");
 			break;
 		case error.TIMEOUT:
 			window.logger.warn("定位失败,请求获取用户位置超时")
-			// $("#position-location").html("定位失败,请求获取用户位置超时");
 			break;
 		case error.UNKNOWN_ERROR:
 			window.logger.warn("定位失败,定位系统失效")
-			// $("#position-location").html("定位失败,定位系统失效");
 			break;
 		default:
 			window.logger.warn("发生了错误!")
-			// $("#position-location").html("发生了错误!");
 			break;
 	}
 }
 
 export const logoutApp = async(self) => {
-	let { username } = window.$getState().login;
-    let data = Object.assign({}, { username })
-    data = JSON.stringify(data)
-    let b = new window.Base64();
-    data = b.encode(data);
-    window.logger.info(`logout`, data);
-    let promiseObj = function () {
-		let { token } = window.$getState().login;
-        return new Promise(res => {
-            window.localStorage.removeItem("tk", token);
-            res()
-        })
-    }
-    let writeFileSign = window.isCordova ? writeFile(data, "sign.txt", false) : promiseObj();
-    return writeFileSign
-        .then(() => {
-			$dispatch(updateToken(""));
-			$dispatch(updateLastSignUpTime(""));
-			$dispatch(updateAlreadySignUpPersons([]));
-			$dispatch(updateNotSignUpPersons([]));
-			$dispatch(updateSignUpStatus(false));
-			$dispatch(updateLogOutFlag(true));
-			$dispatch(updateSetNickname(""));
-			$dispatch(updateSignature(""));
-			$dispatch(updateSetSex(""));
-			$dispatch(updateSetBirthday(""));
-			$dispatch(updateSetHeadPic(""));
-			$dispatch(updateSignedFlag(""));
-			$dispatch(updateSetRole(""));
-			$dispatch(updateMusicCollection([]));
-			$dispatch(updateSharedNicknames([]))
-			localStorage.removeItem("lastSignUpTime")
-			localStorage.removeItem("alreadySignUpPersons")
-			localStorage.removeItem("notSignUpPersons")
-			localStorage.removeItem("userProfile")
-			localStorage.removeItem("role")
-			localStorage.removeItem("favoriteSongs")
-			goRoute(self, "/login");
-        })
+	window.localStorage.removeItem("tk");
+	$dispatch(updateToken(""));
+	$dispatch(updateLastSignUpTime(""));
+	$dispatch(updateAlreadySignUpPersons([]));
+	$dispatch(updateNotSignUpPersons([]));
+	$dispatch(updateSignUpStatus(false));
+	$dispatch(updateLogOutFlag(true));
+	$dispatch(updateSetNickname(""));
+	$dispatch(updateSignature(""));
+	$dispatch(updateSetSex(""));
+	$dispatch(updateSetBirthday(""));
+	$dispatch(updateSetHeadPic(""));
+	$dispatch(updateSignedFlag(""));
+	$dispatch(updateSetRole(""));
+	$dispatch(updateSetEmail(""));
+	$dispatch(updateSetMobile(""));
+	$dispatch(updateUsername(""));
+	$dispatch(updateMusicCollection([]));
+	$dispatch(updateSharedNicknames([]))
+	localStorage.removeItem("lastSignUpTime")
+	localStorage.removeItem("alreadySignUpPersons")
+	localStorage.removeItem("notSignUpPersons")
+	localStorage.removeItem("userProfile")
+	localStorage.removeItem("role")
+	localStorage.removeItem("favoriteSongs")
+	goRoute(self, "/login");
 }
 
 export const autoLogin = function(token){
@@ -508,17 +449,13 @@ export const reconnectAndSend = (log="websocket interval check") => {
 }
 
 export const initWebsocket = () => {
-	let userId = 'no-ls-' + Math.random().toString(36).slice(2, 6)
-	if('localStorage' in window){
-		if(window.localStorage.getItem("userId")){
-			userId = window.localStorage.getItem("userId")
-			$dispatch(updateUserId(userId))
-		} else {
-			userId = "ls" + Math.random().toString(36).slice(2, 6)
-			window.localStorage.setItem("userId", userId);
-			$dispatch(updateUserId(userId))
-		}
+	let userId = generateRandomUserId()
+	if(window.localStorage.getItem("userId")){
+		userId = window.localStorage.getItem("userId")
+	} else {
+		window.localStorage.setItem("userId", userId);
 	}
+	$dispatch(updateUserId(userId))
 	if(window.WebSocket){
 		window.ws = new WebSocket(window.config.debug ? `ws://${window.config.host}:${window.config.socketPort}` : `wss://${window.config.socketUrl}`);
 		window.ws.onopen = () => {
@@ -1401,7 +1338,7 @@ export const checkToShowPlayController = () => {
 			})
 			if(needDisplay){
 				setTimeout(() => {
-					$("#root .container .main-content").css("height", "calc(100vh - 66px)")
+					document.querySelector("#root .container .main-content").style.height = "calc(100vh - 66px)"
 					window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
 				}, 100)
 			} else {
@@ -1617,7 +1554,7 @@ export const getFilenameWithoutExt = (filename) => {
 }
 
 export const hideMusicController = () => {
-	$("#root .container .main-content").css("height", "100vh")
+	document.querySelector("#root .container .main-content").style.height = "100vh"
 	window.musicController && window.musicController.style && (window.musicController.style.display = "none")
 }
 
@@ -1773,4 +1710,92 @@ export const logActivity = (data={}) => {
 			logger.error("logActivity err", err)
 			alertDebug('logActivity err')
 		})
+}
+
+export const searchFunc = (username="", slice) => {
+    if(!username) return Promise.resolve();
+    window.logger.info("userClick searchString", username);
+	window.$dispatch(updateSearchString(username));
+	let url = ""
+	if(!slice){
+		url =  HTTP_URL.searchPosition.format({username, positiveUsername: $getState().login.username})
+		if(username === $getState().login.username || username === $getState().myInfo.setMobile){
+			const obj = {
+				positionText: $getState().common.currentLocation,
+				status: "在线"
+			}
+			return Promise.resolve(obj);
+		}
+	} else {
+		url = HTTP_URL.searchRecord.format({username, slice})
+	}
+    return axios.get(url)
+        .then(response => {
+			if(response.data.result && response.data.result.signData){
+				window.logger.info("searchRecord  response.data", response.data.result.signData.length);
+			}
+            return Promise.resolve(response.data.result);
+        })
+        .catch(err => {
+            networkErr(err, `searchFunc url: ${url}`);
+        })
+}
+
+export const updateValueFromAutosuggest = (value, self) => {
+	self.setState({
+		ulPadding: "0",
+		ulDisplay: "none",
+		searchString: value,
+		autoSuggestList: []
+	});
+	let list = []
+	if(!value) return;
+	if (self.timer) clearTimeout(self.timer);
+	self.timer = setTimeout(getAutoSuggest, 500);
+	function getAutoSuggest(){
+		axios.get(HTTP_URL.signRecordTypeahead.format({query: value}))
+			.then((msg) => {
+				const { response } = msg.data.result
+				if (msg.data.status == "SUCCESS" && response.length) {
+					logger.info("signRecordTypeahead result.response", response)
+					if(Array.isArray(response)){
+						response.forEach(item => {
+							list.push(item);
+						})
+					}
+					self.setState({
+						autoSuggestList: list
+					}, () => {
+						self.setState({
+							ulPadding: "4px 8px",
+							ulDisplay: "block"
+						});
+					})
+				} else {
+					if(!response.length){
+						self.setState({
+							autoSuggestList: list
+						}, () => {
+							self.setState({
+								ulPadding: "0",
+								ulDisplay: "none"
+							});
+						})
+						return;
+					}
+				}
+			})
+			.catch(err => {
+				logger.error("SearchUserHistory getAutoSuggest error", err.stack || err.toString())
+				return networkErr(err, `SearchUserHistory signRecordTypeahead query: ${value}`);
+			})
+	}
+}
+
+export const loadScript = (url) => {
+    loadScript.mark = 'load';
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = url;
+    document.body.appendChild(script);
 }

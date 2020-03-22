@@ -17,7 +17,7 @@ class SetNickname extends React.Component {
 
     render() {
         let { setNickname } = this.props;
-        setNickname = setNickname ? setNickname : "最多10个字";
+        setNickname = setNickname ? setNickname : "请输入昵称,最多10个字";
         return (
             <div>
                 <NavBar centerText="设置昵称" backToPreviousPage={this.backToMainPage} />

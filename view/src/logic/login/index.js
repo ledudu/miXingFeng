@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Toast } from "antd-mobile";
 import { HTTP_URL } from "../../constants/httpRoute";
-import { alert, writeFile, alertDialog } from "../../services/utils";
+import { alert, alertDialog, replaceSocketLink } from "../../services/utils";
 import { updatePassword,
 	updateUsername,
 	updateToken,
@@ -32,24 +32,29 @@ import { updateDeviceInfo, updateAllowShareMyNickname } from "../../ducks/common
 import { saveHeadPicToLocal } from "../myInfo";
 import { updateMusicCollection } from "../../ducks/fileServer";
 
-export const loginApp = (username, password) => {
-    let loginFlag;
-    if(loginFlag) return;
-    loginFlag = false;
-    let data = Object.assign({}, { username }, { pwd: password })
+let loginFlag = false
+export const loginApp = (username, password, self) => {
+	if(loginFlag) return;
     if (!username) {
         alert("用户名不能为空");
         return;
     } else if (!password) {
         alert("密码不能为空");
         return;
-    }
-    $('#loginButton').text('登录中...');
+	}
+	self.setState({
+		loginStatus: "登录中..."
+	})
+	loginFlag = true;
+	username = username.trim()
+	password = password.trim()
+	const data = Object.assign({}, { username }, { pwd: password })
     Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.loginVerify ,(data))
         .then(async (response) => {
-            loginFlag = true;
-            $('#loginButton').text('登录');
+			self.setState({
+				loginStatus: "登录"
+			})
             if (response.data.result.response === "error_username" || response.data.result.response === "error_password") {
                 Toast.hide();
                 alert("用户名或密码错误");
@@ -70,10 +75,15 @@ export const loginApp = (username, password) => {
 		})
         .catch(err => {
             logger.error(`login  catch`, err);
-            $('#loginButton').text("登录")
+			self.setState({
+				loginStatus: "登录"
+			})
             Toast.hide();
             networkErr(err, `loginVerify data: ${data}`);
-        })
+		})
+		.finally(() => {
+			loginFlag = false;
+		})
 }
 
 export const dealtWithLoginIn = (result, userProfile={}) => {
@@ -81,9 +91,11 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
 	localStorage.setItem("username", (result.username || ""))
-	localStorage.setItem("mobile", result.mobile)
+	localStorage.setItem("mobile", (result.mobile || ""))
 	localStorage.setItem("favoriteSongs", JSON.stringify(favoriteSongs.slice(0, 50)))
-	localStorage.setItem("role", result.role)
+	localStorage.setItem("role", result.role || "")
+	localStorage.setItem("email", (userProfile.email || ""))
+	localStorage.setItem("tk", result.token);
 	$dispatch(updateUsername(result.username || ""));
 	$dispatch(updatePassword(result.password));
 	$dispatch(updateToken(result.token));
@@ -103,7 +115,6 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 	if(userProfile.user_pic  && window.isCordova){
 		saveHeadPicToLocal(userProfile.user_pic, result.username, 'loginApp');
 	}
-	window.localStorage.setItem("tk", result.token);
 
 	favoriteSongs.forEach(item => {
 		delete item.getNewestPath
@@ -126,38 +137,15 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 
 	const original = $getState().login.userId;
 	const newOne = (result.username || result.mobile)
-	window.localStorage.setItem("userId", newOne);
+	localStorage.setItem("userId", newOne);
 	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
-	if(window.isCordova){
-		logger.info('result1', result)
-		let dataSaved = Object.assign({}, {"username": (result.username || result.mobile), "token": result.token});
-		dataSaved = JSON.stringify(dataSaved);
-		let b = new window.Base64();
-		dataSaved = b.encode(dataSaved);
-		writeFile(dataSaved, 'sign.txt', false);
-	}
 	if(original !== newOne){
-		axios.post(HTTP_URL.replaceSocketLink, data)
-		.then(res => {
-			if (res.data.result.response === "success"){
-				logger.info("login success and reconnect websocket")
-				reconnectSocket()
-			} else {
-				alertDebug("replaceSocketLink fail")
-				logger.error("replaceSocketLink err", res.data.result)
-			}
-		})
-		.catch(err => {
-			logger.error("loginApp replaceSocketLink", err.stack || err.toString())
-		})
-		.finally(() => {
-			if(window.getRoute() !== "/main/sign"){
-				window.goRoute(null, "/main/sign");
-			}
-		})
+		replaceSocketLink(data, "login success")
 	}
-
+	if(window.getRoute() !== "/main/sign"){
+		window.goRoute(null, "/main/sign");
+	}
 }
 
 export const registerUsername = (that) => {
@@ -227,26 +215,25 @@ export const registerUsername = (that) => {
         })
 }
 
-export const resetPasswordFunc = (self) => {
+export const resetPasswordFunc = (self, newPwd1, newPwd2) => {
 	const { forgetPasswordToken, forgetPasswordTokenOrigin } = $getState().login
     const token =  forgetPasswordToken || $getState().login.token
     let data = {};
     if(!token){
         return;
     } else {
-		const newPwd2 = $('.reset-password-password2').val();
-        const newPwd3 = $('.reset-password-password3').val();
-        if(!newPwd2 || !newPwd3) {
+        if(!newPwd1 || !newPwd2) {
             return alert("请填写密码")
-        } else if (checkPassword(newPwd3) === false) { //密码至少包含一个数字和一个字母
+        } else if (checkPassword(newPwd2) === false) { //密码至少包含一个数字和一个字母
             alert("密码至少包含大小写字母和数字中的两种且长度在6-16位之间");
             return;
-        } else if(newPwd2 !== newPwd3) {
+        } else if(newPwd1 !== newPwd2) {
 			return alert("两次密码不一致")
 		} else {
+			newPwd1 = newPwd1.trim()
 			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : "systemSetuo"
 			if(origin){
-				data = Object.assign({}, {newPwd: newPwd3, token, origin});
+				data = Object.assign({}, {newPwd: newPwd1, token, origin});
 			} else {
 				return alert('未知来源')
 			}
@@ -280,7 +267,7 @@ export const resetPasswordFunc = (self) => {
 					logoutApp(self);
 				}
     	    } else {
-    	        alert(response.data.response);
+    	        alertDebug(response.data.response);
     	        logger.error("resetPasswordFunc response.data.response", response.data.response)
     	    }
     	})

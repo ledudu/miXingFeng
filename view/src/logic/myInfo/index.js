@@ -132,7 +132,6 @@ export const searchShellCommand = (self, command) => {
 						shellResponse: response.data.result.response,
 						isSearching: false
 					})
-					$dispatch(updateToken(response.data.result.token))
 			}
         })
         .catch(err => {

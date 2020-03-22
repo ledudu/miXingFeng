@@ -12,7 +12,7 @@ class UpdateUserInfoComponent extends React.Component {
 		super(props);
 		const { placeholder } = this.props
 		let inputValue = placeholder
-		if(placeholder === "最多10个字" || placeholder === "请输入手机号" || placeholder === "请输入签名" || placeholder === '请输入邮箱' || placeholder === '用户名可用于登录，全网唯一，设置后不可修改'){
+		if(placeholder === "请输入昵称,最多10个字" || placeholder === "请输入手机号" || placeholder === "请输入签名" || placeholder === '请输入邮箱' || placeholder === '用户名可用于登录，全网唯一，设置后不可修改'){
 			inputValue = ""
 		}
 		this.state={
@@ -21,8 +21,8 @@ class UpdateUserInfoComponent extends React.Component {
 	}
 
     saveUserInfo = () => {
-        let {infoLength, infoErrorTip, updateUserInfoDispatch, pageTitle, name, backToMainPage, self, registerFromLogin} = this.props;
-        let value = window.$(".set-user-info-component-content input")[0].value;
+        const {infoLength, infoErrorTip, updateUserInfoDispatch, pageTitle, name, backToMainPage, self, registerFromLogin} = this.props;
+        let value = this.state.inputValue
         if(value.length > infoLength) {
             return alert(infoErrorTip)
         } else if(!value){
@@ -32,8 +32,6 @@ class UpdateUserInfoComponent extends React.Component {
                 return alert(infoErrorTip)
             } else if(value === $getState().myInfo.setMobile){
 				return;
-			} else {
-				value = value.replace(/\s/g, "")
 			}
         } else if (pageTitle === "填写邮箱"){
             if(checkEmail(value) === false){
@@ -49,11 +47,12 @@ class UpdateUserInfoComponent extends React.Component {
 				logger.info("saveUserInfo 用户名首字母不能是数字", value)
 				return alertDialog("用户名首字母不能是数字");
 			}
-        }
-		const { username, token} = $getState().login;
+		}
+		value = value.trim()
+		const { username, token } = $getState().login;
 		const { setMobile } = $getState().myInfo;
         if(!token && !registerFromLogin) {
-            return alert("没有token")
+            return alertDialog("没有token")
         }
 		const data = Object.assign({}, {username: username || setMobile, token, userInfo: { [name]: value }, registerFromLogin })
 		if(!this.startToSubmit){
@@ -97,12 +96,11 @@ class UpdateUserInfoComponent extends React.Component {
 					} else if(result.response === "mobile_existed_from_register"){
 						Toast.hide();
 						confirm("此手机号已被注册", "", "去登录", () => {
-							window.goRoute(null, "/login")
+							window.goRoute(self, "/login")
 						})
 					} else if(result.response === "send_mobile_success"){
 						Toast.hide();
-						alert("验证码已发送，请注意查收")
-						$dispatch(updateToken(result.token));
+						alert("手机验证码已发送，请注意查收")
             	        $dispatch(updateUserInfoDispatch(value));
 						window.goRoute(self, "/check_mobile")
 					} else {
@@ -119,26 +117,28 @@ class UpdateUserInfoComponent extends React.Component {
 
     keyDownEvent = (e) => {
         if (e.keyCode === 13) {
-            window.$(".set-user-info-component-content input")[0].blur()
             return this.saveUserInfo();
         }
 	}
 
 	updateValue = (e) => {
+		let inputValue = e  // InputItem组件的值
+		if(e.target){
+			inputValue = e.target.value
+		}
 		this.setState({
-			inputValue: e.target.value
+			inputValue
 		})
 	}
 
     render() {
 		const { pageTitle, placeholder } = this.props;
 		const { inputValue } = this.state;
-		const mobilePhonePlaceholder = placeholder === "请输入手机号" ? "" : placeholder
         return (
             <div className="set-user-info-component-container">
                 <div className="set-user-info-component-content">
                     {pageTitle === "填写手机号"
-                    ?  <InputItem type="phone" defaultValue={mobilePhonePlaceholder} placeholder={placeholder} onKeyDown={this.keyDownEvent}></InputItem>
+                    ?  <InputItem type="phone" placeholder={placeholder} onChange={this.updateValue} onKeyDown={this.keyDownEvent}></InputItem>
 					: <input className="set-user-info-input" value={inputValue} placeholder={placeholder} onChange={this.updateValue}
 						onKeyDown={this.keyDownEvent}/>}
                     <div className="save-user-info">

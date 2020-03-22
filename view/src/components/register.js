@@ -40,9 +40,6 @@ export default class Register extends Component {
     registerKeyDownEvent = (evt) => {
         var e = evt;
         if (e.keyCode === 13) {
-            window.$('#register-username').blur();
-            window.$('#register-password1').blur();
-            window.$('#register-password2').blur();
             this.register();
         }
     }

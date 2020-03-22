@@ -19,13 +19,16 @@ class resetPasswordSys extends Component {
     resetPasswordKeyDownEvent = (evt) => {
         var e = evt;
         if (e.keyCode === 13) {
-            window.$('.reset-password-password3').blur();
+			this.resetPassword1Ref.blur()
+			this.resetPassword2Ref.blur()
             this.resetPassword()
         }
     }
 
     resetPassword = () => {
-        resetPasswordFunc(this);
+		const newPwd1 = this.resetPassword1Ref.value
+		const newPwd2 = this.resetPassword2Ref.value
+        resetPasswordFunc(this, newPwd1, newPwd2);
     }
 
     render(){
@@ -34,15 +37,27 @@ class resetPasswordSys extends Component {
         	    <NavBar centerText="重置密码" backToPreviousPage={this.backToMain} />
         	    <div className="input-content" style={{marginTop: "10px"}}>
         	        <div className="content">
-        	            <input type="password" className="reset-password-password2 form" placeholder="请输入新密码"
-        	                size="16" onKeyDown={(event) => this.resetPasswordKeyDownEvent(event)} />
+						<input
+							type="password"
+							className="form"
+							placeholder="请输入新密码"
+							size="16"
+							onKeyDown={(event) => this.resetPasswordKeyDownEvent(event)}
+							ref={ref => this.resetPassword1Ref = ref}
+						/>
 						<div className="new-password-text">新密码</div>
         	        </div>
         	    </div>
 				<div className="input-content">
 					<div className="content">
-        	            <input type="password" className="reset-password-password3 form" placeholder="请再次输入新密码"
-        	                size="16" onKeyDown={(event) => this.resetPasswordKeyDownEvent(event)} />
+						<input
+							type="password"
+							className="form"
+							placeholder="请再次输入新密码"
+							size="16"
+							onKeyDown={(event) => this.resetPasswordKeyDownEvent(event)}
+							ref={ref => this.resetPassword2Ref = ref}
+						/>
 						<div className="new-password-text">再次输入新密码</div>
         	        </div>
 				</div>
@@ -53,7 +68,7 @@ class resetPasswordSys extends Component {
         	        <div className="line"></div>
         	    </div>
         	    <div className="tips-container">
-        	        <div className="tips">密码至少包含大小写字母和数字中的两种且长度在6-16位之间</div>
+        	        <div className="tips">密码至少包含大小写字母和数字中的两种且长度不低于6位</div>
         	    </div>
         	</div>
         )

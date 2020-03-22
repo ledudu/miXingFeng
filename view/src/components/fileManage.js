@@ -115,7 +115,7 @@ class FileManage extends React.Component {
 	}
 
 	closeShowMenu = () => {
-		const musicMenuExisted = $('.am-action-sheet-button-list div:nth-last-child(1)')[0]
+		const musicMenuExisted = document.querySelector('.am-action-sheet-button-list div:nth-last-child(1)')
 		if(musicMenuExisted) musicMenuExisted.click();
 		if(musicMenuExisted) musicMenuExisted.click();
 	}

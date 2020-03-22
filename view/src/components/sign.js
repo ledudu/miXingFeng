@@ -7,8 +7,6 @@ import {
 	getAndReadFile,
 	writeFile,
 	onBackKeyDown,
-	checkPreviousLogin,
-	isEmptyFileFunc,
 	alertDialog,
 	networkErr,
 	debounce,
@@ -23,7 +21,6 @@ import {
 	getUserPosition,
 	getLocation,
 	previewNew,
-	getGreeting,
 	autoLogin,
 	reconnectAndSend,
 	checkOnlinePersons,
@@ -64,6 +61,7 @@ class Sign extends Component {
 		const adsName = localStorage.getItem("adsName")
 		const isWiFiNetwork = localStorage.getItem("isWiFiNetwork")
 		let loadedInWifiState = loadedInWifi, adPicSrcState = adPicSrc
+		// 只有从fromResume过来的才会走下面的逻辑
 		if(adsName && isWiFiNetwork && fromResume){
 			if(fromResume) $dispatch(updateFromResume(false))
 			localStorage.removeItem("adsName")
@@ -90,7 +88,11 @@ class Sign extends Component {
 			fileTransfer: {},
 			checkingPackage: false,
 			loadedInWifi: loadedInWifiState,
-			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.png`
+			adPicSrc: adPicSrcState || `./ads/ad${adNumber}.png`,
+			greetingsWord: "",
+			hour: "",
+			minute: "",
+			colon: ":"
 		}
 	}
 
@@ -123,37 +125,33 @@ class Sign extends Component {
 								window.navigator.splashscreen.hide();
 							}, 800)
 						} else {
-							$(".ads-container").hide()
 							Loadable.preloadAll()
 							try {
 								window.navigator.splashscreen.hide();
-								setTimeout(() => {
-									$(".ads-container").fadeIn('fast');
-									$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
-									$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
-									logger.info("start ad page this.getAdsConfig skipTime", skipTime)
-									this.getAdsConfig();
-									// 刚安装app时打开不要检查更新
-									if(justOpenApp){
-										this.checkUpdateSignTimer = setTimeout(() => {
-											document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
-										}, 5000);
-									}
-								}, 10)
+								this.leftRectRef.style.animation = `left ${skipTime - 0.9}s linear`
+								this.rightRectRef.style.animation = `right ${skipTime - 0.9}s linear`
+								this.leftRectRef.style['-webkit-animation'] = `left ${skipTime - 0.9}s linear`
+								this.rightRectRef.style['-webkit-animation'] = `right ${skipTime - 0.9}s linear`
+								logger.info("start ad page this.getAdsConfig skipTime", skipTime)
+								this.getAdsConfig();
+								// 刚安装app时打开不要检查更新
+								if(justOpenApp){
+									this.checkUpdateSignTimer = setTimeout(() => {
+										document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
+									}, 3500);
+								}
 							} catch (err) {
 								window.logger.error("splashscreen err", err.stack || err.toString())
 							}
 						}
 					} else {
-						$(".ads-container").hide()
-						setTimeout(() => {
-							$(".ads-container").fadeIn();
-							$('.rect-box .left .circle').css("-webkit-animation", `left ${skipTime - 0.9}s linear`)
-							$('.rect-box .right .circle').css("-webkit-animation", `right ${skipTime - 0.9}s linear`)
-							this.getAdsConfig();
-							$('.top-ads').css("width", "auto");
-						}, 500)
+						this.leftRectRef.style.animation = `left ${skipTime - 0.9}s linear`
+						this.rightRectRef.style.animation = `right ${skipTime - 0.9}s linear`
+						this.leftRectRef.style['-webkit-animation'] = `left ${skipTime - 0.9}s linear`
+						this.rightRectRef.style['-webkit-animation'] = `right ${skipTime - 0.9}s linear`
 						Loadable.preloadAll()
+						this.topAdsRef.style.width = "auto"
+						this.getAdsConfig();
 					}
 				}
 			} else {
@@ -166,7 +164,7 @@ class Sign extends Component {
 					}
 				}, 800)
 			}
-			getGreeting();  // go to this page from other page
+			this.getGreeting();  // go to this page from other page
 			document.addEventListener("deviceready", this.listenBackKeyDown);
 			// if no network when launch app, username will be empty string
 			if(token && !isFromLoginPage && !needRetryRequestWhenLaunch){
@@ -175,6 +173,9 @@ class Sign extends Component {
 				}
 			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
 				if(justOpenApp || needRetryRequestWhenLaunch){
+					if(new Date().getHours() < 6){
+						setTimeout(() => alert("夜深了,请注意休息"), 5000)
+					}
 					$dispatch(updateJustOpenApp(false))
 					// get file list
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))
@@ -238,14 +239,10 @@ class Sign extends Component {
 							$dispatch(updateRecentMusicList(result))
 						})
 
-					if (window.isCordova) {
-						document.addEventListener("deviceready", this.checkLoginInfo);
-					} else {
-						const token = window.localStorage.getItem('tk');
+					const token = window.localStorage.getItem('tk');
+					if (token) {
 						$dispatch(updateToken(token));
-						if (token) {
-							await autoLogin(token);
-						}
+						await autoLogin(token);
 						retrieveOthers();  //retrieve others status
 						retrieveLastLoginTime();  //get last sign time
 					}
@@ -260,7 +257,7 @@ class Sign extends Component {
 			this.dealWithOthersWhenDidMount();
 			setTimeout(() => {
 				reconnectAndSend("homeSocket check")
-			}, 5000)
+			}, 3500)
 			if(window.homeSocketInterval) clearInterval(homeSocketInterval)
 			window.homeSocketInterval = setInterval(() => {
 				reconnectAndSend("homeSocketInterval")
@@ -270,19 +267,51 @@ class Sign extends Component {
 		}
 	}
 
-	componentDidUpdate(){
-		// case that launch app
-		getGreeting();
-	}
-
 	componentWillUnmount(){
-		window.clockTimer = false;
-		if(window.clockIntervalTimer) clearInterval(window.clockIntervalTimer)
+		if(this.clockIntervalTimer) clearInterval(this.clockIntervalTimer)
 		if(this.checkUpdateSignTimer) clearTimeout(this.checkUpdateSignTimer)
 		document.removeEventListener("deviceready", this.listenBackKeyDown, false);
 		document.removeEventListener("backbutton", this.onBackKeyDownSign, false);
 		document.removeEventListener("deviceready", this.checkUpdateSign, false);
 		if(this.props.isFromSystemSetup) $dispatch(updateIsFromSystemSetup(false))
+	}
+
+	getGreeting = () => {
+		//update clock time
+		this.clockFunc()
+		this.clockIntervalTimer = setInterval(() => {
+			this.clockFunc()
+		}, 1000)
+	}
+
+	clockFunc = () => {
+		let minute = new Date().getMinutes(), hour = new Date().getHours();
+		if (minute < 10) minute = "0" + minute;
+		if (hour < 10) hour = "0" + hour;
+		const { colon } = this.state
+		let nextColon = "", greetingsWord = ""
+		if(colon === "") nextColon = ":"
+		if (hour < 6) {
+			greetingsWord = "凌晨好！"
+		} else if (hour < 8) {
+			greetingsWord = "早上好！"
+		} else if (hour < 11) {
+			greetingsWord = "上午好！"
+		} else if (hour < 14) {
+			greetingsWord = "中午好！"
+		} else if (hour < 17) {
+			greetingsWord = "下午好！"
+		} else if (hour < 19) {
+			greetingsWord = "傍晚好！"
+		} else if (hour < 24) {
+			greetingsWord = "晚上好！"
+		}
+		this.setState({
+			greetingsWord,
+			hour,
+			minute,
+			colon: nextColon
+		})
 	}
 
 	getAdsConfig = () => {
@@ -335,22 +364,6 @@ class Sign extends Component {
 		} else {
 			this.props.allowGetPosition && getLocation(this)
 		}
-	}
-
-	checkLoginInfo = async() => {
-		await this.checkPreviousLoginApp();
-		const { token, isFromLoginPage, logOutFlag } = this.props;
-		if (token && !isFromLoginPage && !logOutFlag) {
-			window.logger.info('start auto login');
-			await autoLogin(token);
-		}
-		retrieveOthers();
-		retrieveLastLoginTime();
-	}
-
-	checkPreviousLoginApp = async () => {
-        const bool = await isEmptyFileFunc("sign.txt",true);
-		return checkPreviousLogin("sign.txt",bool);
 	}
 
     onBackKeyDownSign = () => {
@@ -578,7 +591,7 @@ class Sign extends Component {
 	}
 
 	render (){
-        const { showProgress, skipTime, progress, appSize, appTotalSize, checkingPackage, loadedInWifi, adPicSrc } = this.state;
+        const { showProgress, skipTime, progress, appSize, appTotalSize, checkingPackage, loadedInWifi, adPicSrc, greetingsWord, hour, minute, colon } = this.state;
 		const {
 			currentLocation,
 			username,
@@ -601,7 +614,7 @@ class Sign extends Component {
 					?	<div className="sign-main">
 							<StatusBar />
         					<div className="header">
-								<span className="greetings"></span>
+								<span className="greetings">{greetingsWord}</span>
 								<span className="user" onClick={this.gotoUserProfile}>{token ? setNickname ? setNickname : username ? username : setMobile: ""}</span>
 							</div>
 							<div className="body">
@@ -619,9 +632,9 @@ class Sign extends Component {
         							<div className={`sign ${!signedFlag && 'flick-animation'} ${signedFlag}`} onClick={this.signIn}>
 										<div className="sign-text">{signedFlag ? "已签到" : "签到"}</div>
 										<div id="now-time">
-											<span className="hour"></span>
-											<span className="middle">:</span>
-											<span className="minute"></span>
+											<span className="hour">{hour}</span>
+											<span className="middle">{colon}</span>
+											<span className="minute">{minute}</span>
 										</div>
 									</div>
 									{
@@ -670,18 +683,18 @@ class Sign extends Component {
 								: 	""
 							}
 						</div>
-					: 	<div className="ads-container">
-							<div className="top-ads">
+					: 	<div className="ads-container" ref={ref => this.adsContainerRef = ref}>
+							<div className="top-ads" ref={ref => this.topAdsRef = ref}>
 								<div className="tip-text">{loadedInWifi}</div>
 								{
 									isFromSystemSetup
 									? <div className="skip-ads" onClick={this.prepareSkip}>跳过</div>
 									: <div className="rect-box" onClick={this.prepareSkip}>
 										<div className="rect left">
-											<div className="circle"></div>
+											<div className="circle" ref={ref => this.leftRectRef = ref}></div>
 										</div>
 										<div className="rect right">
-											<div className="circle"></div>
+											<div className="circle" ref={ref => this.rightRectRef = ref}></div>
 										</div>
 										<div className="skip-text">跳过 {skipTime}</div>
 									</div>

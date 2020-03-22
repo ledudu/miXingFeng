@@ -4,10 +4,16 @@ import NavBar from "../child/navbar";
 
 class ServiceList extends React.Component {
 
+	state = {
+		bodyContent: ""
+	}
+
     componentDidMount(){
         window.axios.get(HTTP_URL.getServiceList)
             .then((response) => {
-                window.$("#service-list .service-list-content").html(response.data.result.response);
+				this.setState({
+					bodyContent: response.data.result.response
+				})
             })
     }
 
@@ -16,10 +22,11 @@ class ServiceList extends React.Component {
     }
 
     render() {
+		const { bodyContent } = this.state
         return (
             <div id="service-list">
                 <NavBar centerText="服务条款" backToPreviousPage={this.backToMainPage} />
-                <div className="service-list-content"></div>
+                <div className="service-list-content"  dangerouslySetInnerHTML={{ __html: bodyContent }}></div>
             </div>
         );
     }

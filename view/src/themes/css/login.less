@@ -76,7 +76,7 @@
                             border: none;
                             outline: none;
 						}
-						&:focus+.fa.fa-user,  &:focus+.fa.fa-spoon{
+						&:focus+.fa.fa-user,  &:focus+.fa.fa-spoon, &:focus+.fa.fa-times-circle-o{
 							opacity: 1;
 						}
                         &:focus~.login-center-input-text {
@@ -113,7 +113,7 @@
                         -o-transition: all 0.5s;
                     }
                     i.fa-times-circle-o, i.fa-eye{
-						display:none;
+						display: block;
 						position: absolute;
 						right: 10px;
 						width: 40px;
@@ -124,6 +124,9 @@
 					}
 					i.fa-times-circle-o{
 						color: #fff;
+						opacity: 0.8;
+						transition: opacity 0.5s;
+						-webkit-transition: opacity 0.5s;
 					}
                 }
             }

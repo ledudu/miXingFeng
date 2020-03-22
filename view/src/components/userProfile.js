@@ -71,6 +71,12 @@ class UserProfile extends React.Component {
 		}
 	}
 
+	setMobileFunc = () => {
+		if(!this.props.setMobile){
+			window.goRoute(this, "/set_mobile");
+		}
+	}
+
 	setEmailFunc = () => {
 		window.goRoute(this, "/set_email");
 	}
@@ -144,7 +150,7 @@ class UserProfile extends React.Component {
                         <Picker data={sexData} cols={1} extra={setSex} onOk={sex => this.saveUserInfo("sex", sex)}>
                             <List.Item className="select-sex">性别</List.Item>
                         </Picker>
-                        <List.Item style={{height: "60px"}} extra={setMobile} >
+                        <List.Item style={{height: "60px"}} arrow={setMobile ? "" : "horizontal"} onClick={this.setMobileFunc} extra={setMobile} >
                             <span style={{ marginLeft: 12 }}>手机号</span>
                         </List.Item>
                         <DatePicker mode="date" title="选择日期" extra={setBirthday} minDate={minDate} maxDate={maxDate} onChange={date => this.saveUserInfo("birthday", date)} >

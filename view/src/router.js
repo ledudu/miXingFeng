@@ -180,7 +180,8 @@ const SetUsername = MyLoadable({
 class Routers extends Component {
 
     componentDidMount(){
-		$("#root").removeClass("loading-text").removeClass("animate-flicker")
+		document.getElementById("root").classList.remove('loading-text')
+		document.getElementById("root").classList.remove("animate-flicker")
 		// 初始化websocket
 		initWebsocket()
 		// 首次启动不是主页自动返回主页

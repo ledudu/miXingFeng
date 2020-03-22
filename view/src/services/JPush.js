@@ -42,18 +42,6 @@ var onGetRegistrationID = function (data) {
 	}
 };
 
-var onTagsWithAlias = function (event) {
-	try {
-		logger.info("onTagsWithAlias");
-		var result = "result code:" + event.resultCode + " ";
-		result += "tags:" + event.tags + " ";
-		result += "alias:" + event.alias + " ";
-		$("#tagAliasResult").html(result);
-	} catch (exception) {
-		logger.error('onTagsWithAlias exception',exception)
-	}
-};
-
 var onOpenNotification = function (event) {
 	try {
 		var alertContent;

@@ -2,8 +2,9 @@
 import Logger from "cordova-logger"
 import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
+import { HTTP_URL } from "../constants/httpRoute"
 import { updateDownloadingFileItems, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
-import { calcSize, checkFilePath } from "../logic/common";
+import { calcSize, checkFilePath, reconnectSocket } from "../logic/common";
 import { addDataFromIndexDB, removeDataByIndexFromIndexDB } from "./indexDB"
 import { addMusicDataFromIndexDB, removeMusicDataByIndexFromIndexDB } from "./indexDBMusic"
 
@@ -272,7 +273,7 @@ export const stopPropagation = (e) => {
 }
 
 export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
-	if(!filenameOrigin || !fileUrl) return
+	if(!filenameOrigin) return
 	if(fromMusic){
 		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, options.self)
 		if(!fileUrl) return
@@ -681,4 +682,21 @@ export const IsPC = () => {
 		}
 	}
 	return flag;
+}
+
+export const generateRandomUserId = () => "ls" + Math.random().toString(36).slice(2, 6)
+
+export const replaceSocketLink = (data, logInfo="logInfo") => {
+	return axios.post(HTTP_URL.replaceSocketLink, data)
+		.then(response => {
+			if (response.data.result.response === "success") {
+				logger.info('replaceSocketLink success', logInfo)
+				reconnectSocket()
+			} else {
+				logger.warn("replaceSocketLink fail", logInfo)
+			}
+		})
+		.catch(err => {
+			logger.warn("replaceSocketLink err", logInfo, err)
+		})
 }

@@ -28,7 +28,7 @@ class Feedback extends React.Component {
 		const { files, uploadLog } = this.state;
 		const hasPic = files.length
         const arr = [];
-        const feedbackContent = window.$(".feedback-textarea").val();
+        const feedbackContent = this.feedbackTextareaRef.value
 		if(feedbackContent.length > 1000) return alert("不允许超过1000个字");
 		if(!feedbackContent) return alert("请描述您遇到的问题或建议")
         arr.push(new Date().format("yyyy-MM-dd hh:mm:ss"));
@@ -139,7 +139,7 @@ class Feedback extends React.Component {
             <div className="feedback-container">
                 <NavBar centerText="反馈" backToPreviousPage={this.backToMainPage} />
                 <div className="feedback-content">
-                    <textarea className="feedback-textarea" placeholder="请详细描述你遇到的问题或建议" />
+                    <textarea className="feedback-textarea" placeholder="请详细描述你遇到的问题或建议" ref={ref => this.feedbackTextareaRef = ref} />
 					<ImagePicker
 						files={files}
 						onChange={this.onChange}

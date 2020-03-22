@@ -20,7 +20,7 @@ class Music extends React.Component {
     }
 
     componentDidMount(){
-		this.el = document.getElementById('fileToUpload');
+		this.el = this.fileToUpload
 		this.el.addEventListener('change', this.handleMD5, false);
 		this.getMD5Time = 0
     }
@@ -52,7 +52,7 @@ class Music extends React.Component {
 
 	uploadMusic = () => {
 		try {
-			const files = $('#fileToUpload')[0].files;
+			const files = this.fileToUpload.files;
 			if(!files[0]) return;
 			const { token, musicList } = this.props;
 			if(!token){
@@ -61,8 +61,8 @@ class Music extends React.Component {
 			}
 			if(!this.startToUpload){
 				this.startToUpload = true;
-				const filename = $('#fileToUpload')[0].files[0].name;
-				const fileSize = $('#fileToUpload')[0].files[0].size;
+				const filename = this.fileToUpload.files[0].name;
+				const fileSize = this.fileToUpload.files[0].size;
 				let overwriteSameMusicName = false;
 				for(let item of musicList){
 					if(item.filename === filename){
@@ -148,7 +148,7 @@ class Music extends React.Component {
 							self.startToUpload = false;
 							return
 						}
-						const duration = $(".will-upload-music")[0].duration;
+						const duration = self.willUploadMusic.duration;
 						logger.info("uploadMusic duration, isNaN(duration)", duration, isNaN(duration))
 						if(!isNaN(duration)){
 							logger.info("uploadMusicFunc username, duration, MD5Value", username||setMobile, duration, MD5Value)
@@ -230,13 +230,13 @@ class Music extends React.Component {
                 <StatusBar />
                 <div className="music-header">音乐列表</div>
 				<div className="upload-area">
-                    <input type="file" id="fileToUpload" style={{"backgroundImage": "none"}} />
+                    <input type="file" className="file-to-upload" ref={ref => this.fileToUpload = ref} />
                     <div className="upload">
                         <input type="button" name="submit" value={musicSubmitStatus} onClick={this.uploadMusic} />
                         <div className='progress-number'>{musicUploadProgress}</div>
                     </div>
                 </div>
-				<audio className="will-upload-music" src={willUploadMusicSrc} style={{"display": "none"}}></audio>
+				<audio className="will-upload-music" ref={ref => this.willUploadMusic = ref}  src={willUploadMusicSrc} ></audio>
 				<MusicPlayer musicDataList={musicList} original={CONSTANT.musicOriginal.musicShare}  pageType={CONSTANT.musicOriginal.musicShare} />
             </div>
         );

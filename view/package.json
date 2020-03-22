@@ -13,7 +13,6 @@
 		"axios": "^0.18.0",
 		"cordova-logger": "0.0.1",
 		"howler": "^2.1.2",
-		"jquery": "^3.4.1",
 		"lodash": "^4.17.11",
 		"mime-types": "^2.1.26",
 		"rc-form": "^2.4.10",
