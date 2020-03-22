@@ -41,7 +41,7 @@ class SearchPosition extends Component {
 					positionText: result.positionText || "位置不可用",
 					oppositeXYPosition: result.currentXYPosition || [0, 0],
 					isSearching: false,
-					status: result.status,
+					status: result.status || "离线",
 					typedUsername: searchString
 				}, () => {
 					if(username === searchString || setMobile === searchString) {
@@ -181,7 +181,6 @@ class SearchPosition extends Component {
 
 const mapStateToProps = state => {
 	return {
-		searchString: state.searchUserHistory.searchString,
 		username: state.login.username,
 		token: state.login.token,
 		currentLocation: state.common.currentLocation,

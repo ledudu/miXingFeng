@@ -45,14 +45,17 @@ export default function reducer(state = initialState(), action = {}) {
 				isSignedUp: action.data
 			});
 		case LAST_SIGN_UP_TIME:
+			localStorage.setItem("lastSignUpTime", action.data || "")
 			return Object.assign({}, state, {
 				lastSignUpTime: action.data
 			});
 		case ALREADY_SIGN_UP_PERSONS:
+			localStorage.setItem("alreadySignUpPersons", JSON.stringify(action.data || []))
 			return Object.assign({}, state, {
 				alreadySignUpPersons: action.data
 			});
 		case NOT_SIGN_UP_PERSONS:
+			localStorage.setItem("notSignUpPersons", JSON.stringify(action.data || []))
 			return Object.assign({}, state, {
 				notSignUpPersons: action.data
 			});

@@ -133,8 +133,10 @@ const initialState = () => ({
 export default function reducer(state = initialState(), action = {}) {
 	switch (action.type) {
 		case FILE_LIST:
+			localStorage.setItem("fileList", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {fileList: action.data});
 		case MUSIC_LIST:
+			localStorage.setItem("musicList", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {musicList: action.data});
 		case SOUND_PLAYING:
 			return Object.assign({}, state, {soundPlaying: action.data});
@@ -147,12 +149,23 @@ export default function reducer(state = initialState(), action = {}) {
 		case CURRENT_SONG_TIME:
 			return Object.assign({}, state, {currentSongTime: action.data});
 		case PAUSE_WHEN_OVER:
+			if(action.data === true){
+				localStorage.setItem("pauseWhenOver", 'yes')
+			} else if(action.data === false){
+				localStorage.setItem("pauseWhenOver", 'no')
+			}
 			return Object.assign({}, state, {pauseWhenOver: action.data});
 		case MUSIC_MENU_BADGE:
 			return Object.assign({}, state, {musicMenuBadge: action.data});
 		case PLAY_BY_ORDER:
+			if(action.data === true){
+				localStorage.setItem("playByOrder", 'yes')
+			} else if(action.data === false){
+				localStorage.setItem("playByOrder", 'no')
+			}
 			return Object.assign({}, state, {playByOrder: action.data});
 		case MUSIC_COLLECTION:
+			localStorage.setItem("favoriteSongs", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {musicCollection: action.data});
 		case FILE_SUBMIT_STATUS:
 			return Object.assign({}, state, {fileSubmitStatus: action.data});
@@ -165,10 +178,16 @@ export default function reducer(state = initialState(), action = {}) {
 		case DOWNLOADING_FILE_ITEMS:
 			return Object.assign({}, state, {downloadingFileItems: action.data});
 		case DOWNLOADING_MUSIC_ITEMS:
+			localStorage.setItem("downloadingMusicItems", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {downloadingMusicItems: action.data});
 		case CURRENT_PLAYING_MUSIC_LIST:
 			return Object.assign({}, state, {currentPlayingMusicList: action.data});
 		case PLAY_BY_RANDOM:
+			if(action.data === true){
+				localStorage.setItem("playByRandom", 'yes')
+			} else if(action.data === false){
+				localStorage.setItem("playByRandom", 'no')
+			}
 			return Object.assign({}, state, {playByRandom: action.data});
 		case LAST_NET_EASE_CLOUD_SEARCH_RESULT:
 			return Object.assign({}, state, {lastNetEaseCloudSearchResult: action.data});
@@ -223,6 +242,7 @@ export default function reducer(state = initialState(), action = {}) {
 		case NO_MORE_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULTS:
 			return Object.assign({}, state, {noMoreSearchAllKuWoMusicResults: action.data});
 		case DOWNLOADED_MUSIC_LIST:
+			localStorage.setItem("downloadedMusicList", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {downloadedMusicList: action.data});
 		case CURRENT_PLAYING_SONG_ORIGINAL:
 			return Object.assign({}, state, {currentPlayingSongOriginal: action.data});

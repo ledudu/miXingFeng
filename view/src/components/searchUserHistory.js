@@ -134,9 +134,11 @@ class SearchUserHistory extends Component {
                 </div>
                 <div className="record-list-container">
 					{recordListLength ? recordList.map((item, index) => <UserRecordList item={item} key={index}/>)  : null}
-					{this.signDataCount > (30*clickShowMoreCount)
+					{
+						this.signDataCount > (30*clickShowMoreCount)
 						? <div className="show-more" onClick={this.showMore}>{showMoreText}</div>
-						: <div className="show-more bottom" ref={ref => this.historyBottom = ref}><span>______________</span>我是有底线的<span>______________</span></div>}
+						: <div className="show-more bottom" ref={ref => this.historyBottom = ref}><span>______________</span>我是有底线的<span>______________</span></div>
+					}
                 </div>
             </div>
         )
@@ -158,7 +160,6 @@ class UserRecordList extends Component {
 
 const mapStateToProps = state => {
 	return {
-		searchString: state.searchUserHistory.searchString,
 		username: state.login.username,
 		token: state.login.token,
 		setMobile: state.myInfo.setMobile

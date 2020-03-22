@@ -56,7 +56,6 @@ import { dealtWithLoginIn } from "../../logic/login"
 import { removeMusicDataByIndexFromIndexDB } from "../../services/indexDBMusic"
 import { CONSTANT } from "../../constants/enumeration"
 import { addRecentMusicDataFromIndexDB, removeRecentMusicDataByIndexFromIndexDB } from "../../services/indexDBRecentMusic"
-import { updateSearchString } from "../../ducks/searchUserHistory";
 
 const logger = window.logger || console;
 let receiveServerSocketPong = false;
@@ -109,8 +108,6 @@ export const setOthersSignInfo = (data) => {
 	// const notSignUpPersons = _.orderBy(unsignedArray, ['username'], ['desc'])
 	window.$dispatch(updateAlreadySignUpPersons(signedArray))
 	window.$dispatch(updateNotSignUpPersons(unsignedArray))
-	localStorage.setItem("alreadySignUpPersons", JSON.stringify(signedArray))
-	localStorage.setItem("notSignUpPersons", JSON.stringify(unsignedArray))
 }
 
 //cordova version
@@ -175,12 +172,10 @@ export const requestPositionPermission = () => {
 	return new Promise(res => {
 		navigator.geolocation.getCurrentPosition(() => {
 			logger.info("getCurrentPosition yes")
-			localStorage.setItem("usePosition", "yes")
 			$dispatch(updateAllowGetPosition(true))
 			res(true)
 		}, () => {
 			logger.info("getCurrentPosition no")
-			localStorage.setItem("usePosition", "no")
 			$dispatch(updateAllowGetPosition(false))
 			res(false)
 		}, {
@@ -244,7 +239,6 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 				}
 			}
 		})
-		localStorage.setItem("fileList", JSON.stringify(fileList.slice(0, 50)))
 		$dispatch(updateFileList(fileList))  // 去除共享文件里已下载的标记
 		removeRecordFromIndexedDBPromise = removeDataByIndexFromIndexDB(`downloaded_${filenameOrigin}`)
 			.then(() => {
@@ -265,7 +259,7 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 					}
 				})
 				$dispatch(updateDownloadedMusicList(downloadedMusicList))
-				localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicList.slice(0, 50)))
+
 				window.eventEmit.$emit("musicRemoved", downloadedMusicList)
 				return "success"
 			})
@@ -351,6 +345,8 @@ function showError (error) {
 
 export const logoutApp = async(self) => {
 	window.localStorage.removeItem("tk");
+	const { username="" } = $getState().login
+	const { setMobile="", setEmail="" } = $getState().myInfo
 	$dispatch(updateToken(""));
 	$dispatch(updateLastSignUpTime(""));
 	$dispatch(updateAlreadySignUpPersons([]));
@@ -375,6 +371,9 @@ export const logoutApp = async(self) => {
 	localStorage.removeItem("userProfile")
 	localStorage.removeItem("role")
 	localStorage.removeItem("favoriteSongs")
+	localStorage.setItem("username", username)
+	localStorage.setItem("mobile", setMobile)
+	localStorage.setItem("email", setEmail)
 	goRoute(self, "/login");
 }
 
@@ -452,8 +451,6 @@ export const initWebsocket = () => {
 	let userId = generateRandomUserId()
 	if(window.localStorage.getItem("userId")){
 		userId = window.localStorage.getItem("userId")
-	} else {
-		window.localStorage.setItem("userId", userId);
 	}
 	$dispatch(updateUserId(userId))
 	if(window.WebSocket){
@@ -544,7 +541,6 @@ export const incomingMessage = async (data) => {
 					item2.filePath = window.serverHost + item2.filePath
 				})
 				$dispatch(updateFileList(fileDataList));
-				localStorage.setItem("fileList", JSON.stringify(fileDataList.slice(0, 50)))
 				logger.info('incomingMessage get-files-array', fileDataList.length);
 				break;
 			case "get-musics-array":
@@ -562,7 +558,6 @@ export const incomingMessage = async (data) => {
 					})
 				})
 				$dispatch(updateMusicList(musicList));
-				localStorage.setItem("musicList", JSON.stringify(musicList.slice(0, 50)))
 				logger.info('incomingMessage get-musics-array', musicList.length);
 				break;
 			case "get-current-position":
@@ -822,7 +817,6 @@ export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musi
 						delete item.saved
 					})
 					$dispatch(updateMusicCollection(musicCollection))
-					localStorage.setItem("favoriteSongs", JSON.stringify(musicCollection.slice(0, 50)))
 					window.eventEmit.$emit("listenMusicSaved")
 					if (hasSaved !== -1) {
 						alert('取消收藏成功')
@@ -1715,7 +1709,6 @@ export const logActivity = (data={}) => {
 export const searchFunc = (username="", slice) => {
     if(!username) return Promise.resolve();
     window.logger.info("userClick searchString", username);
-	window.$dispatch(updateSearchString(username));
 	let url = ""
 	if(!slice){
 		url =  HTTP_URL.searchPosition.format({username, positiveUsername: $getState().login.username})

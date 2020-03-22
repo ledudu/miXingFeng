@@ -46,7 +46,6 @@ function onDeviceReady(){
 	// 更新版本信息
 	cordova.getAppVersion.getVersionNumber().then(function (version){
 		$dispatch(updateAppVersion(version));
-		localStorage.setItem("appVersion", version)
 	});
 
 	// pause resume
@@ -93,7 +92,6 @@ function onDeviceReady(){
 			setTimeout(() => reconnectAndSend('resume reconnect check'), 200)
 			window.permissions.checkPermission(permissions.ACCESS_FINE_LOCATION, function (status) {
 				if (status.hasPermission && localStorage.getItem('usePosition') === 'no') {
-					localStorage.setItem("usePosition", "yes")
 					$dispatch(updateAllowGetPosition(true))
 				}
 			})

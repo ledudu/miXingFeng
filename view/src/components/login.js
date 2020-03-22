@@ -28,7 +28,6 @@ class Login extends Component {
 			//  为了加快注销速度，把更换websocket id的任务放在注销后跳往登录的逻辑里
 			const original = this.props.userId;
 			const newOne = generateRandomUserId()
-			localStorage.setItem("userId", newOne);
 			$dispatch(updateUserId(newOne))
 			logger.info("Login replace userId original, newOne", original, newOne)
 			const data = {
@@ -142,7 +141,6 @@ class Login extends Component {
 							const { mobile } = result
 							$dispatch(updateToken(result.token))
 							$dispatch(updateSetMobile(mobile))
-							window.localStorage.setItem("mobile", mobile);
 							if(result.response === "register_success"){
 								$dispatch(updateIsFromLoginPage(true))
 								window.goRoute(this, "/register")

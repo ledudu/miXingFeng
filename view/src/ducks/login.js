@@ -31,6 +31,7 @@ const initialState = () => ({
 export default function reducer(state = initialState(), action = {}) {
 	switch (action.type) {
 		case USERNAME:
+			localStorage.setItem("username", (action.data || ""))
 			return Object.assign({}, state, {
 				username: action.data
 			});
@@ -39,6 +40,8 @@ export default function reducer(state = initialState(), action = {}) {
 				password: action.data
 			});
 		case TOKEN:
+			// 更新token的同时更新localStorage
+			localStorage.setItem("tk", (action.data || ""))
 			return Object.assign({}, state, {
 				token: action.data
 			});
@@ -67,6 +70,7 @@ export default function reducer(state = initialState(), action = {}) {
 				forgetPasswordTokenOrigin: action.data
 			});
 		case USER_ID:
+			localStorage.setItem("userId", (action.data || ""));
 			return Object.assign({}, state, {
 				userId: action.data
 			});

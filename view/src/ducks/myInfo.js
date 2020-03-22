@@ -47,6 +47,7 @@ export default function reducer(state = initialState(), action = {}) {
 				setNickname: action.data
 			});
 		case SET_MOBILE:
+			localStorage.setItem("mobile", (action.data || ""))
 			return Object.assign({}, state, {
 				setMobile: action.data
 			});
@@ -79,6 +80,7 @@ export default function reducer(state = initialState(), action = {}) {
 				setRole: action.data
 			});
 		case SET_HEAD_PIC_NAME:
+			localStorage.setItem("setHeadPicName", action.data || "")
 			return Object.assign({}, state, {
 				setHeadPicName: action.data
 			});
@@ -87,6 +89,7 @@ export default function reducer(state = initialState(), action = {}) {
 				replaceHeadPic: action.data
 			});
 		case SET_EMAIL:
+			localStorage.setItem("email", (action.data || ""))
 			return Object.assign({}, state, {
 				setEmail: action.data
 			});

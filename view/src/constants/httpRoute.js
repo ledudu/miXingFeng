@@ -34,7 +34,7 @@ export const HTTP_URL = {
 	"saveSong": hostname + "/save_song",
 	"delFile": hostname + "/del_file",
 	"checkFileMD5": hostname + "/check_file_md5",
-	"checkEmailValid": hostname + "/check_email_valid?value={value}&username={username}&email={email}",
+	"checkEmailValid": hostname + "/check_email_valid?value={value}&username={username}&email={email}&mobile={mobile}",
 	"checkMobileValid": hostname + "/check_mobile_valid?value={value}&username={username}&mobile={mobile}&registerFromLogin={registerFromLogin}",
 	"forgetPassword": hostname + "/forget_password",
 	"getNetEaseCloudMusicLists": hostname + "/get_net_ease_cloud_music_lists?query={query}",

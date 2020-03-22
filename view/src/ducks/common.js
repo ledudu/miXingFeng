@@ -96,6 +96,7 @@ export default function reducer(state = initialState(), action = {}) {
 				currentLocation: action.data
 			});
 		case APP_VERSION:
+			localStorage.setItem("appVersion", action.data || "")
 			return Object.assign({}, state, {
 				appVersion: action.data
 			});
@@ -136,6 +137,11 @@ export default function reducer(state = initialState(), action = {}) {
 				hideNavBar: action.data
 			});
 		case RECEIVE_NOTIFICATION:
+			if(action.data){
+				localStorage.setItem("notification", "yes")
+			} else {
+				localStorage.setItem("notification", "no")
+			}
 			return Object.assign({}, state, {
 				receiveNotification: action.data
 			});
@@ -144,10 +150,20 @@ export default function reducer(state = initialState(), action = {}) {
 				powerRun: action.data
 			});
 		case ALWAYS_SHOW_ADS_PAGE:
+			if(action.data){
+				localStorage.setItem("alwaysShowAdsPage", "yes")
+			} else {
+				localStorage.setItem("alwaysShowAdsPage", "no")
+			}
 			return Object.assign({}, state, {
 				alwaysShowAdsPage: action.data
 			});
 		case ALLOW_GET_POSITION:
+			if(action.data){
+				localStorage.setItem("usePosition", "yes")
+			} else {
+				localStorage.setItem("usePosition", "no")
+			}
 			return Object.assign({}, state, {
 				allowGetPosition: action.data
 			});
@@ -156,6 +172,11 @@ export default function reducer(state = initialState(), action = {}) {
 				hasDownloadedPackage: action.data
 			});
 		case ALLOW_OTHERS_GET_POSITION:
+			if(action.data){
+				localStorage.setItem("allowOthersGetPosition", "yes")
+			} else {
+				localStorage.setItem("allowOthersGetPosition", "no")
+			}
 			return Object.assign({}, state, {
 				allowOthersGetPosition: action.data
 			});

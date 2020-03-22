@@ -106,15 +106,15 @@ class CheckEmailOrMobile extends React.Component {
 		const value3 = this.inputValueRef3.value
 		const value4 = this.inputValueRef4.value
 		const value = (value1 + value2 + value3 + value4)
-		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, token, forgetPasswordToken } = this.props
+		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, token, forgetPasswordToken, setMobile } = this.props
 		logger.info("checkEmail submit value", value)
 		if(!this.startToSubmit){
 			this.startToSubmit = true
 			Toast.loading('请稍后...', CONSTANT.toastLoadingTime, () => {});
 			const checkUrl = this.isEmail
-				? HTTP_URL.checkEmailValid.format({value, username: token ? username : "", email: setTempEmail})
+				? HTTP_URL.checkEmailValid.format({value, username: username || setMobile, email: setTempEmail, mobile: setMobile})
 				: this.isMobile
-				? HTTP_URL.checkMobileValid.format({value, username, mobile: setTempMobile, registerFromLogin: registerFromLogin || forgetPasswordToken})
+				? HTTP_URL.checkMobileValid.format({value, username, mobile: setTempMobile || setMobile, registerFromLogin: registerFromLogin || forgetPasswordToken})
 				: null
 			if(!checkUrl) return
 			return axios.get(checkUrl)
@@ -123,13 +123,14 @@ class CheckEmailOrMobile extends React.Component {
 					const result = response.data.result
 					if(result.response === "modify_success"){
 						if(this.isEmail){
-							localStorage.setItem("email", (setTempEmail|| ""))
 							$dispatch(updateSetEmail(setTempEmail))
-							$dispatch(updateToken(result.token));
 							if(hasForgetPassword){
+								// 忘记密码
 								$dispatch(updateHasForgetPassword(false))
 								window.goRoute(self, "/reset_password_sys")
 							} else {
+								// 个人中心设置邮箱，因为可能没有username，所以可能没有token下发
+								if(result.token) $dispatch(updateToken(result.token));
 								alert("设置成功")
 								window.goRoute(self, "/user_profile")
 							}
@@ -137,18 +138,13 @@ class CheckEmailOrMobile extends React.Component {
 							const { username } = this.props
 							if(!username){
 								$dispatch(updateUserId(setTempMobile));
-								localStorage.setItem("userId", (setTempMobile || ""))
 							}
-							localStorage.setItem("mobile", (setTempMobile|| ""))
 							$dispatch(updateSetMobile(setTempMobile))
+							// 手机号可作为token的依据，所以这里一定有token
 							$dispatch(updateToken(result.token));
+							// 个人中心设置手机号
 							alert("设置成功")
-							if(hasForgetPassword){
-								$dispatch(updateHasForgetPassword(false))
-								window.goRoute(self, "/reset_password_sys")
-							} else {
-								window.goRoute(self, "/user_profile")
-							}
+							window.goRoute(self, "/user_profile")
 						}
 					} else if(result.response === "no_username_or_value"){
 						return alert("没有用户名或验证码或邮箱")
@@ -159,12 +155,11 @@ class CheckEmailOrMobile extends React.Component {
 						$dispatch(updateToken(result.token));
 						$dispatch(updateSetMobile(setTempMobile));
 						$dispatch(updateUserId(setTempMobile));
-						localStorage.setItem("tk", (result.token || ""))
-						localStorage.setItem("mobile", (setTempMobile|| ""))
-						localStorage.setItem("userId", (setTempMobile || ""))
 						if(forgetPasswordToken){
+							// 忘记密码
 							window.goRoute(self, "/reset_password_sys")
 						} else {
+							// 手机号注册
 							window.goRoute(self, "/register")
 						}
 					} else if(result.response === "illegal_mobile"){
@@ -224,7 +219,8 @@ const mapStateToProps = state => {
 		setTempMobile: state.myInfo.setTempMobile,
 		registerFromLogin: state.login.registerFromLogin,
 		forgetPasswordToken: state.login.forgetPasswordToken,
-		token: state.login.token
+		token: state.login.token,
+		setMobile: state.myInfo.setMobile
 	};
 };
 

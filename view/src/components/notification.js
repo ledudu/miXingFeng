@@ -27,9 +27,7 @@ class Notification extends Component {
 		$dispatch(updateReceiveNotification(checked))
 		if(checked){
 			resumePush()
-			localStorage.setItem("notification", "yes")
 		} else {
-			localStorage.setItem("notification", "no")
 			stopPush()
 		}
 		this.props.form.setFieldsValue({
@@ -40,11 +38,6 @@ class Notification extends Component {
 	onChangeAlwaysShowAdsPage = (checked) => {
 		logger.info("onChangeAlwaysShowAdsPage", checked);
 		$dispatch(updateAlwaysShowAdsPage(checked))
-		if(checked){
-			localStorage.setItem("alwaysShowAdsPage", "yes")
-		} else {
-			localStorage.setItem("alwaysShowAdsPage", "no")
-		}
 		this.props.form.setFieldsValue({
 			Switch3: checked,
 		});
@@ -60,7 +53,6 @@ class Notification extends Component {
 						logger.info("onAllowGetPosition ACCESS_FINE_LOCATION", status);
 						if (status.hasPermission) {
 							$dispatch(updateAllowGetPosition(true))
-							localStorage.setItem("usePosition", "yes")
 							self.props.form.setFieldsValue({
 								Switch4: true,
 							});
@@ -82,14 +74,12 @@ class Notification extends Component {
 					})
 				} else {
 					$dispatch(updateAllowGetPosition(true))
-					localStorage.setItem("usePosition", "yes")
 					self.props.form.setFieldsValue({
 						Switch4: true,
 					});
 				}
 			} else {
 				$dispatch(updateAllowGetPosition(false))
-				localStorage.setItem("usePosition", "no")
 				this.props.form.setFieldsValue({
 					Switch4: false,
 				});
@@ -102,11 +92,6 @@ class Notification extends Component {
 	onAllowOthersGetPosition = (checked) => {
 		logger.info("onAllowOthersGetPosition", checked);
 		$dispatch(updateAllowOthersGetPosition(checked))
-		if(checked){
-			localStorage.setItem("allowOthersGetPosition", "yes")
-		} else {
-			localStorage.setItem("allowOthersGetPosition", "no")
-		}
 		this.props.form.setFieldsValue({
 			Switch5: checked,
 		});

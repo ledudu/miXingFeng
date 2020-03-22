@@ -8,7 +8,6 @@ import {
 import sign from "./sign";
 import login from "./login";
 import common from "./common";
-import searchUserHistory from "./searchUserHistory";
 import fileServer from "./fileServer";
 import myInfo from "./myInfo";
 
@@ -21,9 +20,6 @@ let reducersMap = {
 	},
 	common: {
 		common
-	},
-	searchUserHistory: {
-		searchUserHistory
 	},
 	fileServer: {
 		fileServer

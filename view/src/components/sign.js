@@ -194,7 +194,6 @@ class Sign extends Component {
 							array.forEach((item) => {
 								item.filePath = window.serverHost + item.filePath
 							})
-							localStorage.setItem("fileList", JSON.stringify(array.slice(0, 50)))
 							$dispatch(updateFileList(array));
 						})
 						.catch(err => {
@@ -209,7 +208,6 @@ class Sign extends Component {
 							})
 							if (!array.length) return;
 							$dispatch(updateMusicList(array));
-							localStorage.setItem("musicList", JSON.stringify(array.slice(0, 50)))
 							let downloadedMusicArr = [], downloadingMusicArr = []
 							const indexDBData = await readAllMusicDataFromIndexDB()
 							indexDBData.forEach(item => {
@@ -223,8 +221,6 @@ class Sign extends Component {
 							downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
 							$dispatch(updateDownloadedMusicList(downloadedMusicArr))
 							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
-							localStorage.setItem("downloadedMusicList", JSON.stringify(downloadedMusicArr.slice(0, 50)))
-							localStorage.setItem("downloadingMusicItems", JSON.stringify(downloadingMusicArr.slice(0, 50)))
 							$dispatch(updateNeedRetryRequestWhenLaunch(false))
 						})
 						.catch(err => {

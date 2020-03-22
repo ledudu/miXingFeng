@@ -90,12 +90,8 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
-	localStorage.setItem("username", (result.username || ""))
-	localStorage.setItem("mobile", (result.mobile || ""))
 	localStorage.setItem("favoriteSongs", JSON.stringify(favoriteSongs.slice(0, 50)))
 	localStorage.setItem("role", result.role || "")
-	localStorage.setItem("email", (userProfile.email || ""))
-	localStorage.setItem("tk", result.token);
 	$dispatch(updateUsername(result.username || ""));
 	$dispatch(updatePassword(result.password));
 	$dispatch(updateToken(result.token));
@@ -137,7 +133,6 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 
 	const original = $getState().login.userId;
 	const newOne = (result.username || result.mobile)
-	localStorage.setItem("userId", newOne);
 	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
 	if(original !== newOne){
@@ -199,7 +194,6 @@ export const registerUsername = (that) => {
                 document.getElementsByName("register-password")[0] && (document.getElementsByName("register-password")[0].value = "");
                 document.getElementsByName("register-password-again")[0] && (document.getElementsByName("register-password-again")[0].value = "");
 				window.$dispatch(updateUsername(usernameValue));
-				localStorage.setItem("username", usernameValue)
                 window.$dispatch(updatePassword(pwdValue));
                 window.goRoute(that, "/login")
             } else if(response.data.result.response === "register_fail"){

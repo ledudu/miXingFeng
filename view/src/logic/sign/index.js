@@ -23,7 +23,6 @@ export const retrieveLastLoginTime = () => {
 				}
 				if(lastSignUpTime && lastSignUpTime.split(" ")[0] === date) signed();
 				window.$dispatch(updateLastSignUpTime(lastSignUpTime));
-				localStorage.setItem("lastSignUpTime", lastSignUpTime)
 			})
 			.catch(err => {
                 networkErr(err, `lastSign`);

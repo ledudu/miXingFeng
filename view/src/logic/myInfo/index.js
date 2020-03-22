@@ -171,7 +171,6 @@ export const saveHeadPicToLocal = (headPicAddress, username, logInfo="") => {
 	const setHeadPicName = `${username}.${extname}`;
 	logger.info(`${logInfo} setHeadPicName`, setHeadPicName)
 	window.$dispatch(updateSetHeadPicName(setHeadPicName));
-	localStorage.setItem("setHeadPicName", setHeadPicName)
 	let headPicAddressFull = window.serverHost + "/" + headPicAddress
 	return checkFileWritePriority()
 		.then(bool => {

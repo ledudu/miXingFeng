@@ -320,9 +320,6 @@ class MusicPlayer extends React.Component {
 								$dispatch(updatePauseWhenOver(true))
 								$dispatch(updatePlayByOrder(false))
 								$dispatch(updatePlayByRandom(false))
-								localStorage.setItem("pauseWhenOver", 'yes')
-								localStorage.setItem("playByOrder", "no")
-								localStorage.setItem("playByRandom", 'no')
 								alert('单曲播放')
 								$dispatch(updateMusicMenuBadge([
 									{
@@ -347,9 +344,6 @@ class MusicPlayer extends React.Component {
 								$dispatch(updatePauseWhenOver(false))
 								$dispatch(updatePlayByOrder(false))
 								$dispatch(updatePlayByRandom(false))
-								localStorage.setItem("pauseWhenOver", 'no')
-								localStorage.setItem("playByOrder", 'no')
-								localStorage.setItem("playByRandom", 'no')
 								alert('单曲循环')
 								$dispatch(updateMusicMenuBadge([
 									{
@@ -376,9 +370,7 @@ class MusicPlayer extends React.Component {
 								$dispatch(updatePauseWhenOver(true))
 								$dispatch(updatePlayByOrder(true))
 								$dispatch(updatePlayByRandom(false))
-								localStorage.setItem("pauseWhenOver", 'yes')
-								localStorage.setItem("playByOrder", 'yes')
-								localStorage.setItem("playByRandom", 'no')
+
 								alert('顺序播放')
 								$dispatch(updateMusicMenuBadge([
 									{
@@ -405,9 +397,6 @@ class MusicPlayer extends React.Component {
 								$dispatch(updatePauseWhenOver(true))
 								$dispatch(updatePlayByOrder(false))
 								$dispatch(updatePlayByRandom(true))
-								localStorage.setItem("pauseWhenOver", 'yes')
-								localStorage.setItem("playByOrder", 'no')
-								localStorage.setItem("playByRandom", 'yes')
 								alert('随机播放')
 								$dispatch(updateMusicMenuBadge([
 									{

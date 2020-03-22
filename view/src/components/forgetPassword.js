@@ -70,14 +70,12 @@ export default class ForgetPassword extends Component {
 						} else if(result.response === "no_such_mobile"){
 							return alert("手机号不存在")
 						} else if(result.response === "send_email_success"){
-							$dispatch(updateForgetPasswordToken(result.token))
 							$dispatch(updateForgetPasswordTokenOrigin("email"))
 							alert("验证码已发送邮箱，请注意查收")
 							$dispatch(updateSetTempEmail(emailValue));
 							$dispatch(updateHasForgetPassword(true));
 							window.goRoute(this, "/check_email")
 						} else if(result.response === "send_mobile_success"){
-							$dispatch(updateForgetPasswordToken(result.token))
 							$dispatch(updateForgetPasswordTokenOrigin("mobile"))
 							alert("验证码已发送，请注意查收")
 							$dispatch(updateSetTempMobile(emailValue));
