@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.szhou.mixingfeng" version="3.0.8" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:gap="http://phonegap.com/ns/1.0">
+<widget id="com.szhou.mixingfeng" version="3.0.9" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:gap="http://phonegap.com/ns/1.0">
     <name>觅星峰</name>
     <description>
         觅星峰
@@ -129,14 +129,14 @@
         <variable name="CHANNEL" value="developer-default" />
     </plugin>
     <plugin name="cordova-plugin-background-mode" spec="^0.7.3" />
-    <plugin name="cordova-plugin-android-permissions" spec="^1.0.2" />
-    <plugin name="cordova-plugin-fastrde-md5" spec="^0.2.0" />
+	<plugin name="cordova-plugin-android-permissions" spec="^1.0.2" />
+	<plugin name="cordova-plugin-fastrde-md5" spec="^0.2.0" />
     <plugin name="cordova-plugin-local-notifications-appstr" spec="^0.9.3" />
     <plugin name="cordova-plugin-screen-orientation" spec="^3.0.2" />
     <plugin name="cordova-plugin-insomnia" spec="^4.3.0" />
     <plugin name="jg-jverification-cordova-plugin" spec="^1.2.4">
-        <variable name="APP_KEY" value="6373dbebb829d2867eab0878" />
+        <variable name="APP_KEY" value="put your key" />
         <variable name="CHANNEL" value="developer-default" />
-    </plugin>
-    <engine name="android" spec="7.1.4" />
+	</plugin>
+	<engine name="android" spec="7.1.4" />
 </widget>
