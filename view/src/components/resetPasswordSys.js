@@ -2,14 +2,19 @@ import React, { Component } from 'react';
 import { Button } from "antd-mobile";
 import { resetPasswordFunc} from "../logic/login";
 import NavBar from "./child/navbar";
-import { updateForgetPasswordToken } from "../ducks/login"
+import { updateForgetPasswordToken, updateForgetPasswordTokenOrigin } from "../ducks/login"
 
 class resetPasswordSys extends Component {
 
+	componentDidMount(){
+		this.resetPassword1Ref.focus()
+	}
+
     backToMain = () => {
-		const { forgetPasswordToken } = $getState().login
-		if(forgetPasswordToken){
+		const { token } = $getState().login
+		if(!token){
 			$dispatch(updateForgetPasswordToken(""))
+			$dispatch(updateForgetPasswordTokenOrigin(""))
 			window.goRoute(this, "/forget_password")
 		} else {
 			window.goRoute(this, "/system_setup")

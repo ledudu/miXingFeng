@@ -298,28 +298,43 @@ function showPosition(position) {
 		var latlon = position.coords.latitude + ',' + position.coords.longitude;
 		window.logger.info(`latlon`, latlon);
 		//baidu
-		const url = `http://api.map.baidu.com/geocoder/v2/?ak=p8bpCj4slGspApTOUQsVng7KsPtVI2Bo&callback=renderReverse&location=${latlon}&output=json&pois=0&callback=${handLeResponse}`;
+		const url = `http://api.map.baidu.com/geocoder/v2/?ak=p8bpCj4slGspApTOUQsVng7KsPtVI2Bo&callback=renderReverse&location=${latlon}&output=json&pois=0`;
 		// return axios.get(url)
 		// 	.then((json) => {
-		// 		if (json.status === 0) {
-		// 			try{
-		// 				window.logger.info(`您当前的位置`, json.result);
-		// 				window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
-		// 				window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
-		// 				window.$dispatch(updateCurrentLocation(json.result.formatted_address));
-		// 			} catch (err){
-		// 				logger.error('showPosition err', err)
-		// 			}
-		// 		}
+				// if (json.status === 0) {
+				// 	try{
+				// 		window.logger.info(`您当前的位置`, json.result);
+				// 		window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
+				// 		window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
+				// 		window.$dispatch(updateCurrentLocation(json.result.formatted_address));
+				// 	} catch (err){
+				// 		logger.error('showPosition err', err)
+				// 	}
+				// }
 		// 	})
 		// 	.catch(err => {
 		// 		window.logger.error(`地址位置获取失败`, JSON.stringify(latlon), err);
 		// 	})
-		function handLeResponse(success, error){
-			console.log("success", success)
-			console.log("error", error)
+		jsonp('http://api.map.baidu.com/geocoder/v2/', {
+			ak: "p8bpCj4slGspApTOUQsVng7KsPtVI2Bo",
+			location: latlon,
+			output: 'json',
+			pois: 0
+		}, showPositionCallback)
+}
+
+function showPositionCallback(json){
+	console.warn("showPosition json", json)
+	if (json.status === 0) {
+		try{
+			window.logger.info(`您当前的位置`, json.result);
+			window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
+			window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
+			window.$dispatch(updateCurrentLocation(json.result.formatted_address));
+		} catch (err){
+			logger.error('showPosition err', err)
 		}
-		loadScript(url)
+	}
 }
 
 function showError (error) {
@@ -1784,11 +1799,19 @@ export const updateValueFromAutosuggest = (value, self) => {
 			})
 	}
 }
-
-export const loadScript = (url) => {
-    loadScript.mark = 'load';
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = url;
-    document.body.appendChild(script);
+export const jsonp = (url, params, cb) => {
+	return new Promise((resolve, reject) => {
+		window[cb] = function (data) { // 声明全局变量
+			resolve(data)
+			document.body.removeChild(script)
+		}
+		params = { ...params, cb }
+		let arrs = []
+		for (let key in params) {
+			arrs.push(`${key}=${params[key]}`)
+		}
+		let script = document.createElement('script')
+		script.src = `${url}?${arrs.join('&')}`
+		document.body.appendChild(script)
+	})
 }

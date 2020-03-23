@@ -5,7 +5,7 @@ import NavBar from "../child/navbar";
 import { networkErr } from "../../services/utils";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { updateSetEmail, updateSetMobile } from "../../ducks/myInfo";
-import { updateToken, updateHasForgetPassword, updateRegisterFromLogin, updateForgetPasswordToken, updateUserId } from "../../ducks/login";
+import { updateToken, updateHasForgetPassword, updateRegisterFromLogin, updateForgetPasswordToken, updateUserId, updateForgetPasswordTokenOrigin } from "../../ducks/login";
 import { CONSTANT } from "../../constants/enumeration";
 
 const keyCode = [
@@ -28,17 +28,19 @@ class CheckEmailOrMobile extends React.Component {
 	}
 
     backToMainPage = () => {
-		const { forgetPasswordToken, registerFromLogin, self } = this.props
+		const { forgetPasswordToken, registerFromLogin, self, token } = this.props
 		if(this.isEmail){
-			if(forgetPasswordToken){
+			if(forgetPasswordToken || !token){
 				$dispatch(updateForgetPasswordToken(""))
+				$dispatch(updateForgetPasswordTokenOrigin(""))
 				window.goRoute(self, "/forget_password");
 			} else {
 				window.goRoute(self, "/set_email");
 			}
 		} else if(this.isMobile) {
-			if(forgetPasswordToken){  // 忘记密码场景
+			if(forgetPasswordToken || !token){  // 忘记密码场景
 				$dispatch(updateForgetPasswordToken(""))
+				$dispatch(updateForgetPasswordTokenOrigin(""))
 				window.goRoute(self, "/forget_password");
 			} else if(registerFromLogin){  //注册场景
 				window.goRoute(self, "/set_mobile");
@@ -106,7 +108,7 @@ class CheckEmailOrMobile extends React.Component {
 		const value3 = this.inputValueRef3.value
 		const value4 = this.inputValueRef4.value
 		const value = (value1 + value2 + value3 + value4)
-		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, token, forgetPasswordToken, setMobile } = this.props
+		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, forgetPasswordToken, setMobile } = this.props
 		logger.info("checkEmail submit value", value)
 		if(!this.startToSubmit){
 			this.startToSubmit = true

@@ -74,12 +74,15 @@ export default class ForgetPassword extends Component {
 							alert("验证码已发送邮箱，请注意查收")
 							$dispatch(updateSetTempEmail(emailValue));
 							$dispatch(updateHasForgetPassword(true));
+							logger.info("forgetPassword result.emailToken", result.emailToken)
+							$dispatch(updateForgetPasswordToken(result.emailToken))
 							window.goRoute(this, "/check_email")
 						} else if(result.response === "send_mobile_success"){
 							$dispatch(updateForgetPasswordTokenOrigin("mobile"))
 							alert("验证码已发送，请注意查收")
 							$dispatch(updateSetTempMobile(emailValue));
 							$dispatch(updateHasForgetPassword(true));
+							$dispatch(updateForgetPasswordToken(result.token))
 							window.goRoute(this, "/check_mobile")
 						}
 					})

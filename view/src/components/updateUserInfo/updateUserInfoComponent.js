@@ -20,6 +20,10 @@ class UpdateUserInfoComponent extends React.Component {
 		}
 	}
 
+	componentDidMount(){
+		this.userInfoInputRef && this.userInfoInputRef.focus()
+	}
+
     saveUserInfo = () => {
         const {infoLength, infoErrorTip, updateUserInfoDispatch, pageTitle, name, backToMainPage, self, registerFromLogin} = this.props;
         let value = this.state.inputValue
@@ -137,10 +141,18 @@ class UpdateUserInfoComponent extends React.Component {
         return (
             <div className="set-user-info-component-container">
                 <div className="set-user-info-component-content">
-                    {pageTitle === "填写手机号"
-                    ?  <InputItem type="phone" placeholder={placeholder} onChange={this.updateValue} onKeyDown={this.keyDownEvent}></InputItem>
-					: <input className="set-user-info-input" value={inputValue} placeholder={placeholder} onChange={this.updateValue}
-						onKeyDown={this.keyDownEvent}/>}
+                    {
+						pageTitle === "填写手机号"
+                    	?  <InputItem type="phone" placeholder={placeholder} onChange={this.updateValue} onKeyDown={this.keyDownEvent}></InputItem>
+						: <input
+							className="set-user-info-input"
+							value={inputValue}
+							placeholder={placeholder}
+							onChange={this.updateValue}
+							onKeyDown={this.keyDownEvent}
+							ref={ref => this.userInfoInputRef = ref}
+						/>
+					}
                     <div className="save-user-info">
                         <Button type="primary" className="button" value="保存" onClick={this.saveUserInfo}>保存</Button>
                     </div>

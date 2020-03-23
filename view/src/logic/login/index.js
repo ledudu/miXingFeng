@@ -27,7 +27,7 @@ import {
 	updateCarrierOperator
 } from "../../ducks/myInfo";
 import { CONSTANT } from "../../constants/enumeration";
-import { logoutApp, reconnectSocket, checkPassword } from "../common";
+import { logoutApp, checkPassword } from "../common";
 import { updateDeviceInfo, updateAllowShareMyNickname } from "../../ducks/common";
 import { saveHeadPicToLocal } from "../myInfo";
 import { updateMusicCollection } from "../../ducks/fileServer";
@@ -143,10 +143,7 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 	}
 }
 
-export const registerUsername = (that) => {
-    let usernameValue = document.getElementsByName("register-username")[0] && document.getElementsByName("register-username")[0].value;
-    let pwdValue = document.getElementsByName("register-password")[0] && document.getElementsByName("register-password")[0].value;
-    let pwdValueAgain = document.getElementsByName("register-password-again")[0] && document.getElementsByName("register-password-again")[0].value;
+export const registerUsername = (that, usernameValue, pwdValue, pwdValueAgain) => {
     if (!usernameValue) {
         alert("用户名不能为空");
         return;
@@ -190,9 +187,6 @@ export const registerUsername = (that) => {
                 return;
             } else if (response.data.result.response === "modify_success"){
                 alert('注册成功')
-                document.getElementsByName("register-username")[0] && (document.getElementsByName("register-username")[0].value = "");
-                document.getElementsByName("register-password")[0] && (document.getElementsByName("register-password")[0].value = "");
-                document.getElementsByName("register-password-again")[0] && (document.getElementsByName("register-password-again")[0].value = "");
 				window.$dispatch(updateUsername(usernameValue));
                 window.$dispatch(updatePassword(pwdValue));
                 window.goRoute(that, "/login")
@@ -214,6 +208,7 @@ export const resetPasswordFunc = (self, newPwd1, newPwd2) => {
     const token =  forgetPasswordToken || $getState().login.token
     let data = {};
     if(!token){
+		alertDialog("没有token")
         return;
     } else {
         if(!newPwd1 || !newPwd2) {
@@ -225,8 +220,8 @@ export const resetPasswordFunc = (self, newPwd1, newPwd2) => {
 			return alert("两次密码不一致")
 		} else {
 			newPwd1 = newPwd1.trim()
-			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : "systemSetuo"
-			if(origin){
+			const origin = forgetPasswordTokenOrigin === "email" ? "email" : forgetPasswordTokenOrigin === "mobile" ? "mobile" : "systemSetup"
+			if(origin){  // 这里的token是忘记密码或重置密码，两个token是不一样的
 				data = Object.assign({}, {newPwd: newPwd1, token, origin});
 			} else {
 				return alert('未知来源')

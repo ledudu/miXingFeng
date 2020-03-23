@@ -594,7 +594,7 @@ class Sign extends Component {
 			token,
 			alreadySignUpPersons,
 			notSignUpPersons=[],
-			lastSignUpTime=[],
+			lastSignUpTime,
 			onlinePersonsNum,
 			signedFlag,
 			setNickname,

@@ -69,7 +69,7 @@ export const signInApp = (that) => {
 					alert("签到成功");
 					signed();
 					const date = new Date().format("yyyy-MM-dd hh:mm:ss");
-					document.getElementsByClassName("last-sign")[0] && (document.getElementsByClassName("last-sign")[0].innerHTML = date);
+					$dispatch(updateLastSignUpTime(date));
 					retrieveOthers();
 					return;
 				} else if(response.data.result.str === "error"){

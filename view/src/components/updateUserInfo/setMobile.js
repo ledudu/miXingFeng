@@ -8,8 +8,8 @@ import { updateRegisterFromLogin } from "../../ducks/login"
 class SetMobile extends React.Component {
 
     backToMainPage = () => {
-		const { registerFromLogin } = this.props
-		if(registerFromLogin){
+		const { token } = this.props
+		if(!token){
 			$dispatch(updateRegisterFromLogin(false))
 			window.goRoute(this, "/login")
 		} else {
@@ -42,7 +42,8 @@ class SetMobile extends React.Component {
 const mapStateToProps = state => {
 	return {
 		setMobile: state.myInfo.setMobile,
-		registerFromLogin: state.login.registerFromLogin
+		registerFromLogin: state.login.registerFromLogin,
+		token: state.login.token
 	};
 };
 
