@@ -978,7 +978,7 @@ export const stopMusic = () => {
 export const playMusic = async (filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, self) => {
 	try {
 		const notFirstTimePlayMusic = localStorage.getItem("notFirstTimePlayMusic")
-		if(!notFirstTimePlayMusic && self){
+		if(!notFirstTimePlayMusic && self && window.isCordova && !window.isDevModel){
 			localStorage.setItem("notFirstTimePlayMusic", true)
 			alertDialog("音乐置于后台播放时，为了应用不被系统省电杀掉，状态栏会出现消息提示", "", "我知道了")
 		}

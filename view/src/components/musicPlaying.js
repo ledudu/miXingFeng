@@ -270,6 +270,7 @@ class MusicPlaying extends React.Component {
 				/>
 				<div className="music-playing-content">
 					<div className="top" ref={ref => this.musicPlayingTop = ref}>
+						<div className="music-singer">{currentSongInfo.uploadUsername}</div>
 						{
 							!isHeadPhoneView
 							?	<AmazingBaby />
