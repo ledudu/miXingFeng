@@ -1,17 +1,26 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import { Button, Toast } from "antd-mobile";
+import NavBar from "./child/navbar"
+import InputComponent from "./child/inputComponent"
 import { networkErr, backToPreviousPage} from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail, updateSetTempMobile } from "../ducks/myInfo";
 import { updateHasForgetPassword, updateForgetPasswordToken, updateForgetPasswordTokenOrigin } from "../ducks/login"
-import NavBar from "./child/navbar"
 import { checkEmail, checkMobilePhone } from "../logic/common"
 
 export default class ForgetPassword extends Component {
 
+	constructor(props){
+		super(props)
+		this.emailInput = createRef();
+		this.state = {
+			emailOrMobile: "",
+		}
+	}
+
     componentDidMount(){
-		this.emailInput.focus()
+		this.emailInput.current && this.emailInput.current.focus()
         document.addEventListener("deviceready", this.listenBackButton, false);
     }
 
@@ -35,7 +44,7 @@ export default class ForgetPassword extends Component {
     forgetPasswordKeyDownEvent = (evt) => {
         var e = evt;
         if (e.keyCode === 13) {
-			const emailValue = this.emailInput.value
+			const emailValue = this.state.emailOrMobile
 			if(!emailValue){
 				return alert("手机号或邮箱不能为空")
 			}
@@ -44,7 +53,7 @@ export default class ForgetPassword extends Component {
 	}
 
 	forgetPasswordFunc = () => {
-		const emailValue = this.emailInput.value
+		const emailValue = this.state.emailOrMobile
 		let isEmail, isMobile
 		if(checkEmail(emailValue)) isEmail = true
 		if(checkMobilePhone(emailValue)) isMobile = true
@@ -95,14 +104,26 @@ export default class ForgetPassword extends Component {
 		}
 	}
 
+	updateValue = (e) => {
+		this.setState({
+			emailOrMobile: e.target.value
+		})
+	}
+
     render(){
+		const { emailOrMobile } = this.state
         return(
             <div className="forget-password-area">
                 <NavBar centerText="忘记密码" backToPreviousPage={this.backToMain} />
 				<div className="input-content">
 					<div className="content">
-                        <input type="text" ref={ref => this.emailInput = ref} className="reset-password-email form" placeholder="请输入手机号或邮箱"
-                            onKeyDown={(event) => this.forgetPasswordKeyDownEvent(event)} />
+						<InputComponent
+							placeholder="请输入手机号或邮箱"
+							handleKeyDown={this.forgetPasswordKeyDownEvent}
+							handleChange={this.updateValue}
+							ref={this.emailInput}
+							value={emailOrMobile}
+						/>
 					</div>
                 </div>
                 <div className="reset-password-btn">

@@ -1,11 +1,23 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import { Button } from "antd-mobile";
-import { registerUsername} from "../logic/login";
 import NavBar from "./child/navbar";
-import { CONSTANT } from "../constants/enumeration";
+import InputComponent from "./child/inputComponent"
+import { registerUsername} from "../logic/login";
 import { backToPreviousPage} from "../services/utils";
 
 export default class Register extends Component {
+
+	constructor(props){
+		super(props)
+		this.username = createRef();
+		this.password1 = createRef();
+		this.password2 = createRef();;
+		this.state = {
+			usernameValue: "",
+			passwordValue1: "",
+			passwordValue2: ""
+		}
+	}
 
     componentDidMount(){
         document.addEventListener("deviceready", this.listenBackButton, false);
@@ -45,48 +57,66 @@ export default class Register extends Component {
     }
 
     register = () => {
-        registerUsername(this, this.username.value, this.password1.value, this.password2.value);
-    }
+		const { usernameValue, passwordValue1, passwordValue2 } = this.state
+        registerUsername(this, usernameValue, passwordValue1, passwordValue2);
+	}
+
+	updateValue = (e, number) => {
+		let value = ""
+		if(number === 0){
+			value = 'usernameValue'
+		} else if(number === 1){
+			value = 'passwordValue1'
+		} else if(number === 2){
+			value = 'passwordValue2'
+		}
+		this.setState({
+			[value]: e.target.value
+		})
+	}
 
     render() {
+		const { usernameValue, passwordValue1, passwordValue2 } = this.state
         return (
             <div className="register-area">
                 <NavBar centerText="填写信息" backToPreviousPage={this.backToMain} />
                 <div className="input-content" style={{marginTop: "10px"}}>
                     <div className="content">
-						<input
-							type="text"
-							ref={ref => this.username = ref}
-							placeholder="用户名可用于登录"
-							className="form"
+						<InputComponent
+							value={usernameValue}
 							size="26"
-							onKeyDown={this.registerKeyDownEvent}
+							placeholder="用户名可用于登录"
+							handleChange={(e) => this.updateValue(e, 0)}
+							handleKeyDown={this.registerKeyDownEvent}
+							ref={this.username}
 						/>
 						<div className="new-password-text">用户名</div>
                     </div>
                 </div>
                 <div className="input-content">
                     <div className="content">
-						<input
+						<InputComponent
 							type="password"
+							value={passwordValue1}
 							size="16"
-							ref={ref => this.password1 = ref}
 							placeholder="请输入密码，至少包含一个数字和字母"
-							className="form"
-							onKeyDown={this.registerKeyDownEvent}
+							handleChange={(e) => this.updateValue(e, 1)}
+							handleKeyDown={this.registerKeyDownEvent}
+							ref={this.password1}
 						/>
 						<div className="new-password-text">密码</div>
                     </div>
                 </div>
                 <div className="input-content">
                     <div className="content">
-						<input
+						<InputComponent
 							type="password"
-							size="16"
-							ref={ref => this.password2 = ref}
-							placeholder="请再次输入密码，至少包含一个数字和字母"
-							className="form"
-							onKeyDown={this.registerKeyDownEvent}
+							value={passwordValue2}
+							size="26"
+							placeholder="请再次输入密码"
+							handleChange={(e) => this.updateValue(e, 2)}
+							handleKeyDown={this.registerKeyDownEvent}
+							ref={this.password2}
 						/>
 						<div className="new-password-text">确认密码</div>
                     </div>

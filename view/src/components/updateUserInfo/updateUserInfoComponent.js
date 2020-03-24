@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { Button, Toast, InputItem } from "antd-mobile";
+import InputComponent from "../child/inputComponent"
 import { HTTP_URL } from "../../constants/httpRoute";
 import { networkErr, alertDialog, confirm } from "../../services/utils";
 import { updateToken } from "../../ducks/login";
@@ -18,10 +19,13 @@ class UpdateUserInfoComponent extends React.Component {
 		this.state={
 			inputValue
 		}
+		this.userInfoInputRef = createRef();
 	}
 
 	componentDidMount(){
-		this.userInfoInputRef && this.userInfoInputRef.focus()
+		setTimeout(() => {
+			this.userInfoInputRef && this.userInfoInputRef.current &&this.userInfoInputRef.current.focus()
+		})
 	}
 
     saveUserInfo = () => {
@@ -144,13 +148,12 @@ class UpdateUserInfoComponent extends React.Component {
                     {
 						pageTitle === "填写手机号"
                     	?  <InputItem type="phone" placeholder={placeholder} onChange={this.updateValue} onKeyDown={this.keyDownEvent}></InputItem>
-						: <input
-							className="set-user-info-input"
+						: <InputComponent
 							value={inputValue}
 							placeholder={placeholder}
-							onChange={this.updateValue}
-							onKeyDown={this.keyDownEvent}
-							ref={ref => this.userInfoInputRef = ref}
+							handleChange={this.updateValue}
+							handleKeyDown={this.keyDownEvent}
+							ref={this.userInfoInputRef}
 						/>
 					}
                     <div className="save-user-info">
@@ -163,3 +166,4 @@ class UpdateUserInfoComponent extends React.Component {
 }
 
 export default UpdateUserInfoComponent;
+

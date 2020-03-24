@@ -1,6 +1,7 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
+import InputComponent from "./child/inputComponent"
 import { loginApp } from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { autoLogin } from "../logic/common"
@@ -20,6 +21,8 @@ class Login extends Component {
 			showAsPassword: "password",
 			loginStatus: "登录"
 		}
+		this.loginUsernameRef = createRef();
+		this.loginPasswordRef = createRef();
 	}
 
     componentDidMount(){
@@ -75,12 +78,12 @@ class Login extends Component {
 		this.setState({
 			username
 		})
-		this.loginUsernameRef.click()
+		this.loginUsernameRef.current.click()
 	}
 
 	setPassword = (e) => {
 		$dispatch(updatePassword(e.target.value || ""))
-		this.loginPasswordRef.click()
+		this.loginPasswordRef.current.click()
 	}
 
 	showOrHidePassword = () => {
@@ -183,15 +186,15 @@ class Login extends Component {
                     <div className="main">
                         <div className="input-content">
                             <div className="content">
-								<input type="text"
-									ref={ref => this.loginUsernameRef = ref}
-									name="username"
-									placeholder="用户名/手机号/邮箱"
-									className="form" size="26"
+								<InputComponent
 									value={username}
-									onKeyDown={this.keyDownEvent}
-									onChange={this.setUsername}
-									autoComplete="off"/>
+									size="26"
+									placeholder="用户名/手机号/邮箱"
+									handleChange={this.setUsername}
+									handleKeyDown={this.keyDownEvent}
+									ref={this.loginUsernameRef}
+									style={{"padding": "0 50px 0 35px", "backgroundImage": "linear-gradient(#fff,#fff),linear-gradient(#1f3144,#1f3144)"}}
+								/>
 								<i className="fa fa-user fa-inverse" aria-hidden="true"></i>
                                 <div className="login-center-input-text">账号</div>
 								<i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.setUsername()}></i>
@@ -199,15 +202,16 @@ class Login extends Component {
                         </div>
                         <div className="input-content">
                             <div className="content">
-								<input name="password"
+								<InputComponent
 									type={showAsPassword}
-									ref={ref => this.loginPasswordRef = ref}
-									placeholder="请输入登录密码"
-									className="form"
 									value={password}
-									onKeyDown={this.keyDownEvent}
-									onChange={this.setPassword
-								}/>
+									size="26"
+									placeholder="请输入登录密码"
+									handleChange={this.setPassword}
+									handleKeyDown={this.keyDownEvent}
+									ref={this.loginPasswordRef}
+									style={{"padding": "0 50px 0 35px", "backgroundImage": "linear-gradient(#fff,#fff),linear-gradient(#1f3144,#1f3144)"}}
+								/>
 								<i className="fa fa-spoon fa-inverse" aria-hidden="true"></i>
                                 <div className="login-center-input-text">密码</div>
 								<i className="fa fa-eye" ref={ref => this.faEyeRef = ref} aria-hidden="true" onClick={this.showOrHidePassword} ></i>

@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { searchFunc, updateValueFromAutosuggest } from "../logic/common";
 import NavBar from "./child/navbar";
 import AutoSuggest from "./child/autoSuggest"
+import InputComponent from "./child/inputComponent"
 
 class SearchUserHistory extends Component {
 	constructor(props){
@@ -111,20 +112,19 @@ class SearchUserHistory extends Component {
     render(){
 		const { recordList, searchString, autoSuggestList, clickShowMoreCount, showMoreText, ulPadding, ulDisplay } = this.state;
         const recordListLength = recordList.length;
-		const { username, token } = this.props;
+		const { token } = this.props;
         return (
             <div className="search-history-container">
                 <NavBar centerText="搜索签到历史" backToPreviousPage={this.backToMainPage} />
                 <div className="search-header">
                     <div className="search-input">
-						<input
-							className="search-input-content"
+						<InputComponent
 							value={searchString}
-							autoComplete="off"
-							placeholder={token ? username : "请输入您要搜索的用户名"}
+							placeholder={token ? searchString : "请输入您要搜索的用户名"}
+							handleChange={(e) => updateValueFromAutosuggest(e.target.value, this)}
+							handleKeyDown={this.keyDownEvent}
 							onBlur={this.blur}
-							onKeyDown={this.keyDownEvent}
-							onChange={(e) => updateValueFromAutosuggest(e.target.value, this)}
+							className="search-input-content"
 						/>
 						<div className="ul" style={{padding: ulPadding, display: ulDisplay}}>
 							{autoSuggestList.length ? autoSuggestList.map((item, key) => <AutoSuggest key={key} item={item} query={searchString} select={this.select} />) : null}

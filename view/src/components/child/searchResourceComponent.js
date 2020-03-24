@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from "react-redux";
 import NavBar from "../child/navbar";
+import InputComponent from "../child/inputComponent"
 import FileManage from "../fileManage"
 import MusicPlayer from "../musicPlayer"
 import { HTTP_URL } from "../../constants/httpRoute";
@@ -514,8 +515,13 @@ class SearchResourceComponent extends Component {
                 <NavBar centerText={navbarText}  backToPreviousPage={this.backToMainPage} />
                 <div className="search-header">
                     <div className="search-input">
-						<input className="search-input-content" value={lastSearchString} onKeyDown={this.pressEnter}
-							autoComplete="off" placeholder={placeholder} onChange={this.updateValue}/>
+						<InputComponent
+							value={lastSearchString}
+							placeholder={placeholder}
+							handleChange={this.updateValue}
+							handleKeyDown={this.pressEnter}
+							className="search-input-content"
+						/>
 						<i className="fa fa-search" aria-hidden="true"></i>
 						{lastSearchString && <i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.updateValue()}></i>}
                     </div>

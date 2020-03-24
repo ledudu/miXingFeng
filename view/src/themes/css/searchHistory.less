@@ -20,28 +20,9 @@
             margin: 5px 0;
 			flex-direction: column;
 			position: relative;
-            .search-input-content{
-                width: calc(~"100% - 40px");
-                height: 45px;
-                box-shadow: none;
-                border: 0 none;
-                background-image: linear-gradient(#7FFF00,#7FFF00),linear-gradient(#1f3144,#1f3144);
-                background-size: 0px 2px,100% 1px;
-                background-repeat: no-repeat;
-                background-position: center bottom,center calc(100% - 1px);
-				background-color: rgba(0,0,0,0);
-				padding-left: 30px;
-				box-sizing: border-box;
-    			padding: 0 20px;
-                &:focus {
-                    background-size: 100% 2px,100% 1px;
-                    transition: all .5s;
-                    border: none;
-                    outline: none;
-				}
-				&:focus~.fa.fa-search {
-					opacity: 1;
-				}
+			.search-input-content{
+				width: calc(100% - 75px);
+    			padding-left: 25px;
 			}
 			.fa.fa-search{
 				position: absolute;
