@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component, Fragment, createRef } from 'react';
 import { connect } from "react-redux";
 import NavBar from "../child/navbar";
 import InputComponent from "../child/inputComponent"
@@ -33,7 +33,7 @@ import {
 	updateNoMoreSearchAllKuGouMusicResults,
 	updateNoMoreSearchAllKuWoMusicResults,
 } from "../../ducks/fileServer"
-import { networkErr } from "../../services/utils"
+import { networkErr, backToPreviousPage } from "../../services/utils"
 import { CONSTANT } from "../../constants/enumeration"
 import { removePrefixFromFileOrigin, logActivity } from "../../logic/common"
 
@@ -50,11 +50,33 @@ class SearchResourceComponent extends Component {
 			moreKuWoMusicSearch: false,
 			moreFileSearch: false,
 			moreMusicSearch: false
-        }
+		}
+		this.searchResourceInput = createRef();
+	}
+
+	componentDidMount(){
+		document.addEventListener("deviceready", this.listenBackButton, false);
+		const { lastSearchString } = this.props
+		if(!lastSearchString && this.searchResourceInput.current){
+			this.searchResourceInput.current.focus()
+		}
+	}
+
+	componentWillUnmount(){
+		document.removeEventListener("deviceready", this.listenBackButton, false);
+		document.removeEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	listenBackButton = () => {
+		document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	}
+
+	backKeyDownToPrevious = () => {
+		backToPreviousPage(this.props.self, "/search_column", {specialBack: true});
 	}
 
     backToMainPage = () => {
-        window.goRoute(this.props.self, "/search_column");
+        backToPreviousPage(this.props.self, "/search_column");
 	}
 
 	generateOnlineMusicFilenameOrigin = (songInfo ) => {
@@ -521,6 +543,7 @@ class SearchResourceComponent extends Component {
 							handleChange={this.updateValue}
 							handleKeyDown={this.pressEnter}
 							className="search-input-content"
+							ref={this.searchResourceInput}
 						/>
 						<i className="fa fa-search" aria-hidden="true"></i>
 						{lastSearchString && <i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.updateValue()}></i>}

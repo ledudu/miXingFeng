@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
+import HearSvg from "./child/heartSvg"
 import {
 	saveSongFunc,
 	removePrefixFromFileOrigin,
@@ -19,7 +20,7 @@ import { updateCurrentSongTime, updateIsHeadPhoneView } from "../ducks/fileServe
 import { backToPreviousPage,IsPC, alert } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
-import HearSvg from "./child/heartSvg"
+import { updateSavedCurrentRoute } from "../ducks/common"
 
 class MusicPlaying extends React.Component {
 
@@ -55,11 +56,12 @@ class MusicPlaying extends React.Component {
 		touchDirection(this.musicPlayingTop, ['swipeLeft', 'swipeRight'], this.touchDirectionCallback, this.touchDirectionObj)
 	}
 
-	componentWillReceiveProps(nextProps){
+	shouldComponentUpdate(nextProps){
 		const { currentSongTime } = this.props
 		if(currentSongTime !== nextProps.currentSongTime){
 			this.updateProgressLine(nextProps.currentSongTime)
 		}
+		return true
 	}
 
 	componentWillUnmount(){
@@ -159,11 +161,23 @@ class MusicPlaying extends React.Component {
 	}
 
 	backKeyDownToPrevious = () => {
-		backToPreviousPage(this, "/my_download_middle_page", {specialBack: true});
+		const { savedCurrentRoute } = this.props
+		if(savedCurrentRoute){
+			backToPreviousPage(this, savedCurrentRoute, {specialBack: true});
+			$dispatch(updateSavedCurrentRoute(""))
+		} else {
+			backToPreviousPage(this, "/my_download_middle_page", {specialBack: true});
+		}
 	}
 
 	backToMainPage = () => {
-		backToPreviousPage(this, "/my_download_middle_page")
+		const { savedCurrentRoute } = this.props
+		if(savedCurrentRoute){
+			backToPreviousPage(this, savedCurrentRoute)
+			$dispatch(updateSavedCurrentRoute(""))
+		} else {
+			backToPreviousPage(this, "/my_download_middle_page")
+		}
 	}
 
 	playPreviousSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, self) => {
@@ -338,7 +352,8 @@ const mapStateToProps = state => {
 		currentPlayingMusicList: state.fileServer.currentPlayingMusicList,
 		musicPageType: state.fileServer.musicPageType,
 		currentSongTime: state.fileServer.currentSongTime,
-		isHeadPhoneView: state.fileServer.isHeadPhoneView
+		isHeadPhoneView: state.fileServer.isHeadPhoneView,
+		savedCurrentRoute: state.common.savedCurrentRoute
     };
 };
 

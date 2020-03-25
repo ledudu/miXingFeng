@@ -11,7 +11,7 @@ const InputComponent = forwardRef((props, ref) => {
 		style = {},
 		handleClick = () => {},
 		handleBlur = () => {},
-		className="input-component"
+		className
 	} = props
 	return (
 		<input

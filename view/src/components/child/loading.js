@@ -1,7 +1,7 @@
 import React from 'react';
-const Loading = (props) => {
+const Loading = ({text}) => {
 	return (
-		<div className="loading-text animate-flicker">{props.text || '觅星峰'}</div>
+		<div className="loading-text animate-flicker">{text || '觅星峰'}</div>
 	)
 }
 

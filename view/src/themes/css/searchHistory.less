@@ -22,7 +22,16 @@
 			position: relative;
 			.search-input-content{
 				width: calc(100% - 75px);
-    			padding-left: 25px;
+				padding-left: 25px;
+				&:focus {
+                    background-size: 100% 2px,100% 1px;
+                    transition: all .5s;
+                    border: none;
+                    outline: none;
+				}
+				&:focus~.fa.fa-search {
+					opacity: 1;
+				}
 			}
 			.fa.fa-search{
 				position: absolute;
@@ -43,8 +52,8 @@
 			.ul {
 				position: absolute;
 				list-style: none;
-				width: 85%;
-				top: 60px;
+				width: calc(100% - 75px);
+				top: 55px;
 				background-color: rgba(255,255,255, 1);
 				z-index: 99;
 				.auto-suggest-name{

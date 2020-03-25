@@ -193,7 +193,7 @@ class Login extends Component {
 									handleChange={this.setUsername}
 									handleKeyDown={this.keyDownEvent}
 									ref={this.loginUsernameRef}
-									style={{"padding": "0 50px 0 35px", "backgroundImage": "linear-gradient(#fff,#fff),linear-gradient(#1f3144,#1f3144)"}}
+									className="login-page"
 								/>
 								<i className="fa fa-user fa-inverse" aria-hidden="true"></i>
                                 <div className="login-center-input-text">账号</div>
@@ -210,7 +210,7 @@ class Login extends Component {
 									handleChange={this.setPassword}
 									handleKeyDown={this.keyDownEvent}
 									ref={this.loginPasswordRef}
-									style={{"padding": "0 50px 0 35px", "backgroundImage": "linear-gradient(#fff,#fff),linear-gradient(#1f3144,#1f3144)"}}
+									className="login-page"
 								/>
 								<i className="fa fa-spoon fa-inverse" aria-hidden="true"></i>
                                 <div className="login-center-input-text">密码</div>

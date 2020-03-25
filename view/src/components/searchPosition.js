@@ -156,7 +156,7 @@ class SearchPosition extends Component {
 							placeholder={token ? searchString : "请输入您要搜索的用户名"}
 							handleChange={(e) => updateValueFromAutosuggest(e.target.value, this)}
 							handleKeyDown={this.keyDownEvent}
-							onBlur={this.blur}
+							handleBlur={this.blur}
 							className="search-input-content"
 						/>
 						<div className="ul" style={{padding: ulPadding, display: ulDisplay}}>

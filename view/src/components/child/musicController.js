@@ -1,7 +1,8 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt } from "../../logic/common"
 import HearSvg from "./heartSvg"
+import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt } from "../../logic/common"
+import { updateSavedCurrentRoute } from "../../ducks/common"
 
 class MusicController extends React.Component{
 
@@ -33,6 +34,7 @@ class MusicController extends React.Component{
 	}
 
 	gotoPlayingMusicPage = () => {
+		$dispatch(updateSavedCurrentRoute(window.getRoute()))
 		window.goRoute(null, "/music_playing")
 	}
 
