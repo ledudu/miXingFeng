@@ -76,7 +76,7 @@ class FileManage extends React.Component {
 		}
 	}
 
-	componentWillReceiveProps(nextProps){
+	UNSAFE_componentWillReceiveProps (nextProps){
 		if(this.props.original === "fileSearch"){
 			this.setState({
 				searchFileDataList: nextProps.fileDataList

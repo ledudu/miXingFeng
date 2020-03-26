@@ -16,6 +16,6 @@ export const CONSTANT = {
 		musicDownloading: "musicDownloading",
 		musicRecent: "musicRecent"
 	},
-	showMusicNumberPerTime: 50,
-	showFileNumberPerTime: 50,
+	showMusicNumberPerTime: 40,
+	showFileNumberPerTime: 40,
 }

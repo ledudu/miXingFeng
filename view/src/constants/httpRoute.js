@@ -50,5 +50,6 @@ export const HTTP_URL = {
 	"getNetEaseCloudMvLink": hostname + "/get_net_ease_cloud_mv_link?id={id}&userId={userId}",
 	"getQQMvLink": hostname + "/get_qq_mv_link?id={id}&userId={userId}",
 	"userActivity": hostname + "/user_activity",
-	"jiGuangVerify": hostname + "/ji_guang_verify"
+	"jiGuangVerify": hostname + "/ji_guang_verify",
+	"getPositionFromH5": hostname + "/get_position_from_h5?location={location}",
 }

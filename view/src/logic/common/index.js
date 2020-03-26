@@ -295,46 +295,23 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 }
 
 function showPosition(position) {
-		var latlon = position.coords.latitude + ',' + position.coords.longitude;
+		var location = position.coords.latitude + ',' + position.coords.longitude;
 		window.logger.info(`latlon`, latlon);
-		//baidu
-		const url = `http://api.map.baidu.com/geocoder/v2/?ak=p8bpCj4slGspApTOUQsVng7KsPtVI2Bo&callback=renderReverse&location=${latlon}&output=json&pois=0`;
-		// return axios.get(url)
-		// 	.then((json) => {
-				// if (json.status === 0) {
-				// 	try{
-				// 		window.logger.info(`您当前的位置`, json.result);
-				// 		window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
-				// 		window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
-				// 		window.$dispatch(updateCurrentLocation(json.result.formatted_address));
-				// 	} catch (err){
-				// 		logger.error('showPosition err', err)
-				// 	}
-				// }
-		// 	})
-		// 	.catch(err => {
-		// 		window.logger.error(`地址位置获取失败`, JSON.stringify(latlon), err);
-		// 	})
-		jsonp('http://api.map.baidu.com/geocoder/v2/', {
-			ak: "p8bpCj4slGspApTOUQsVng7KsPtVI2Bo",
-			location: latlon,
-			output: 'json',
-			pois: 0
-		}, showPositionCallback)
-}
-
-function showPositionCallback(json){
-	console.warn("showPosition json", json)
-	if (json.status === 0) {
-		try{
-			window.logger.info(`您当前的位置`, json.result);
-			window.$dispatch(updateCurrentXYPosition([json.result.location.lng, json.result.location.lat]))
-			window.$dispatch(updateCurrentProvince(json.result.addressComponent.province))
-			window.$dispatch(updateCurrentLocation(json.result.formatted_address));
-		} catch (err){
-			logger.error('showPosition err', err)
-		}
-	}
+		return axios.get(HTTP_URL.getPositionFromH5.format({location}))
+			.then(response => {
+				const result = response.data.result
+				logger.info("showPosition result", result)
+				if (result.status === 0) {
+					try{
+						window.logger.info(`您当前的位置`, result.result);
+						window.$dispatch(updateCurrentXYPosition([result.result.location.lng, result.result.location.lat]))
+						window.$dispatch(updateCurrentProvince(result.result.addressComponent.province))
+						window.$dispatch(updateCurrentLocation(result.result.formatted_address));
+					} catch (err){
+						logger.error('showPosition err', err)
+					}
+				}
+			})
 }
 
 function showError (error) {
