@@ -37,7 +37,15 @@ import {
 import StatusBar from "./child/statusBar";
 import UpdateBody from "./child/updateBody";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
-import { updateFileList, updateMusicList, updateDownloadedMusicList, updateDownloadingMusicItems, updateRecentMusicList } from "../ducks/fileServer";
+import {
+	updateFileList,
+	updateMusicList,
+	updateDownloadedMusicList,
+	updateDownloadingMusicItems,
+	updateRecentMusicList,
+	updateDownloadedFileList,
+	updateDownloadingFileList
+} from "../ducks/fileServer";
 import {
 	updateIsFromSignPage,
 	updateSavedCurrentRoute,
@@ -180,14 +188,19 @@ class Sign extends Component {
 					// get file list
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))
 						.then(async function(response) {
-							const array = response.data.result.response;
-							if (!array.length) return;
+							const array = response.data.result.response || [];
+							let downloadedFileArr = [], downloadingFileArr = []
 							const indexDBData = await readAllDataFromIndexDB()
 							indexDBData.forEach((item1) => {
+								if(!item1.status || item1.status === "downloaded"){
+									downloadedFileArr.push(item1)
+								} else if(item1.status === "downloading"){
+									downloadingFileArr.push(item1)
+								}
 								//  处理已下载文件的逻辑,这里只给了一个已下载的标识，在进入文件已下载的页面时读取indexDB显示已下载的文件
 								array.forEach((item2) => {
 									if(item1.filenameOrigin === item2.filenameOrigin){
-										item2.downloaded = true
+										item1.downloaded = true
 									}
 								})
 							})
@@ -195,6 +208,10 @@ class Sign extends Component {
 								item.filePath = window.serverHost + item.filePath
 							})
 							$dispatch(updateFileList(array));
+							downloadedFileArr = _.orderBy(downloadedFileArr, ['date'], ['asc'])
+							downloadingFileArr = _.orderBy(downloadingFileArr, ['date'], ['asc'])
+							$dispatch(updateDownloadedFileList(downloadedFileArr))
+							$dispatch(updateDownloadingFileList(downloadingFileArr))
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType file`);

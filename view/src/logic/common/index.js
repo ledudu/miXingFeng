@@ -296,17 +296,17 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 
 function showPosition(position) {
 		var location = position.coords.latitude + ',' + position.coords.longitude;
-		window.logger.info(`latlon`, latlon);
+		logger.info(`location`, location);
 		return axios.get(HTTP_URL.getPositionFromH5.format({location}))
 			.then(response => {
-				const result = response.data.result
+				const result = response.data.result.response
 				logger.info("showPosition result", result)
 				if (result.status === 0) {
 					try{
-						window.logger.info(`您当前的位置`, result.result);
-						window.$dispatch(updateCurrentXYPosition([result.result.location.lng, result.result.location.lat]))
-						window.$dispatch(updateCurrentProvince(result.result.addressComponent.province))
-						window.$dispatch(updateCurrentLocation(result.result.formatted_address));
+						logger.info(`您当前的位置`, result.result);
+						$dispatch(updateCurrentXYPosition([result.result.location.lng, result.result.location.lat]))
+						$dispatch(updateCurrentProvince(result.result.addressComponent.province))
+						$dispatch(updateCurrentLocation(result.result.formatted_address));
 					} catch (err){
 						logger.error('showPosition err', err)
 					}

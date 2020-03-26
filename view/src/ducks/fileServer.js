@@ -14,7 +14,6 @@ const FILE_SUBMIT_STATUS = "fileServer/fileSubmitStatus"
 const FILE_UPLOAD_PROGRESS = "fileServer/fileUploadProgress"
 const MUSIC_SUBMIT_STATUS = "fileServer/musicSubmitStatus"
 const MUSIC_UPLOAD_PROGRESS = "fileServer/musicUploadProgress"
-const DOWNLOADING_FILE_ITEMS = "fileServer/downloadingFileItems"
 const DOWNLOADING_MUSIC_ITEMS = "fileServer/downloadingMusicItems"
 const CURRENT_PLAYING_MUSIC_LIST = "fileServer/currentPlayingMusicList"
 const PLAY_BY_RANDOM = "fileServer/playByRandom"
@@ -51,13 +50,17 @@ const MUSIC_PAGE_TYPE = "fileServer/musicPageType"
 const RECENT_MUSIC_LIST = "fileServer/recentMusicList"
 const CURRENT_MUSIC_ITEM_INFO = "fileServer/currentMusicItemInfo"
 const IS_HEAD_PHONE_VIEW = "fileServer/isHeadPhoneView"
+const DOWNLOADED_FILE_LIST = "fileServer/downloadedFileList"
+const DOWNLOADING_FILE_LIST = "fileServer/downloadingFileList"
 
-let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[]
+let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[], downloadedFileList=[], downloadingFileList=[]
 try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
 try {fileList = localStorage.getItem("fileList") ? JSON.parse(localStorage.getItem("fileList")) : []} catch(err){fileList=[]}
 try {musicList = localStorage.getItem("musicList") ? JSON.parse(localStorage.getItem("musicList")) : []} catch(err){musicList=[]}
 try {downloadedMusicList = localStorage.getItem("downloadedMusicList") ? JSON.parse(localStorage.getItem("downloadedMusicList")) : []} catch(err){downloadedMusicList=[]}
 try {downloadingMusicItems = localStorage.getItem("downloadingMusicItems") ? JSON.parse(localStorage.getItem("downloadingMusicItems")) : []} catch(err){downloadingMusicItems=[]}
+try {downloadedFileList = localStorage.getItem("downloadedFileList") ? JSON.parse(localStorage.getItem("downloadedFileList")) : []} catch(err){downloadedFileList=[]}
+try {downloadingFileList = localStorage.getItem("downloadingFileList") ? JSON.parse(localStorage.getItem("downloadingFileList")) : []} catch(err){downloadingFileList=[]}
 
 // initialSate
 const initialState = () => ({
@@ -90,7 +93,6 @@ const initialState = () => ({
 	fileUploadProgress: "",
 	musicSubmitStatus: "上传",
 	musicUploadProgress: "",
-	downloadingFileItems: [],
 	downloadingMusicItems,
 	currentPlayingMusicList: [],
 	playByRandom: false,
@@ -126,7 +128,9 @@ const initialState = () => ({
 	musicPageType: "",
 	recentMusicList: [],
 	currentMusicItemInfo: {},
-	isHeadPhoneView: true
+	isHeadPhoneView: true,
+	downloadedFileList: [],
+	downloadingFileList: []
 });
 
 // Reducer
@@ -175,8 +179,6 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {musicSubmitStatus: action.data});
 		case MUSIC_UPLOAD_PROGRESS:
 			return Object.assign({}, state, {musicUploadProgress: action.data});
-		case DOWNLOADING_FILE_ITEMS:
-			return Object.assign({}, state, {downloadingFileItems: action.data});
 		case DOWNLOADING_MUSIC_ITEMS:
 			localStorage.setItem("downloadingMusicItems", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {downloadingMusicItems: action.data});
@@ -256,6 +258,12 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {currentMusicItemInfo: action.data});
 		case IS_HEAD_PHONE_VIEW:
 			return Object.assign({}, state, {isHeadPhoneView: action.data});
+		case DOWNLOADED_FILE_LIST:
+			localStorage.setItem("downloadedFileList", JSON.stringify(action.data.slice(0, 50)))
+			return Object.assign({}, state, {downloadedFileList: action.data});
+		case DOWNLOADING_FILE_LIST:
+			localStorage.setItem("downloadingFileList", JSON.stringify(action.data.slice(0, 50)))
+			return Object.assign({}, state, {downloadingFileList: action.data});
 		default:
 			return state;
 	}
@@ -334,11 +342,6 @@ export const updateMusicSubmitStatus= data => ({
 
 export const updateMusicUploadProgress = data => ({
 	type: MUSIC_UPLOAD_PROGRESS,
-	data
-})
-
-export const updateDownloadingFileItems = data => ({
-	type: DOWNLOADING_FILE_ITEMS,
 	data
 })
 
@@ -519,5 +522,15 @@ export const updateCurrentMusicItemInfo = data => ({
 
 export const updateIsHeadPhoneView = data => ({
 	type: IS_HEAD_PHONE_VIEW,
+	data
+})
+
+export const updateDownloadedFileList = data => ({
+	type: DOWNLOADED_FILE_LIST,
+	data
+})
+
+export const updateDownloadingFileList = data => ({
+	type: DOWNLOADING_FILE_LIST,
 	data
 })

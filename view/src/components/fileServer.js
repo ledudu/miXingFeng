@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { connect } from "react-redux";
 import StatusBar from "./child/statusBar";
 import { confirm } from "../services/utils";
@@ -7,118 +7,94 @@ import { HTTP_URL } from "../constants/httpRoute";
 import { updateFileSubmitStatus, updateFileUploadProgress } from "../ducks/fileServer"
 import { checkFileMD5Func, calcFileMD5, logActivity } from "../logic/common"
 
-class FileServer extends React.Component {
+const FileServer = ( { fileList, fileSubmitStatus, fileUploadProgress, token, username, setMobile  } ) => {
+	const [MD5Value, setMD5Value] = useState("")
+	const [MD5ValueError, setMD5ValueError] = useState(null)
+	const fileToUploadRef = useRef()
+	let getMD5Time = 0, startToUpload = false
 
-	state = {
-		MD5Value: "",
-		MD5ValueError: null
-	}
-
-    componentDidMount(){
-		this.el = this.fileToUpload
-		this.el.addEventListener('change', this.handleMD5, false);
-		this.getMD5Time = 0
-    }
-
-    componentWillUnmount(){
-		this.el.removeEventListener('change', this.handleMD5, false);
-		this.getMD5Time = null
-    }
-
-	handleMD5 = (e) => {
-		this.setState({
-			MD5Value: "",
-			MD5ValueError: null
-		})
-		return calcFileMD5(e.target.files[0])
-			.then((resultObj) => {
-				const { MD5Value, MD5ValueError } = resultObj
-				logger.info("fileServer handleMD5 MD5Value", MD5Value)
-				if(MD5Value && !MD5ValueError){
-					this.setState({
-						MD5Value
-					})
-				} else {
-					this.setState({
-						MD5ValueError
-					})
-				}
-			})
-	}
-
-	uploadFiles = () => {
-		const fileNum = this.el.files && this.el.files.length;
-		if (fileNum) {
-			this.submitFile(fileNum)
+	useEffect(() => {
+		const handleMD5 = (e) => {
+			setMD5Value("")
+			setMD5ValueError(null)
+			return calcFileMD5(e.target.files[0])
+				.then((resultObj) => {
+					const { MD5Value, MD5ValueError } = resultObj
+					logger.info("fileServer handleMD5 MD5Value", MD5Value)
+					if(MD5Value && !MD5ValueError){
+						setMD5Value(MD5Value)
+					} else {
+						setMD5ValueError(MD5ValueError)
+					}
+				})
 		}
-	}
+		console.log("fileToUploadRef", fileToUploadRef)
+		fileToUploadRef.current.addEventListener('change', handleMD5, false);
+		return () => {
+			getMD5Time = null
+			fileToUploadRef.current.removeEventListener('change', handleMD5, false);
+		}
+	}, [])
 
-	submitFile = (fileNum) => {
-		const { fileList, token } = this.props;
+	const submitFile = () => {
 		if(!token){
 			alert("请先登录");
 			return;
 		}
-		if(!this.startToUpload){  //forbid upload more times
-			this.startToUpload = true;
-			if(this.currentUploadFileNum === undefined || this.currentUploadFileNum === NaN){
-				this.currentUploadFileNum = 0
-			}
-			const filename = this.fileToUpload.files[this.currentUploadFileNum].name;
+		if(!startToUpload){  //forbid upload more times
+			startToUpload = true;
+			const filename = fileToUploadRef.current.files[0].name;
 			let overwriteSameFilename = false
 			for(let item of fileList){
 				if(item.filename === filename){
 					overwriteSameFilename = true
 					confirm(`提示`, `已经存在${filename}，上传将覆盖原文件`, "确定", () => {
 						logger.info("overwrite file true", item.filename);
-						this.uploadFile(fileNum)
+						uploadFile()
 					}, () => {
-						logger.info("overwrite file false", item.filename);
-						this.startToUpload = false;
+						logger.info("submitFile overwrite file false", item.filename);
+						startToUpload = false;
 						return;
 					})
 				}
 			}
 			if(!overwriteSameFilename){
-				this.uploadFile(fileNum)
+				uploadFile()
 			}
 		} else {
 			alert("一次只能上传一个文件，请勿重复上传")
 		}
 	}
 
-	uploadFile = async(fileNum) => {
-		const self = this;
-		const { MD5Value, MD5ValueError } = this.state
-		const { username, setMobile } = this.props;
-		const files = this.el.files;
-		const filename = this.el.files[this.currentUploadFileNum].name;
-		const fileSize = this.el.files[this.currentUploadFileNum].size;
+	const uploadFile = async() => {
+		const files = fileToUploadRef.current.files;
+		const filename = fileToUploadRef.current.files[0].name;
+		const fileSize = fileToUploadRef.current.files[0].size;
 		if (/#|%/g.test(filename)) {
-			alert("文件名不能包含%或#");
-			this.startToUpload = false;
+			alertDialog("文件名不能包含%或#");
+			startToUpload = false;
 			return
 		} else if (fileSize > 100 * 1024 * 1024) {
-			alert('文件大小不可以超过100MB');
-			this.startToUpload = false;
+			alertDialog('文件大小不可以超过100MB');
+			startToUpload = false;
 			return
-		} else if(this.getMD5Time > 100 && !MD5Value){
+		} else if(getMD5Time > 100 && !MD5Value){
 			$dispatch(updateFileSubmitStatus("上传"))
 			logger.warn("too long loop to generate md5")
-			this.startToUpload = false;
-			return alert("文件不可读，请更换文件重试")
+			startToUpload = false;
+			return alertDialog("文件不可读，请更换文件重试")
 		}
 		logger.info("fileServer uploadFile MD5Value", MD5Value)
 		$dispatch(updateFileSubmitStatus("上传中"))
 		if(MD5Value){
 			const checkResult = await checkFileMD5Func(filename, (username || setMobile), MD5Value, "default-file", "file")
 			if(checkResult === "缺少字段") {
-				this.startToUpload = false;
-				return  alert('缺少字段')
+				startToUpload = false;
+				return  alertDialog('缺少字段')
 			}
 			if(checkResult === "上传成功"){
 				$dispatch(updateFileSubmitStatus("上传"))
-				this.startToUpload = false;
+				startToUpload = false;
 				logActivity({
 					msg: "second upload file success"
 				})
@@ -126,17 +102,17 @@ class FileServer extends React.Component {
 			}
 			if(checkResult === "没有匹配"){
 				const formData = new FormData();
-				formData.append('files', files[self.currentUploadFileNum]);
+				formData.append('files', files[0]);
 				formData.append("username", username || setMobile);
 				formData.append("type", 'file');
 				formData.append("md5", MD5Value);
 				formData.append("registrationID", localStorage.getItem("registrationID") || "");
 				const xhr = new XMLHttpRequest();
-				xhr.upload.addEventListener("progress", self.uploadProgress, false);
-				xhr.addEventListener("error", self.uploadFailed, false);
+				xhr.upload.addEventListener("progress", uploadProgress, false);
+				xhr.addEventListener("error", uploadFailed, false);
 				xhr.open('POST', HTTP_URL.uploadFile);
 				xhr.onreadystatechange = function () {
-					self.startToUpload = false;
+					startToUpload = false;
 					if (xhr.status === 200) {
 						let responseText = {
 							result: {
@@ -157,7 +133,6 @@ class FileServer extends React.Component {
 						} else {
 							alert('上传成功！');
 							// 依靠websocket来更新文件列表
-							delete self.currentUploadFileNum
 							logActivity({
 								msg: "upload file success"
 							})
@@ -171,57 +146,52 @@ class FileServer extends React.Component {
 			}
 		} else {
 			if(MD5ValueError){
-				this.startToUpload = false;
+				startToUpload = false;
 				$dispatch(updateFileSubmitStatus("上传"))
 				alert("文件不可读，请更换文件重试");
 				return
 			} else {
-				this.getMD5Time++
-				setTimeout(() => this.uploadFile(fileNum), 300)
+				getMD5Time++
+				setTimeout(uploadFile, 300)
 			}
 		}
-
 	}
 
-	uploadProgress = (evt) => {
+	const uploadProgress = (evt) => {
 		if (evt.lengthComputable) {
 			const percentComplete = Math.round(evt.loaded * 100 / evt.total);
 			$dispatch(updateFileUploadProgress(`${percentComplete.toString()}%`))
 		} else {
-			this.startToUpload = false;
+			startToUpload = false;
 			$dispatch(updateFileUploadProgress(``))
 			$dispatch(updateFileSubmitStatus("上传"))
 		}
 	}
 
-	uploadFailed = (evt) => {
+	const uploadFailed = (evt) => {
 		alert("上传失败");
-		this.startToUpload = false;
+		startToUpload = false;
 		$dispatch(updateFileUploadProgress(``))
 		$dispatch(updateFileSubmitStatus("上传"))
-		window.logger.error("上传失败", evt);
+		logger.error("上传失败", evt);
 	}
 
-
-    render() {
-        let { fileList, fileSubmitStatus, fileUploadProgress } = this.props;
-        return (
-            <div className="file-server">
-                <StatusBar />
-                <h2 className='head'> 文件列表 </h2>
-                <div className="upload-area">
-                    <input type="file" className="file-to-upload" ref={ref => this.fileToUpload = ref} style={{"backgroundImage": "none"}} />
-                    <div className="upload">
-                        <input type="button" name="submit" value={fileSubmitStatus} onClick={this.uploadFiles} />
-                        <div className='file-progress'>{fileUploadProgress}</div>
-                    </div>
-                </div>
-                <div className="file-container">
-					<FileManage fileDataList={fileList} original="fileShare" />
-                </div>
-            </div>
-        );
-    }
+	return (
+		<div className="file-server">
+			<StatusBar />
+			<h2 className='head'> 文件列表 </h2>
+			<div className="upload-area">
+				<input type="file" className="file-to-upload" ref={fileToUploadRef} style={{"backgroundImage": "none"}} />
+				<div className="upload">
+					<input type="button" name="submit" value={fileSubmitStatus} onClick={submitFile} />
+					<div className='file-progress'>{fileUploadProgress}</div>
+				</div>
+			</div>
+			<div className="file-container">
+				<FileManage fileDataList={fileList} original="fileShare" />
+			</div>
+		</div>
+	);
 }
 
 const mapStateToProps = state => {
