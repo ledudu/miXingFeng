@@ -48,7 +48,8 @@ import {
 	updatePlayByOrder,
 	updateMusicMenuBadge,
 	updatePlayByRandom,
-	updateCurrentMusicItemInfo
+	updateCurrentMusicItemInfo,
+	updateDownloadedFileList
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
@@ -228,22 +229,35 @@ export const removeFileFromDownload = (filenameOrigin, type) => {
 	let localFileLocation, removeRecordFromIndexedDBPromise = Promise.resolve()
 	if(type === "file"){
 		localFileLocation = `cdvfile://localhost/sdcard/miXingFeng/download/${filenameOrigin}`
-		const { fileList=[] } = $getState().fileServer;
+		const { fileList=[], downloadedFileList } = $getState().fileServer;
 		fileList.some(item => {
 			if(item.filenameOrigin === filenameOrigin){
 				if(item.downloaded){
 					delete item.downloaded
 					return true  //终止循环以优化性能
 				} else {
-					logger.warn("no downloaded to be deleted filenameOrigin", filenameOrigin)
+					logger.warn("no downloaded to be deleted from fileList filenameOrigin", filenameOrigin)
 				}
 			}
 		})
 		$dispatch(updateFileList(fileList))  // 去除共享文件里已下载的标记
 		removeRecordFromIndexedDBPromise = removeDataByIndexFromIndexDB(`downloaded_${filenameOrigin}`)
 			.then(() => {
-				window.eventEmit.$emit("fileRemoved")
-				return "success"
+				const downloadedFileListCopy = JSON.parse(JSON.stringify(downloadedFileList))
+				let index = null
+				downloadedFileListCopy.some((item, i) => {
+					if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
+						index = i
+						return true
+					}
+				})
+				if(index === null){
+					logger.warn("no downloaded to be deleted from file downloaded filenameOrigin", filenameOrigin)
+				} else {
+					downloadedFileListCopy.splice(index, 1)
+					$dispatch(updateDownloadedFileList(downloadedFileListCopy))
+					return "success"
+				}
 			}).catch((err) => {
 				logger.error("removeFileFromDownload file err", err)
 			})
@@ -1268,7 +1282,7 @@ export const checkStatus = (filePath, filename, filenameOrigin, uploadUsername, 
 					if(item.progress === "失败" || item.progress === "已取消"){
 						alert(`重新下载${filename}`)
 						logger.info("checkStatus 重新下载 item.progress, filenameOrigin", item.progress, filenameOrigin)
-						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, true, duration)
+						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, true, {duration})
 						saveFileToLocal(filenameOrigin, filePath, "music", filename, uploadUsername, true, fileSize, true, {duration, songOriginal})
 					} else {
 						logger.info("checkStatus abort download filenameOrigin", filenameOrigin)
@@ -1582,7 +1596,7 @@ export const saveMusicToLocal = (
 			.then(bool => {
 				if(bool){
 					alert(`开始下载${filename}`)
-					updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, duration)
+					updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, musicSrc, filenameOrigin, true, {duration})
 					saveFileToLocal(filenameOrigin, musicSrc, "music", filename, uploadUsername, true, fileSize, true, {duration, original: songOriginal, musicId, musicDataList, self})
 				} else {
 					return alertDialog("请授予文件读写权限，否则不能下载音乐", "", "知道了", requestFileWritePriority)

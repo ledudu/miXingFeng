@@ -7,7 +7,8 @@ import { HTTP_URL } from "../constants/httpRoute";
 import { updateFileSubmitStatus, updateFileUploadProgress } from "../ducks/fileServer"
 import { checkFileMD5Func, calcFileMD5, logActivity } from "../logic/common"
 
-const FileServer = ( { fileList, fileSubmitStatus, fileUploadProgress, token, username, setMobile  } ) => {
+const FileServer = ( { fileList, fileSubmitStatus, fileUploadProgress, token, username, setMobile } ) => {
+
 	const [MD5Value, setMD5Value] = useState("")
 	const [MD5ValueError, setMD5ValueError] = useState(null)
 	const fileToUploadRef = useRef()
@@ -28,7 +29,6 @@ const FileServer = ( { fileList, fileSubmitStatus, fileUploadProgress, token, us
 					}
 				})
 		}
-		console.log("fileToUploadRef", fileToUploadRef)
 		fileToUploadRef.current.addEventListener('change', handleMD5, false);
 		return () => {
 			getMD5Time = null

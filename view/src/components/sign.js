@@ -24,7 +24,8 @@ import {
 	autoLogin,
 	reconnectAndSend,
 	checkOnlinePersons,
-	logActivity
+	logActivity,
+	removePrefixFromFileOrigin
 } from "../logic/common";
 import {
 	updateDirectShowSignPage,
@@ -194,15 +195,16 @@ class Sign extends Component {
 							indexDBData.forEach((item1) => {
 								if(!item1.status || item1.status === "downloaded"){
 									downloadedFileArr.push(item1)
+									//  处理已下载文件的逻辑,这里只给了一个已下载的标识，在进入文件已下载的页面时读取indexDB显示已下载的文件
+									array.forEach((item2) => {
+										if(removePrefixFromFileOrigin(item1.filenameOrigin) === removePrefixFromFileOrigin(item2.filenameOrigin)){
+											item2.downloaded = true
+										}
+									})
 								} else if(item1.status === "downloading"){
 									downloadingFileArr.push(item1)
 								}
-								//  处理已下载文件的逻辑,这里只给了一个已下载的标识，在进入文件已下载的页面时读取indexDB显示已下载的文件
-								array.forEach((item2) => {
-									if(item1.filenameOrigin === item2.filenameOrigin){
-										item1.downloaded = true
-									}
-								})
+
 							})
 							array.forEach((item) => {
 								item.filePath = window.serverHost + item.filePath

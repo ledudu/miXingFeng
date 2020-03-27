@@ -53,15 +53,12 @@ const IS_HEAD_PHONE_VIEW = "fileServer/isHeadPhoneView"
 const DOWNLOADED_FILE_LIST = "fileServer/downloadedFileList"
 const DOWNLOADING_FILE_LIST = "fileServer/downloadingFileList"
 
-let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[], downloadedFileList=[], downloadingFileList=[]
+let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[]
 try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
 try {fileList = localStorage.getItem("fileList") ? JSON.parse(localStorage.getItem("fileList")) : []} catch(err){fileList=[]}
 try {musicList = localStorage.getItem("musicList") ? JSON.parse(localStorage.getItem("musicList")) : []} catch(err){musicList=[]}
 try {downloadedMusicList = localStorage.getItem("downloadedMusicList") ? JSON.parse(localStorage.getItem("downloadedMusicList")) : []} catch(err){downloadedMusicList=[]}
 try {downloadingMusicItems = localStorage.getItem("downloadingMusicItems") ? JSON.parse(localStorage.getItem("downloadingMusicItems")) : []} catch(err){downloadingMusicItems=[]}
-try {downloadedFileList = localStorage.getItem("downloadedFileList") ? JSON.parse(localStorage.getItem("downloadedFileList")) : []} catch(err){downloadedFileList=[]}
-try {downloadingFileList = localStorage.getItem("downloadingFileList") ? JSON.parse(localStorage.getItem("downloadingFileList")) : []} catch(err){downloadingFileList=[]}
-
 // initialSate
 const initialState = () => ({
 	fileList,

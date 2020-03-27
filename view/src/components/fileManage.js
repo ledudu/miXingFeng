@@ -193,7 +193,7 @@ const FileManage = ({
 	const saveFileToLocalFunc = async (filename, uploadUsername, fileSize, filePath, retry, filenameOrigin) => {
 		if(!token) return alert("请先登录")
 		if(!window.isCordova){
-			return saveFileToLocal(filenameOrigin, filePath)
+			return saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false, {})
 		}
 		if((new Date().getTime() - currentTime) < 300){
 			// not allow to click frequently
@@ -234,8 +234,8 @@ const FileManage = ({
 						} else {
 							alert(`开始下载${filename}`)
 						}
-						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin)
-						saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false)
+						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, false, {})
+						saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false, {})
 					} else {
 						return alertDialog("请授予文件读写权限，否则不能下载文件", "", "知道了", requestFileWritePriority)
 					}
@@ -255,7 +255,6 @@ const FileManage = ({
 		if(original === "fileDownloading" || original === "fileFinished") return ""
 		return " " + date.split(" ")[0]
 	}
-
 
 	const downloadOrOpenFile = async (filename, uploadUsername, fileSize, filePath, filenameOrigin) => {
 		if(original === "fileFinished"){

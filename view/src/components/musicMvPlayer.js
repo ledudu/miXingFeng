@@ -115,7 +115,7 @@ export default class MusicMvPlayer extends React.Component {
 		const uploadUsername = original === CONSTANT.musicOriginal.netEaseCloud ? "网易云" : original === CONSTANT.musicOriginal.qqMusic ? "qq音乐" : "未知"
 		const filenameOrigin = filename + ".mp4"
 		alert(`开始下载${filename}`)
-		updateDownloadingStatus(filenameOrigin, '准备中', uploadUsername, "未知", true, mvLink, filenameOrigin)
+		updateDownloadingStatus(filenameOrigin, '准备中', uploadUsername, "未知", true, mvLink, filenameOrigin, false, {})
 		saveFileToLocal(filenameOrigin, mvLink, "download", filenameOrigin, uploadUsername, true, "未知", false)
 	}
 

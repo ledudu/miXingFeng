@@ -3,7 +3,7 @@ import Logger from "cordova-logger"
 import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute"
-import { updateDownloadingFileList, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems } from "../ducks/fileServer"
+import { updateDownloadingFileList, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems, updateDownloadedFileList } from "../ducks/fileServer"
 import { calcSize, checkFilePath, reconnectSocket } from "../logic/common";
 import { addDataFromIndexDB, removeDataByIndexFromIndexDB } from "./indexDB"
 import { addMusicDataFromIndexDB, removeMusicDataByIndexFromIndexDB } from "./indexDBMusic"
@@ -299,11 +299,13 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 					// window.eventEmit.$off(`FileTransfer-${filenameOrigin}`)
 					const { downloadingFileList, downloadingMusicItems } = $getState().fileServer
 					if(param[0] === "file"){
+						const downloadingFileListCopy = JSON.parse(JSON.stringify(downloadingFileList))
 						for(let index in downloadingFileList){
-							if(downloadingFileList[index].filenameOrigin === param[1]){
-								downloadingFileList.splice(index, 1)
-								$dispatch(updateDownloadingFileList(downloadingFileList))
+							if(downloadingFileListCopy[index].filenameOrigin === param[1]){
+								downloadingFileListCopy.splice(index, 1)
+								$dispatch(updateDownloadingFileList(downloadingFileListCopy))
 								removeDataByIndexFromIndexDB(param[1])
+								break;
 							}
 						}
 					} else if(param[0] === "music"){
@@ -313,6 +315,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 								window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 								$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
 								removeMusicDataByIndexFromIndexDB(param[1])
+								break;
 							}
 						}
 					}
@@ -368,11 +371,11 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 										} else {
 											addDataFromIndexDB(downloadingDataToSaveIndexedDBObj)
 										}
-										updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+										updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options)
 									} else {
 										throttleTimer = setTimeout(() => {
 											clearTimeout(throttleTimer)
-											updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+											updateDownloadingStatus(filename, `${calcSize(e.loaded)}/${calcSize(e.total)}`, uploadUsername, e.total, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options)
 											throttleTimer = null;
 										}, 1000)
 									}
@@ -421,7 +424,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 												.then(() => {
 													setTimeout(() => {
 														alert(`${filename}下载完成`)
-														const { downloadingFileList, downloadingMusicItems, fileList, downloadedMusicList } = $getState().fileServer
+														const { downloadingFileList, downloadingMusicItems, fileList, downloadedMusicList, downloadedFileList } = $getState().fileServer
 														if(fromMusic){
 															downloadedMusicList.push(downloadedDataToSaveIndexedDBObj)
 															window.eventEmit.$emit("downloadMusicFinished", downloadedMusicList)
@@ -435,17 +438,23 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 																}
 															}
 														} else {
-															fileList.forEach((item) => {
+															const fileListCopy = JSON.parse(JSON.stringify(fileList))
+															const downloadedFileListCopy = JSON.parse(JSON.stringify(downloadedFileList))
+															const downloadingFileListCopy = JSON.parse(JSON.stringify(downloadingFileList))
+															fileListCopy.forEach((item) => {
 																if(item.filenameOrigin === filenameOrigin){
 																	item.downloaded = true
 																}
 															})
-															$dispatch(updateFileList(fileList));
+															$dispatch(updateFileList(fileListCopy));
+															downloadedFileListCopy.push(downloadedDataToSaveIndexedDBObj)
+															$dispatch(updateDownloadedFileList(downloadedFileListCopy));
 															for(let index in downloadingFileList){
 																if(downloadingFileList[index].filenameOrigin === `downloading_${filenameOrigin}`){
-																	downloadingFileList.splice(index, 1)
-																	logger.info("downloadingFileList 下载完成", downloadingFileList)
-																	$dispatch(updateDownloadingFileList(downloadingFileList))
+																	downloadingFileListCopy.splice(index, 1)
+																	logger.info("downloadingFileList 下载完成", downloadingFileListCopy)
+																	$dispatch(updateDownloadingFileList(downloadingFileListCopy))
+																	break;
 																}
 															}
 														}
@@ -466,7 +475,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 										if(cancelDownload){
 											window.logger.info(`error callback cancel download`);
 											logger.info("saveFileToLocal download 已取消 filenameOrigin", filenameOrigin)
-											updateDownloadingStatus(filename, '已取消', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+											updateDownloadingStatus(filename, '已取消', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options)
 										} else {
 											window.logger.error(`下载失败`, error, 'fileUrl', fileUrl);
 											if(error.body === "Not Found"){
@@ -476,7 +485,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 											}
 											alert(`${filename}下载失败`)
 											window.logger.error("saveFileToLocal download 下载失败 filenameOrigin", filenameOrigin);
-											updateDownloadingStatus(filename, '失败', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options.duration)
+											updateDownloadingStatus(filename, '失败', uploadUsername, fileSizeCopy, needSaveToDownloadBox, fileUrl, filenameOrigin, fromMusic, options)
 										}
 									}, 1010)
                                     res()
@@ -497,7 +506,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
     })
 }
 
-export const updateDownloadingStatus = (filename, result, uploadUsername, fileSize, needSaveToDownloadBox, filePath, filenameOrigin, fromMusic, duration) => {
+export const updateDownloadingStatus = (filename, result, uploadUsername, fileSize, needSaveToDownloadBox, filePath, filenameOrigin, fromMusic, options) => {
 	if(!needSaveToDownloadBox) return;
 	const { downloadingFileList, downloadingMusicItems } = $getState().fileServer
 	filenameOrigin = `downloading_${filenameOrigin}`
@@ -510,7 +519,7 @@ export const updateDownloadingStatus = (filename, result, uploadUsername, fileSi
 		filenameOrigin
 	}
 	if(fromMusic){
-		obj.duration = duration
+		obj.duration = options.duration
 		for(let index in downloadingMusicItems){
 			if(downloadingMusicItems[index].filenameOrigin === filenameOrigin){
 				downloadingMusicItems[index].progress = result;
@@ -521,13 +530,16 @@ export const updateDownloadingStatus = (filename, result, uploadUsername, fileSi
 		downloadingMusicItems.push(obj)
 		window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
 	} else {
-		for(let index in downloadingFileList){
-			if(downloadingFileList[index].filenameOrigin === filenameOrigin){
-				downloadingFileList[index].progress = result;
+		const downloadingFileListCopy = JSON.parse(JSON.stringify(downloadingFileList))
+		for(let index in downloadingFileListCopy){
+			if(downloadingFileListCopy[index].filenameOrigin === filenameOrigin){
+				downloadingFileListCopy[index].progress = result;
+				$dispatch(updateDownloadingFileList(downloadingFileListCopy))
 				return
 			}
 		}
-		downloadingFileList.push(obj)
+		downloadingFileListCopy.push(obj)
+		$dispatch(updateDownloadingFileList(downloadingFileListCopy))
 	}
 	logger.info("updateDownloadingStatus fromMusic, obj", fromMusic, obj)
 }
