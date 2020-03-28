@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import { Player, BigPlayButton, ControlBar } from 'video-react';
 import 'video-react/dist/video-react.css'
 import { CONSTANT } from "../constants/enumeration"
@@ -8,83 +10,70 @@ import { hideMusicController, pauseMusic } from "../logic/common"
 import NavBar from "./child/navbar"
 import { networkErr, saveFileToLocal, updateDownloadingStatus } from "../services/utils"
 
-export default class MusicMvPlayer extends React.Component {
+const MusicMvPlayer = ({ location, userId }) => {
+	const [getMvLink, setGetMvLink] = useState(false)
+	const [mvLink, setMvLink] = useState(null)
+	const playerRef = useRef()
+	const history = useHistory()
 
-	state = {
-		getMvLink: false,
-		mvLink: null
-	}
-
-    componentDidMount(){
-		if(!this.props.location || !this.props.location.query) {
+	useEffect(() => {
+		if(!location || !location.query) {
 			alertDebug("no location.query")
-			return window.goRoute(this, "/main/myInfo")
+			history.push("/main/myInfo")
 		}
-		document.addEventListener("deviceready", this.listenBackButton, false);
+		document.addEventListener("deviceready", listenBackButton, false);
 		hideMusicController()
 		pauseMusic()
-		const { mvId, original } = this.props.location.query;
+		const { mvId, original } = location.query;
 		let getMvLinkUrl = ""
 		if(original === CONSTANT.musicOriginal.netEaseCloud){
 			getMvLinkUrl = HTTP_URL.getNetEaseCloudMvLink
 		} else if(original === CONSTANT.musicOriginal.qqMusic){
 			getMvLinkUrl = HTTP_URL.getQQMvLink
-		} else {
-			return
 		}
-		return axios.get(getMvLinkUrl.format({id: mvId, userId: $getState().login.userId}))
+		axios.get(getMvLinkUrl.format({id: mvId, userId}))
 			.then((response) => {
 				const result = response.data.result
 				if(result.response){
-					this.setState({
-						getMvLink: true,
-						mvLink: result.response
-					}, () => {
-						this.player && this.player.subscribeToStateChange(this.listenVideoState)
-					})
+					setGetMvLink(true)
+					setMvLink(result.response)
+					playerRef && playerRef.current.subscribeToStateChange(listenVideoState)
 				} else {
 					alertDialog("没有视频链接")
-					this.backToMainPage()
+					backToMainPage("nav")
 				}
 			})
 			.catch(err => {
 				networkErr(err, "MusicMvPlayer")
 			})
-	}
+		return () => {
+			portrait()
+        	document.removeEventListener("deviceready", listenBackButton);
+        	document.removeEventListener("backbutton", backToMainPage);
+		}
+	}, [])
 
-	componentDidCatch(err){
-		alertDebug("componentDidCatch err")
-		logger.error("MusicMvPlayer componentDidCatch err", err)
-		return window.goRoute(this, "/main/myInfo")
-	}
-
-	componentWillUnmount(){
-		this.portrait()
-        document.removeEventListener("deviceready", this.listenBackButton);
-        document.removeEventListener("backbutton", this.backToMainPage);
-    }
-
-    listenBackButton = () => {
+	const listenBackButton = () => {
 		window.plugins.insomnia.keepAwake()
-		document.addEventListener("backbutton", this.backToMainPage, false)
+		document.addEventListener("backbutton", backToMainPage, false)
     }
 
-	backToMainPage = (origin) => {
+	const backToMainPage = (origin) => {
 		if(origin === "nav") window.history.back()
 		setTimeout(() => {
 			document.querySelector("#root .container .main-content").style.height = "calc(100vh - 66px)"
-			window.musicController && window.musicController.style && (window.musicController.style.display = "flex")
+			window.musicControllerRef && window.musicControllerRef.current.style && (window.musicControllerRef.current.style.display = "flex")
 		}, 100)
 	}
 
-	landscape = () => {
+	const landscape = () => {
 		if(window.isCordova){
 			StatusBar.overlaysWebView(true);
 			screen.orientation.lock('landscape');
 		}
 	}
 
-	portrait = () => {
+	const portrait = () => {
 		if(window.isCordova){
 			StatusBar.overlaysWebView(false);
 			StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor);
@@ -93,25 +82,24 @@ export default class MusicMvPlayer extends React.Component {
 		}
 	}
 
-	listenVideoState = (state, prevState) => {
+	const listenVideoState = (state, prevState) => {
 		if(state.isFullscreen !== prevState.isFullscreen){
 			let filename = "MV"
-			if(this.props.location && this.props.location.query && this.props.location.query.filename){
-				filename = this.props.location.query.filename
+			if(location && location.query && location.query.filename){
+				filename = location.query.filename
 			}
 			logger.info("listenVideoState state.isFullscreen, filename", state.isFullscreen, filename)
 			logger.info("listenVideoState prevState.isFullscreen, filename", prevState.isFullscreen, filename)
 			if(state.isFullscreen){
-				this.landscape()
+				landscape()
 			} else {
-				this.portrait()
+				portrait()
 			}
 		}
 	}
 
-	downloadMv = () => {
-		const { mvLink } = this.state
-		const { original, filename } = this.props.location.query;
+	const downloadMv = () => {
+		const { original, filename } = location.query;
 		const uploadUsername = original === CONSTANT.musicOriginal.netEaseCloud ? "网易云" : original === CONSTANT.musicOriginal.qqMusic ? "qq音乐" : "未知"
 		const filenameOrigin = filename + ".mp4"
 		alert(`开始下载${filename}`)
@@ -119,29 +107,36 @@ export default class MusicMvPlayer extends React.Component {
 		saveFileToLocal(filenameOrigin, mvLink, "download", filenameOrigin, uploadUsername, true, "未知", false)
 	}
 
-    render() {
-		const { getMvLink, mvLink } = this.state
-		let filename = "MV"
-		if(this.props.location && this.props.location.query && this.props.location.query.filename){
-			filename = this.props.location.query.filename
-		}
-        return (
-			<div className="music-mv-player-container">
-				<NavBar centerText={filename} backToPreviousPage={this.backToMainPage.bind(this, 'nav')}
-					rightText="下载" rightTextFunc={this.downloadMv}
-				/>
-				<div className="music-mv-player-content">
-					{
-						getMvLink
-						? 	<Player ref={ref => this.player = ref} autoPlay>
-								<ControlBar autoHide={false} />
-								<source src={mvLink} />
-								<BigPlayButton position="center" />
-							</Player>
-						:	<Loading />
-					}
-				</div>
+	let filename = "MV"
+	if(location && location.query && location.query.filename){
+		filename = location.query.filename
+	}
+    return (
+		<div className="music-mv-player-container">
+			<NavBar centerText={filename} backToPreviousPage={backToMainPage.bind(this, 'nav')}
+				rightText="下载" rightTextFunc={downloadMv}
+			/>
+			<div className="music-mv-player-content">
+				{
+					getMvLink
+					? 	<Player ref={playerRef} autoPlay>
+							<ControlBar autoHide={true} />
+							<source src={mvLink} />
+							<BigPlayButton position="center" />
+						</Player>
+					:	<Loading />
+				}
 			</div>
-		)
-    }
+		</div>
+	)
 }
+
+const mapStateToProps = state => {
+    return {
+		userId: state.login.userId,
+    };
+};
+
+const mapDispatchToProps = () => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MusicMvPlayer);

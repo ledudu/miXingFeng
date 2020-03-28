@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import NavBar from "./child/navbar";
 import HearSvg from "./child/heartSvg"
 import {
@@ -14,125 +15,117 @@ import {
 	secondsToTime,
 	hideMusicController,
 	touchDirection,
-	removeTouchDirection
+	removeTouchDirection,
+	checkToShowPlayController
 } from "../logic/common"
 import { updateCurrentSongTime, updateIsHeadPhoneView } from "../ducks/fileServer"
-import { backToPreviousPage,IsPC, alert } from "../services/utils"
+import { IsPC, alert, specialBackFunc } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
 import { updateSavedCurrentRoute } from "../ducks/common"
 
-class MusicPlaying extends React.Component {
-
-	constructor(props){
-		super(props)
-		this.ifBool = false
-		this.touchDirectionObj = {
-			debounceTimer: null,
-			firstTimeRun: false,
-		}
-		this.state = {
-			showSelectedAnimation: false
-		}
+const MusicPlaying = ({
+	currentPlayingSong,
+	currentPlayingMusicList=[],
+	musicCollection=[],
+	currentPlayingSongOriginal,
+	soundPlaying,
+	musicPageType,
+	currentSongTime,
+	isHeadPhoneView,
+	savedCurrentRoute,
+	soundInstance,
+	soundInstanceId,
+	currentMusicItemInfo
+}) => {
+	let ifBool = false
+	const touchDirectionObj = {
+		debounceTimer: null,
+		firstTimeRun: false,
 	}
+	const history = useHistory()
+	const [ showSelectedAnimation, setShowSelectedAnimation ] = useState(false)
+	const playRef = useRef()
+	const pauseRef = useRef()
+	const progressRef = useRef()
+	const musicPlayingTopRef = useRef()
+	const musicPlayingContainerRef = useRef()
+	const progressPlayedRef = useRef()
+	const progressUnplayedRef = useRef()
+	const progressOutPointRef = useRef()
+	const progressInnerPointRef = useRef()
 
-	componentDidMount(){
-		document.addEventListener("deviceready", this.listenBackButton, false);
-		this.playRef && (this.playRef.style.paddingLeft = "5px")
-		this.pauseRef && (this.pauseRef.style.paddingLeft = "0px")
-		this.progressRef.addEventListener("touchstart", this.start);
-		this.progressRef.addEventListener("mousedown", this.start);
-		this.progressRef.addEventListener("touchmove",  this.move);
-		this.progressRef.addEventListener("mousemove",  this.move);
-		this.progressRef.addEventListener("click", this.move);
-		window.addEventListener("touchend", this.end);
-		window.addEventListener("mouseup", this.end);
-		const { currentSongTime } = this.props
-		this.updateProgressLine(currentSongTime)
+	useEffect(() => {
+		document.addEventListener("deviceready", listenBackButton, false);
+		playRef.current && (playRef.current.style.paddingLeft = "5px")
+		pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
+		progressRef.current.addEventListener("touchstart", start);
+		progressRef.current.addEventListener("mousedown", start);
+		progressRef.current.addEventListener("touchmove",  move);
+		progressRef.current.addEventListener("mousemove",  move);
+		progressRef.current.addEventListener("click", move);
+		window.addEventListener("touchend", end);
+		window.addEventListener("mouseup", end);
+		updateProgressLine(currentSongTime)
 		hideMusicController()
-		window.eventEmit.$on("listenMusicSaved", () => {
-			this.forceUpdate()
-		})
-		touchDirection(this.musicPlayingTop, ['swipeLeft', 'swipeRight'], this.touchDirectionCallback, this.touchDirectionObj)
-	}
-
-	shouldComponentUpdate(nextProps){
-		const { currentSongTime } = this.props
-		if(currentSongTime !== nextProps.currentSongTime){
-			this.updateProgressLine(nextProps.currentSongTime)
+		touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
+			progressRef.current.removeEventListener("touchstart", start);
+			progressRef.current.removeEventListener("mousedown", start);
+			progressRef.current.removeEventListener("touchmove", move);
+			progressRef.current.removeEventListener("mousemove", move);
+			progressRef.current.removeEventListener("click", move);
+			window.removeEventListener("touchend", end);
+			window.removeEventListener("mouseup", end);
+			removeTouchDirection(musicPlayingTopRef.current)
 		}
-		return true
-	}
+	}, [])
 
-	componentWillUnmount(){
-		document.removeEventListener("deviceready", this.listenBackButton, false);
-		document.removeEventListener("backbutton", this.backKeyDownToPrevious, false)
-		this.progressRef.removeEventListener("touchstart", this.start);
-		this.progressRef.removeEventListener("mousedown", this.start);
-		this.progressRef.removeEventListener("touchmove", this.move);
-		this.progressRef.removeEventListener("mousemove", this.move);
-		this.progressRef.removeEventListener("click", this.move);
-		window.removeEventListener("touchend", this.end);
-		window.removeEventListener("mouseup", this.end);
-		removeTouchDirection(this.musicPlayingTop)
-	}
+	useEffect(() => {
+		updateProgressLine(currentSongTime)
+	}, [currentSongTime])
 
-	touchDirectionCallback = (direction) => {
-		const { isHeadPhoneView } = this.props
+	const touchDirectionCallback = (direction) => {
 		logger.info('touchDirectionCallback direction, isHeadPhoneView', direction, isHeadPhoneView)
 		if(direction === 'left'){
-			if(!isHeadPhoneView){
-				$dispatch(updateIsHeadPhoneView(true))
-				this.musicPlayingContainerRef.style.animation = "opacityChange 0.8s ease-out  1 alternate forwards"
-				setTimeout(() => {
-					this.musicPlayingContainerRef.style.animation = null
-				}, 800)
-			}
-
+			$dispatch(updateIsHeadPhoneView(true))
 		} else if(direction === 'right'){
-			if(isHeadPhoneView){
-				$dispatch(updateIsHeadPhoneView(false))
-				this.musicPlayingContainerRef.style.animation = "opacityChange 0.8s ease-out  1 alternate forwards"
-				setTimeout(() => {
-					this.musicPlayingContainerRef.style.animation = null
-				}, 800)
-			}
+			$dispatch(updateIsHeadPhoneView(false))
 		}
 	}
 
-	listenBackButton = () => {
-		document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", backKeyDownToPrevious, false)
 	}
 
-	updateProgressLine = (currentSongTime) => {
-		const percent = (currentSongTime / this.currentSongInfo.duration)
+	const updateProgressLine = (currentSongTime) => {
+		const percent = (currentSongTime / currentMusicItemInfo.duration)
 		const progressWidth= (window.innerWidth - 124)
-		this.progressPlayedRef.style.width = (progressWidth * percent) + "px"
-		this.progressUnplayedRef.style.width = (progressWidth * (1 - percent)) + "px"
-		this.progressUnplayedRef.style.left = (progressWidth * percent + 14) + "px"
-		this.progressOutPoint.style.left = (progressWidth * percent) + "px"
-		this.progressInnerPoint.style.left = (progressWidth * percent + 3) + "px"
+		progressPlayedRef.current.style.width = (progressWidth * percent) + "px"
+		progressUnplayedRef.current.style.width = (progressWidth * (1 - percent)) + "px"
+		progressUnplayedRef.current.style.left = (progressWidth * percent + 14) + "px"
+		progressOutPointRef.current.style.left = (progressWidth * percent) + "px"
+		progressInnerPointRef.current.style.left = (progressWidth * percent + 3) + "px"
 	}
 
-	start = (e) => {
+	const start = (e) => {
 		e.stopPropagation();
-		this.ifBool = true;
+		ifBool = true;
 		logger.info("鼠标按下")
-		this.setState({
-			showSelectedAnimation: true
-		})
+		setShowSelectedAnimation(true)
 	}
 
-	move = (e) => {
+	const move = (e) => {
 		e.stopPropagation();
-		const { soundInstance, soundInstanceId } = this.props
-		if (this.ifBool) {
-			const progressRestWidth = this.progressRef.offsetWidth - 14
+		if (ifBool) {
+			const progressRestWidth = progressRef.current.offsetWidth - 14
 			const x = e.clientX || e.touches[0].pageX
 			let minDivLeft = ((x - 55) > progressRestWidth) ? progressRestWidth : (x - 55)
 			minDivLeft = ((x - 55) < 0) ? 0 : minDivLeft
 			const percent = (minDivLeft / progressRestWidth).toFixed(2)
-			const seekTime = this.currentSongInfo.duration * percent
+			const seekTime = currentMusicItemInfo.duration * percent
 			logger.info("move music progress move percent, seekTime", percent, seekTime)
 			$dispatch(updateCurrentSongTime(seekTime))
 			if(soundInstance && soundInstanceId) {
@@ -140,8 +133,8 @@ class MusicPlaying extends React.Component {
 			}
 		} else {
 			if(e.clientX && !IsPC()){
-				const percent = ((e.clientX - 55) / (this.progressRef.offsetWidth - 14)).toFixed(2)
-				const seekTime = this.currentSongInfo.duration * percent
+				const percent = ((e.clientX - 55) / (progressRef.current.offsetWidth - 14)).toFixed(2)
+				const seekTime = currentMusicItemInfo.duration * percent
 				logger.info("move music progress click percent, seekTime", percent, seekTime)
 				$dispatch(updateCurrentSongTime(seekTime))
 				if(soundInstance && soundInstanceId) {
@@ -151,92 +144,83 @@ class MusicPlaying extends React.Component {
 		}
 	}
 
-	end = (e) => {
+	const end = (e) => {
 		e.stopPropagation();
 		logger.info("鼠标弹起")
-		this.ifBool = false;
-		this.setState({
-			showSelectedAnimation: false
-		})
+		ifBool = false;
+		setShowSelectedAnimation(false)
 	}
 
-	backKeyDownToPrevious = () => {
-		const { savedCurrentRoute } = this.props
+	const backKeyDownToPrevious = () => {
+		specialBackFunc()
+		backToMainPage()
+	}
+
+	const backToMainPage = () => {
 		if(savedCurrentRoute){
-			backToPreviousPage(this, savedCurrentRoute, {specialBack: true});
+			checkToShowPlayController()
+			history.push(savedCurrentRoute)
 			$dispatch(updateSavedCurrentRoute(""))
 		} else {
-			backToPreviousPage(this, "/my_download_middle_page", {specialBack: true});
+			history.push("/my_download_middle_page")
 		}
 	}
 
-	backToMainPage = () => {
-		const { savedCurrentRoute } = this.props
-		if(savedCurrentRoute){
-			backToPreviousPage(this, savedCurrentRoute)
-			$dispatch(updateSavedCurrentRoute(""))
-		} else {
-			backToPreviousPage(this, "/my_download_middle_page")
-		}
+	const playPreviousSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e) => {
+		playRef.current && (playRef.current.style.paddingLeft = "0px")
+		playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
 	}
 
-	playPreviousSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, self) => {
-		this.playRef && (this.playRef.style.paddingLeft = "0px")
-		playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, self)
+	const playNextSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e) => {
+		playRef.current && (playRef.current.style.paddingLeft = "0px")
+		playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
 	}
 
-	playNextSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, self) => {
-		this.playRef && (this.playRef.style.paddingLeft = "0px")
-		playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, self)
-	}
-
-	saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self) => {
+	const saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload) => {
 		if(!filename && !filenameOrigin) return alert('请选择一首歌播放')
-		saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, self)
+		saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
 	}
 
-	pause = (e) => {
+	const pause = (e) => {
 		if(e) e.stopPropagation();
-		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId) return
 		logger.info("MusicController pause currentPlayingSong", currentPlayingSong)
-		this.pauseRef.style.paddingLeft = "5px"
+		pauseRef.current.style.paddingLeft = "5px"
 		pauseMusic(soundInstance, soundInstanceId, currentPlayingSong)
 	}
 
-	resume = (e, self) => {
+	const resume = (e) => {
 		if(e) e.stopPropagation();
-		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId && !currentPlayingSong) return alert('请选择一首歌播放')
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
-		this.playRef.style.paddingLeft = "0px"
-		resumeMusic(self)
+		playRef.current.style.paddingLeft = "0px"
+		resumeMusic()
 	}
 
-	gotoPlayingOrigin = () => {
-		const { musicPageType } = this.props
+	const gotoPlayingOrigin = () => {
 		const urlHash =  window.getRoute()
+		checkToShowPlayController()
 		switch(musicPageType){
 			case CONSTANT.musicOriginal.musicShare:
-				if(urlHash !== "/main/music") window.goRoute(this, "main/music")
+				if(urlHash !== "/main/music") history.push("/main/music")
 				break
 			case CONSTANT.musicOriginal.savedSongs:
-				if(urlHash !== "/saved_songs") window.goRoute(this, "saved_songs")
+				if(urlHash !== "/saved_songs") history.push("/saved_songs")
 				break
 			case CONSTANT.musicOriginal.musicFinished:
-				if(urlHash !== "/my_finished_musics") window.goRoute(this, "my_finished_musics")
+				if(urlHash !== "/my_finished_musics") history.push("/my_finished_musics")
 				break
 			case CONSTANT.musicOriginal.musicRecent:
-				if(urlHash !== "/recent_music_played") window.goRoute(this, "recent_music_played")
+				if(urlHash !== "/recent_music_played") history.push("/recent_music_played")
 				break
 			case "onlySearchShareMusic":
-				if(urlHash !== "/search_music") window.goRoute(this, "search_music")
+				if(urlHash !== "/search_music") history.push("/search_music")
 				break
 			case "onlineMusic":
-				if(urlHash !== "/search_online_music") window.goRoute(this, "search_online_music")
+				if(urlHash !== "/search_online_music") history.push("/search_online_music")
 				break
 			case "onlineMusicSearchALl":
-				if(urlHash !== "/onlineMusicSearchALl") window.goRoute(this, "search_all")
+				if(urlHash !== "/onlineMusicSearchALl") history.push("/search_all")
 				break
 			default:
 				alert("当前没有播放的歌曲")
@@ -244,101 +228,78 @@ class MusicPlaying extends React.Component {
 		}
 	}
 
-    render() {
-		const { showSelectedAnimation } = this.state
-		const {
-			currentPlayingSong,
-			currentPlayingMusicList=[],
-			musicCollection=[],
-			currentPlayingSongOriginal,
-			soundPlaying,
-			musicPageType,
-			currentSongTime,
-			isHeadPhoneView
-		} = this.props
-		let currentSongInfo = {}
-		currentPlayingMusicList.some(item => {
-			if(item.filenameOrigin === currentPlayingSong){
-				currentSongInfo = item;
-				return true
-			}
-		})
-		let savedMusicFilenameOriginalArr = []
-		let currentMusicFilenameOriginalArr = []
-		let currentFileIndex = null
-		if(currentPlayingSong){
-			savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
-			currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
-			currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
-		}
-		const songIsSaved = currentSongInfo.saved || currentPlayingSongOriginal === "savedSongs"
-		const currentSongFilename = currentSongInfo.filename ? getFilenameWithoutExt(currentSongInfo.filename) : "当前没有播放歌曲"
-		this.currentSongInfo = currentSongInfo
-		return (
-			<div className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"}`} ref={ref => this.musicPlayingContainerRef = ref}>
-				<NavBar
-					centerText={currentSongFilename}
-					backToPreviousPage={this.backToMainPage}
-					rightText="源页面"
-					rightTextFunc={this.gotoPlayingOrigin}
-				/>
-				<div className="music-playing-content">
-					<div className="top" ref={ref => this.musicPlayingTop = ref}>
-						<div className="music-singer">{currentSongInfo.uploadUsername}</div>
+	let savedMusicFilenameOriginalArr = []
+	let currentMusicFilenameOriginalArr = []
+	let currentFileIndex = null
+	if(currentPlayingSong){
+		savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
+		currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
+		currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
+	}
+	const songIsSaved = currentMusicItemInfo.saved || currentPlayingSongOriginal === "savedSongs"
+	const currentSongFilename = currentMusicItemInfo.filename ? getFilenameWithoutExt(currentMusicItemInfo.filename) : "当前没有播放歌曲"
+	return (
+		<div className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"}`} ref={musicPlayingContainerRef}>
+			<NavBar
+				centerText={currentSongFilename}
+				backToPreviousPage={backToMainPage}
+				rightText="源页面"
+				rightTextFunc={gotoPlayingOrigin}
+			/>
+			<div className="music-playing-content">
+				<div className="top" ref={musicPlayingTopRef}>
+					<div className="music-singer">{currentMusicItemInfo.uploadUsername}</div>
+					{
+						!isHeadPhoneView
+						?	<AmazingBaby />
+						:	<div className='music'>
+								<span className={`line line1 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+								<span className={`line line2 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+								<span className={`line line3 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+								<span className={`line line4 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+								<span className={`line line5 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
+							</div>
+					}
+					<div className="circle">
+						<div className={`dot ${!isHeadPhoneView ? 'dot-fill' : ''}`} onClick={touchDirectionCallback.bind(this, "right")}></div>
+						<div className={`dot ${isHeadPhoneView ? 'dot-fill' : ''}`} onClick={touchDirectionCallback.bind(this, "left")}></div>
+					</div>
+				</div>
+				<div className="play-progress">
+					<div className="current-time">{secondsToTime(currentSongTime)}</div>
+					<div className="progress" ref={progressRef}>
+						<div className="progress-played" ref={progressPlayedRef}></div>
+						<div className="progress-unplayed" ref={progressUnplayedRef}></div>
+						<div className={`progress-out-point ${showSelectedAnimation ? "selected-animation" : ""}`} ref={progressOutPointRef} ></div>
+						<div className="progress-inner-point" ref={progressInnerPointRef} ></div>
+					</div>
+					<div className="duration-time">{secondsToTime(currentMusicItemInfo.duration || 0)}</div>
+				</div>
+				<div className="bottom-controller">
+					<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}
+						onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
+						<HearSvg />
+					</div>
+					<div className="fa fa-step-backward play-previous"
+						onClick={(e) => playPreviousSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
+					</div>
+					<div className="play-or-pause">
 						{
-							!isHeadPhoneView
-							?	<AmazingBaby />
-							:	<div className='music'>
-									<span className={`line line1 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
-									<span className={`line line2 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
-									<span className={`line line3 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
-									<span className={`line line4 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
-									<span className={`line line5 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
-								</div>
+							soundPlaying
+							?	<div className="fa fa-pause" ref={pauseRef} onClick={pause}></div>
+							:	<div className="fa fa-play" ref={playRef} onClick={resume}></div>
 						}
-						<div className="circle">
-							<div className={`dot ${!isHeadPhoneView ? 'dot-fill' : ''}`} onClick={this.touchDirectionCallback.bind(this, "right")}></div>
-							<div className={`dot ${isHeadPhoneView ? 'dot-fill' : ''}`} onClick={this.touchDirectionCallback.bind(this, "left")}></div>
-						</div>
 					</div>
-					<div className="play-progress">
-						<div className="current-time">{secondsToTime(currentSongTime)}</div>
-						<div className="progress" ref={ref => this.progressRef = ref}>
-							<div className="progress-played" ref={ref => this.progressPlayedRef = ref}></div>
-							<div className="progress-unplayed" ref={ref => this.progressUnplayedRef = ref}></div>
-							<div className={`progress-out-point ${showSelectedAnimation ? "selected-animation" : ""}`} ref={ref => this.progressOutPoint = ref} ></div>
-							<div className="progress-inner-point" ref={ref => this.progressInnerPoint = ref} ></div>
-						</div>
-						<div className="duration-time">{secondsToTime(currentSongInfo.duration || 0)}</div>
+					<div className="fa fa-step-forward play-next"
+						onClick={(e) => playNextSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
 					</div>
-					<div className="bottom-controller">
-						<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}
-							onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
-							<HearSvg />
-						</div>
-						<div className="fa fa-step-backward play-previous"
-							onClick={(e) => this.playPreviousSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
-						</div>
-						<div className="play-or-pause">
-							{
-								soundPlaying
-								?	<div className="fa fa-pause" ref={ref => this.pauseRef = ref} onClick={this.pause}></div>
-								:	<div className="fa fa-play" ref={ref => this.playRef = ref} onClick={(e) => this.resume(e, this)}></div>
-							}
-						</div>
-						<div className="fa fa-step-forward play-next"
-							onClick={(e) => this.playNextSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
-
-						</div>
-						<i className="fa fa-download download-song"
-							onClick={() => this.saveMusicToLocalFunc(currentPlayingMusicList, currentSongInfo.filename, currentSongInfo.uploadUsername, currentSongInfo.fileSize, currentSongInfo.filePath, currentSongInfo.filenameOrigin, currentSongInfo.duration, currentSongInfo.original, currentSongInfo.id, Number(currentSongInfo.payDownload), this)
-						}></i>
-					</div>
-
+					<i className="fa fa-download download-song"
+						onClick={() => saveMusicToLocalFunc(currentPlayingMusicList, currentMusicItemInfo.filename, currentMusicItemInfo.uploadUsername, currentMusicItemInfo.fileSize, currentMusicItemInfo.filePath, currentMusicItemInfo.filenameOrigin, currentMusicItemInfo.duration, currentMusicItemInfo.original, currentMusicItemInfo.id, Number(currentMusicItemInfo.payDownload))
+					}></i>
 				</div>
 			</div>
-		);
-    }
+		</div>
+	);
 }
 
 const mapStateToProps = state => {
@@ -353,7 +314,8 @@ const mapStateToProps = state => {
 		musicPageType: state.fileServer.musicPageType,
 		currentSongTime: state.fileServer.currentSongTime,
 		isHeadPhoneView: state.fileServer.isHeadPhoneView,
-		savedCurrentRoute: state.common.savedCurrentRoute
+		savedCurrentRoute: state.common.savedCurrentRoute,
+		currentMusicItemInfo: state.fileServer.currentMusicItemInfo
     };
 };
 

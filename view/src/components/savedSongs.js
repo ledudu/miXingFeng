@@ -1,32 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import NavBar from "./child/navbar";
 import MusicPlayer from "./musicPlayer"
 import { CONSTANT } from "../constants/enumeration"
+import { specialBackFunc } from "../services/utils"
 
-class SavedSongs extends React.Component {
+const SavedSongs = ({ musicCollection=[] }) => {
 
-	backToMainPage = () => {
-		window.goRoute(this, "/my_download_middle_page");
+	const history = useHistory()
+
+	useEffect(() => {
+		document.addEventListener("deviceready", listenBackButton, false);
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", handleMusicBackEventFunc, false)
+		}
+	}, [])
+
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", handleMusicBackEventFunc, false)
 	}
 
-	render() {
-		const { musicCollection=[] } = this.props;
-		musicCollection.forEach(item => delete item.saved)
-        return (
-            <div className="saved-song-container">
-                <NavBar centerText="收藏" backToPreviousPage={this.backToMainPage} />
-                <div className="saved-song-content">
-					<MusicPlayer
-						musicDataList={musicCollection}
-						original={CONSTANT.musicOriginal.savedSongs}
-						pageType={CONSTANT.musicOriginal.savedSongs}
-						self={this}
-					/>
-				</div>
-            </div>
-        );
-    }
+	const handleMusicBackEventFunc = (isNav) => {
+		if(!window.cancelMenuFirst){
+			if(isNav !== "nav") specialBackFunc()
+			history.push("/my_download_middle_page")
+		}
+	}
+	return (
+		<div className="saved-song-container">
+			<NavBar centerText="收藏" backToPreviousPage={handleMusicBackEventFunc.bind(null, "nav")} />
+			<div className="saved-song-content">
+				<MusicPlayer
+					musicDataList={musicCollection}
+					original={CONSTANT.musicOriginal.savedSongs}
+					pageType={CONSTANT.musicOriginal.savedSongs}
+				/>
+			</div>
+		</div>
+	);
 }
 
 const mapStateToProps = state => {

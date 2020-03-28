@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import FileManage from "./fileManage"
 import NavBar from "./child/navbar";
 import { updateDownloadedFileList } from "../ducks/fileServer"
 import { removeFileFromDownload, removePrefixFromFileOrigin } from "../logic/common"
-import { confirm } from "../services/utils"
+import { confirm, specialBackFunc } from "../services/utils"
 
 const MyFinishedFiles = ({ downloadingFileList, downloadedFileList } ) => {
 
 	const history = useHistory()
 	function backToMainPage(){
-		history.push("/main/myInfo")
+		if(!window.cancelMenuFirst){
+			if(isNav !== "nav") specialBackFunc()
+			history.push("/main/myInfo")
+		}
 	}
 
 	const clearAllFiles = () => {
@@ -30,9 +33,21 @@ const MyFinishedFiles = ({ downloadingFileList, downloadedFileList } ) => {
 		})
 	}
 
+	useEffect(() => {
+		document.addEventListener("deviceready", listenBackButton, false);
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", backToMainPage, false)
+		}
+	}, [])
+
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", backToMainPage, false)
+	}
+
 	return (
 		<div className="my-download-container">
-			<NavBar centerText="文件" backToPreviousPage={backToMainPage}
+			<NavBar centerText="文件" backToPreviousPage={backToMainPage.bind(null, "nav")}
 				rightText="清空" rightTextFunc={clearAllFiles}
 			/>
 			<div className="my-download-content file-container">

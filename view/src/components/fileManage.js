@@ -35,18 +35,18 @@ const FileManage = ({
 	let startToDeleteOnline = false
 
 	const listenBackFunc = () => {
+		window.cancelMenuFirst = true
 		document.addEventListener("backbutton", closeShowMenu, false);
 	}
 
 	const removeListenBackFunc = () => {
 		document.removeEventListener("backbutton", closeShowMenu);
 		document.removeEventListener("deviceready", listenBackFunc);
-		if(window.getRoute() === "/main/file"){
-			document.addEventListener("backbutton", onBackKeyDown, false);
-		}
+		document.addEventListener("backbutton", onBackKeyDown, false);
 	}
 
 	const closeShowMenu = () => {
+		window.cancelMenuFirst = false
 		const musicMenuExisted = document.querySelector('.am-action-sheet-button-list div:nth-last-child(1)')
 		if(musicMenuExisted) musicMenuExisted.click();
 		if(musicMenuExisted) musicMenuExisted.click();
@@ -54,9 +54,7 @@ const FileManage = ({
 
 	const showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin, date) => {
 		try {
-			if(window.getRoute() === "/main/file"){
-				document.removeEventListener("backbutton", onBackKeyDown, false);
-			}
+			document.removeEventListener("backbutton", onBackKeyDown, false);
 			document.addEventListener("deviceready", listenBackFunc);
 
 			let firstItem = "下载";

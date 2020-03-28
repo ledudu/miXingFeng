@@ -205,10 +205,15 @@ function onErrorReadFile(error) {
 	window.logger.error(`读取错误!:`, error);
 }
 
+export const specialBackFunc = () => {
+	// 统一处理物理按键的返回逻辑
+	window.specialBack = true
+}
+
 export const backToPreviousPage = (self, route, options={}) => {
 	if(options.specialBack) {
 		logger.info("backToPreviousPage route, options", route, options)
-		window.specialBack = true
+		specialBackFunc()
 	}
 	window.goRoute(self, route);
 }
@@ -275,7 +280,7 @@ export const stopPropagation = (e) => {
 export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
 	if(!filenameOrigin) return
 	if(fromMusic){
-		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, options.self)
+		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin)
 		if(!fileUrl) return
 	}
 	logger.info("saveFileToLocal fileUrl, filenameOrigin", fileUrl, filenameOrigin)
@@ -309,11 +314,11 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 							}
 						}
 					} else if(param[0] === "music"){
+						const downloadingMusicItemsCopy = JSON.parse(JSON.stringify(downloadingMusicItems))
 						for(let index in downloadingMusicItems){
 							if(downloadingMusicItems[index].filenameOrigin === param[1]){
-								downloadingMusicItems.splice(index, 1)
-								window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
-								$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+								downloadingMusicItemsCopy.splice(index, 1)
+								$dispatch(updateDownloadingMusicItems(downloadingMusicItemsCopy))
 								removeMusicDataByIndexFromIndexDB(param[1])
 								break;
 							}
@@ -426,15 +431,15 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 														alert(`${filename}下载完成`)
 														const { downloadingFileList, downloadingMusicItems, fileList, downloadedMusicList, downloadedFileList } = $getState().fileServer
 														if(fromMusic){
-															downloadedMusicList.push(downloadedDataToSaveIndexedDBObj)
-															window.eventEmit.$emit("downloadMusicFinished", downloadedMusicList)
-															$dispatch(updateDownloadedMusicList(downloadedMusicList))
+															const downloadedMusicListCopy = JSON.parse(JSON.stringify(downloadedMusicList))
+															const downloadingMusicItemsCopy = JSON.parse(JSON.stringify(downloadingMusicItems))
+															downloadedMusicListCopy.push(downloadedDataToSaveIndexedDBObj)
+															$dispatch(updateDownloadedMusicList(downloadedMusicListCopy))
 															for(let index in downloadingMusicItems){
 																if(downloadingMusicItems[index].filenameOrigin === `downloading_${filenameOrigin}`){
-																	downloadingMusicItems.splice(index, 1)
-																	logger.info("downloadingMusicItems 下载完成", downloadingMusicItems)
-																	window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
-																	$dispatch(updateDownloadingMusicItems(downloadingMusicItems))
+																	downloadingMusicItemsCopy.splice(index, 1)
+																	logger.info("downloadingMusicItems 下载完成")
+																	$dispatch(updateDownloadingMusicItems(downloadingMusicItemsCopy))
 																}
 															}
 														} else {
@@ -520,15 +525,16 @@ export const updateDownloadingStatus = (filename, result, uploadUsername, fileSi
 	}
 	if(fromMusic){
 		obj.duration = options.duration
-		for(let index in downloadingMusicItems){
-			if(downloadingMusicItems[index].filenameOrigin === filenameOrigin){
-				downloadingMusicItems[index].progress = result;
-				window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
+		const downloadingMusicItemsCopy = JSON.parse(JSON.stringify(downloadingMusicItems))
+		for(let index in downloadingMusicItemsCopy){
+			if(downloadingMusicItemsCopy[index].filenameOrigin === filenameOrigin){
+				downloadingMusicItemsCopy[index].progress = result;
+				$dispatch(updateDownloadingMusicItems(downloadingMusicItemsCopy))
 				return
 			}
 		}
-		downloadingMusicItems.push(obj)
-		window.eventEmit.$emit("downloadingMusicItems", downloadingMusicItems)
+		downloadingMusicItemsCopy.push(obj)
+		$dispatch(updateDownloadingMusicItems(downloadingMusicItemsCopy))
 	} else {
 		const downloadingFileListCopy = JSON.parse(JSON.stringify(downloadingFileList))
 		for(let index in downloadingFileListCopy){

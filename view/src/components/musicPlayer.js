@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import { Howler } from 'howler';
 import { ActionSheet } from 'antd-mobile';
 import { HTTP_URL } from "../constants/httpRoute";
@@ -22,16 +23,15 @@ import {
 	calcSize,
 	removeDuplicateObjectList,
 	removeFileFromDownload,
-	checkSongSavedFunc,
 	removePrefixFromFileOrigin,
 	saveSongFunc,
 	playNextSong,
 	getMusicCurrentPlayProcess,
 	checkStatus,
 	getFilenameWithoutExt,
-	stopMusic,
 	saveMusicToLocal,
-	secondsToTime
+	secondsToTime,
+	checkSongSavedFunc
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
@@ -44,505 +44,346 @@ if (isIPhone) {
 	};
 }
 
-class MusicPlayer extends React.Component {
+const MusicPlayer = ({
+	original,
+	soundInstance,
+	currentPlayingSong,
+	currentSongTime,
+	soundPlaying,
+	pageType,
+	pauseWhenOver,
+	playByOrder,
+	musicCollection=[],
+	musicMenuBadge,
+	username,
+	token,
+	playByRandom,
+	setMobile,
+	musicDataList,
+	lastMusicSearchResult,
+	lastSearchAllMusicResult,
+	recentMusicList
+}) => {
 
-	constructor(props){
-		super(props);
-		this.state = {
-			musicDataList: props.musicDataList,
-			showSongsLoadTimes: 1,
-		}
-	}
+	const history = useHistory()
 
-	componentDidMount(){
+	useEffect(() => {
 		Howler.volume(0.8);
-		this.checkSongSaved()
-
-		const { original, soundInstance } = this.props
+		// checkSongSaved()
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
 			if(soundInstance) getMusicCurrentPlayProcess(false)
 		}
-		if(original === CONSTANT.musicOriginal.musicRecent){
-			const scrollDom = document.querySelector('.recent-play-content')
-			scrollDom.addEventListener("scroll", this.handleScroll, true);
-		} else if(original === CONSTANT.musicOriginal.musicShare){
-			const scrollDom = document.querySelector('.music-container')
-			scrollDom.addEventListener("scroll", this.handleScroll, true);
-		} else if(original === CONSTANT.musicOriginal.savedSongs){
-			const scrollDom = document.querySelector('.saved-song-content')
-			scrollDom.addEventListener("scroll", this.handleScroll, true);
-		}
+	})
 
-		window.eventEmit.$on("musicRemoved", (musicDataList) => {
-			if(original === CONSTANT.musicOriginal.musicFinished){
-				this.setState({
-					musicDataList
-				})
-			}
-		})
-		window.eventEmit.$on("downloadingMusicItems", (musicDataList) => {
-			if(original === CONSTANT.musicOriginal.musicDownloading){
-				this.setState({
-					musicDataList
-				})
-			}
-		})
-		window.eventEmit.$on("downloadMusicFinished", (downloadedMusicList) => {
-			if(original === CONSTANT.musicOriginal.musicFinished){
-				downloadedMusicList = _.orderBy(downloadedMusicList, ['date'], ['asc'])
-				this.setState({
-					musicDataList: downloadedMusicList
-				})
-			}
-		})
-		window.eventEmit.$on("updateRecentMusicListEventEmit", (recentMusicList) => {
-			if(original === CONSTANT.musicOriginal.musicRecent){
-				recentMusicList = _.orderBy(recentMusicList, ['date'], ['desc'])
-				this.setState({
-					musicDataList: recentMusicList
-				})
-				$dispatch(updateRecentMusicList(recentMusicList))
-			}
-		})
-		let clearAllFilesTime = false
-		window.eventEmit.$on("clearAllMusicRecentRecords", () => {
-			if(original === CONSTANT.musicOriginal.musicRecent){
-				const self = this
-				const { musicDataList } = this.state
-				const { musicPageType } = this.props
-				if(!clearAllFilesTime){
-					clearAllFilesTime = true
-					confirm(`提示`, `确定要移除所有播放记录吗`, "确定", () => {
-						$dispatch(updateRecentMusicList([]))
-						musicDataList.forEach(item => {
-							removeRecentMusicDataByIndexFromIndexDB(item.filenameOrigin)
-								.then(() => {
-									window.eventEmit.$emit("updateRecentMusicListEventEmit", [])
-								}).catch((err) => {
-									logger.error("clearAllMusicRecentRecords removeRecentMusicDataByIndexFromIndexDB file err", err)
-								})
-						})
-						self.setState({
-							musicDataList: []
-						}, () => {
-							clearAllFilesTime = false
-							if(musicPageType === CONSTANT.musicOriginal.musicRecent){
-								stopMusic()
-								localStorage.removeItem('lastPlaySongInfo')
-								localStorage.removeItem('lastPlaySongPageType')
-								localStorage.removeItem('lastPlaySongMusicDataList')
-							}
-							if(musicDataList.length){
-								alert("删除成功")
-							} else {
-								alert("没有记录可以删除")
-							}
-						})
-
-					}, () => {
-						clearAllFilesTime = false
-					})
-				}
-			}
-		})
+	const listenBackFunc = () => {
+		window.cancelMenuFirst = true
+		document.addEventListener("backbutton", closeShowMenu);
 	}
 
-	UNSAFE_componentWillReceiveProps (nextProps){
-		this.checkSongSaved()
-		const { pageType } = this.props
-		if(pageType === CONSTANT.musicOriginal.savedSongs){
-			nextProps.musicDataList.forEach(item => delete item.saved)
-		}
-		this.setState({
-			musicDataList: nextProps.musicDataList
-		})
+	const removeListenBackFunc = () => {
+		window.cancelMenuFirst = false
+		document.removeEventListener("backbutton", closeShowMenu);
+		document.removeEventListener("deviceready", listenBackFunc);
+		document.addEventListener("backbutton", onBackKeyDown);
 	}
 
-	componentWillUnmount(){
-		const { original } = this.props
-		if(original === CONSTANT.musicOriginal.musicRecent){
-			const scrollDom = document.querySelector('.recent-play-content')
-			scrollDom.removeEventListener("scroll", this.handleScroll);
-		} else if(original === CONSTANT.musicOriginal.musicShare){
-			const scrollDom = document.querySelector('.music-container')
-			scrollDom.removeEventListener("scroll", this.handleScroll, true);
-		} else if(original === CONSTANT.musicOriginal.savedSongs){
-			const scrollDom = document.querySelector('.saved-song-content')
-			scrollDom.removeEventListener("scroll", this.handleScroll, true);
-		}
-		window.eventEmit.$off("musicRemoved")
-		window.eventEmit.$off("downloadingMusicItems")
-		window.eventEmit.$off("downloadMusicFinished")
-		window.eventEmit.$off("updateRecentMusicListEventEmit")
-		window.eventEmit.$off("clearAllMusicRecentRecords")
-	}
-
-	handleScroll = (e) => {
-		if (this.debounceTimer) {
-			clearTimeout(this.debounceTimer)
-			this.debounceTimer = setTimeout(() => {
-				let {
-					showSongsLoadTimes,
-					musicDataList
-				} = this.state
-				if ((showSongsLoadTimes * CONSTANT.showMusicNumberPerTime < musicDataList.length)) {
-					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 150) {
-						this.setState({
-							showSongsLoadTimes: ++showSongsLoadTimes
-						})
-					}
-				}
-				this.debounceTimer = null
-			}, 100)
-		} else {
-			this.debounceTimer = setTimeout(() => {
-				let {
-					showSongsLoadTimes,
-					musicDataList
-				} = this.state
-				if ((showSongsLoadTimes * CONSTANT.showMusicNumberPerTime < musicDataList.length)) {
-					if (e.target.scrollHeight - (e.target.scrollTop + e.target.clientHeight) < 150) {
-						this.setState({
-							showSongsLoadTimes: ++showSongsLoadTimes
-						})
-					}
-				}
-				this.debounceTimer = null;
-			}, 4)
-		}
-	}
-
-	listenBackFunc = () => {
-		document.addEventListener("backbutton", this.closeShowMenu);
-	}
-
-	removeListenBackFunc = () => {
-		document.removeEventListener("backbutton", this.closeShowMenu);
-		document.removeEventListener("deviceready", this.listenBackFunc);
-		const urlLocation = window.location.href
-		logger.info("musicPlayer removeListenBackFunc urlLocation", urlLocation)
-		if(urlLocation.indexOf("main/music")){
-			document.addEventListener("backbutton", onBackKeyDown);
-		}
-	}
-
-	closeShowMenu = () => {
+	const closeShowMenu = () => {
 		const musicMenuExisted = document.querySelector('.am-action-sheet-button-list div:nth-last-child(1)')
 		if(musicMenuExisted) musicMenuExisted.click();
 	}
 
-	checkSongSaved = () => {
-		const {  musicDataList=[] } = this.state;
-		const { original } = this.props;
-		checkSongSavedFunc(musicDataList, original)
-	}
-
-	showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date) => {
-		try {
-			const {
-				pauseWhenOver,
-				playByOrder,
-				musicCollection=[],
-				musicMenuBadge,
-				soundInstance,
-				username,
-				token,
-				original,
-				soundPlaying,
-				playByRandom,
-				currentPlayingSong,
-				pageType,
-				setMobile
-			} = this.props
-			const self = this
-			const urlLocation = window.location.href
-			logger.info("musicPlayer showMenu urlLocation", urlLocation)
-			if(urlLocation.indexOf("/main/music")){
-				document.removeEventListener("backbutton", onBackKeyDown, false);
+	const showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date) => {
+		document.removeEventListener("backbutton", onBackKeyDown, false);
+		document.addEventListener("deviceready", listenBackFunc);
+		const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
+		const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
+		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
+		const buttons = ['播放', (hasSaved !== -1) ? '已收藏' : "收藏", '单曲播放', '单曲循环', '顺序播放', '随机播放', '下载', '删除', '取消'];
+		if(soundPlaying && filenameOrigin === currentPlayingSong){
+			buttons[0] = "暂停"
+		}
+		if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
+			date = ` ${date}`
+		} else {
+			date = ""
+		}
+		const showActionSheetWithOptionsConfig = {
+			options: buttons,
+			cancelButtonIndex: buttons.length - 1,
+			destructiveButtonIndex:  buttons.length - 2,
+			badges: musicMenuBadgeCopy,
+			message: fileSize ? `大小: ${calcSize(fileSize)}${date}` : date,
+			title: filename,
+			maskClosable: true,
+			'data-seed': 'logId',
+			wrapProps,
+		}
+		if(original === CONSTANT.musicOriginal.musicFinished){
+			//  已下载页面的菜单没有下载功能，原来下载的位置要换成删除本地音乐的函数
+			buttons.splice(6, 1);
+			showActionSheetWithOptionsConfig.destructiveButtonIndex = buttons.length - 2
+		} else {
+			if(payDownload){
+				musicMenuBadgeCopy.push({
+					index: 6,
+					text: '版',
+				})
 			}
-			document.addEventListener("deviceready", this.listenBackFunc);
-			const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
-			const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
-			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
-			const buttons = ['播放', (hasSaved !== -1) ? '已收藏' : "收藏", '单曲播放', '单曲循环', '顺序播放', '随机播放', '下载', '删除', '取消'];
-			if(soundPlaying && filenameOrigin === currentPlayingSong){
-				buttons[0] = "暂停"
+			if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl"){
+				// 收藏页面和搜索在线音乐页面的菜单没有删除功能
+				buttons.splice(7, 1);
+				delete showActionSheetWithOptionsConfig.destructiveButtonIndex
 			}
-			if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
-				date = ` ${date}`
-			} else {
-				date = ""
-			}
-			const showActionSheetWithOptionsConfig = {
-				options: buttons,
-				cancelButtonIndex: buttons.length - 1,
-				destructiveButtonIndex:  buttons.length - 2,
-				badges: musicMenuBadgeCopy,
-				message: fileSize ? `大小: ${calcSize(fileSize)}${date}` : date,
-				title: filename,
-				maskClosable: true,
-				'data-seed': 'logId',
-				wrapProps,
-			}
-			if(original === CONSTANT.musicOriginal.musicFinished){
-				//  已下载页面的菜单没有下载功能，原来下载的位置要换成删除本地音乐的函数
-				buttons.splice(6, 1);
-				showActionSheetWithOptionsConfig.destructiveButtonIndex = buttons.length - 2
-			} else {
-				if(payDownload){
-					musicMenuBadgeCopy.push({
-						index: 6,
-						text: '版',
-					})
+		}
+		ActionSheet.showActionSheetWithOptions(
+			showActionSheetWithOptionsConfig,
+			(buttonIndex) => {
+				logger.info("music player showMenu buttonIndex", buttonIndex)
+				const currentMusicFilenameOriginalArr = musicDataList.map(item => item.filenameOrigin)
+				let currentFileIndex = currentMusicFilenameOriginalArr.indexOf(filenameOrigin)
+				if(currentFileIndex === -1){
+					logger.error("showActionSheetWithOptions currentFileIndex === -1 filename", filename)
+					return alert(filename + "已被删除")
 				}
-				if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl"){
-					// 收藏页面和搜索在线音乐页面的菜单没有删除功能
-					buttons.splice(7, 1);
-					delete showActionSheetWithOptionsConfig.destructiveButtonIndex
-				}
-			}
-			ActionSheet.showActionSheetWithOptions(
-				showActionSheetWithOptionsConfig,
-				(buttonIndex) => {
-					logger.info("music player showMenu buttonIndex", buttonIndex)
-					const { musicDataList } = this.state
-					const currentMusicFilenameOriginalArr = musicDataList.map(item => item.filenameOrigin)
-					let currentFileIndex = currentMusicFilenameOriginalArr.indexOf(filenameOrigin)
-					if(currentFileIndex === -1){
-						logger.error("showActionSheetWithOptions currentFileIndex === -1 filename", filename)
-						return alert(filename + "已被删除")
-					}
-					const filePath = musicDataList[currentFileIndex]['filePath']
-					switch(buttonIndex){
-						case 0:
-							checkStatus(filePath, filename, filenameOrigin, uploadUsername, fileSize, duration, songOriginal, original, musicDataList, pageType, payPlay, musicId, self)
-							break;
-						case 1:
-							saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType, self)
-							break;
-						case 2:
-							if(!pauseWhenOver || playByOrder || playByRandom){
-								soundInstance && soundInstance.loop(false)
-								$dispatch(updatePauseWhenOver(true))
-								$dispatch(updatePlayByOrder(false))
-								$dispatch(updatePlayByRandom(false))
-								alert('单曲播放')
-								$dispatch(updateMusicMenuBadge([
-									{
-										index: 2,
-										text: '✔️',
-									}, {
-										index: 3,
-										text: '',
-									}, {
-										index: 4,
-										text: '',
-									}, {
-										index: 5,
-										text: '',
-									}
-								]))
-							}
-							break;
-						case 3:
-							if(pauseWhenOver){
-								soundInstance && soundInstance.loop(true)
-								$dispatch(updatePauseWhenOver(false))
-								$dispatch(updatePlayByOrder(false))
-								$dispatch(updatePlayByRandom(false))
-								alert('单曲循环')
-								$dispatch(updateMusicMenuBadge([
-									{
-										index: 2,
-										text: '',
-									}, {
-										index: 3,
-										text: '✔️',
-									}, {
-										index: 4,
-										text: '',
-									}, {
-										index: 5,
-										text: '',
-									}
-								]))
-							}
-							break;
-						case 4:
-							if(!playByOrder){
-								if(soundInstance){
-									soundInstance.loop(false);
+				const filePath = musicDataList[currentFileIndex]['filePath']
+				switch(buttonIndex){
+					case 0:
+						checkStatus({
+							filePath,
+							filename,
+							filenameOrigin,
+							uploadUsername,
+							fileSize,
+							duration,
+							songOriginal,
+							original,
+							musicDataList,
+							pageType,
+							payPlay,
+							musicId
+						})
+						break;
+					case 1:
+						saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType)
+						break;
+					case 2:
+						if(!pauseWhenOver || playByOrder || playByRandom){
+							soundInstance && soundInstance.loop(false)
+							$dispatch(updatePauseWhenOver(true))
+							$dispatch(updatePlayByOrder(false))
+							$dispatch(updatePlayByRandom(false))
+							alert('单曲播放')
+							$dispatch(updateMusicMenuBadge([
+								{
+									index: 2,
+									text: '✔️',
+								}, {
+									index: 3,
+									text: '',
+								}, {
+									index: 4,
+									text: '',
+								}, {
+									index: 5,
+									text: '',
 								}
-								$dispatch(updatePauseWhenOver(true))
-								$dispatch(updatePlayByOrder(true))
-								$dispatch(updatePlayByRandom(false))
-
-								alert('顺序播放')
-								$dispatch(updateMusicMenuBadge([
-									{
-										index: 2,
-										text: '',
-									}, {
-										index: 3,
-										text: '',
-									}, {
-										index: 4,
-										text: '✔️',
-									}, {
-										index: 5,
-										text: '',
-									}
-								]))
-							}
-							break;
-						case 5:
-							if(!playByRandom){
-								if(soundInstance){
-									soundInstance.loop(false);
+							]))
+						}
+						break;
+					case 3:
+						if(pauseWhenOver){
+							soundInstance && soundInstance.loop(true)
+							$dispatch(updatePauseWhenOver(false))
+							$dispatch(updatePlayByOrder(false))
+							$dispatch(updatePlayByRandom(false))
+							alert('单曲循环')
+							$dispatch(updateMusicMenuBadge([
+								{
+									index: 2,
+									text: '',
+								}, {
+									index: 3,
+									text: '✔️',
+								}, {
+									index: 4,
+									text: '',
+								}, {
+									index: 5,
+									text: '',
 								}
-								$dispatch(updatePauseWhenOver(true))
-								$dispatch(updatePlayByOrder(false))
-								$dispatch(updatePlayByRandom(true))
-								alert('随机播放')
-								$dispatch(updateMusicMenuBadge([
-									{
-										index: 2,
-										text: '',
-									}, {
-										index: 3,
-										text: '',
-									}, {
-										index: 4,
-										text: '',
-									}, {
-										index: 5,
-										text: '✔️',
-									}
-								]))
+							]))
+						}
+						break;
+					case 4:
+						if(!playByOrder){
+							if(soundInstance){
+								soundInstance.loop(false);
 							}
-							break;
-						case 6:
-							if(original === CONSTANT.musicOriginal.musicFinished){
-								confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
-									return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+							$dispatch(updatePauseWhenOver(true))
+							$dispatch(updatePlayByOrder(true))
+							$dispatch(updatePlayByRandom(false))
+							alert('顺序播放')
+							$dispatch(updateMusicMenuBadge([
+								{
+									index: 2,
+									text: '',
+								}, {
+									index: 3,
+									text: '',
+								}, {
+									index: 4,
+									text: '✔️',
+								}, {
+									index: 5,
+									text: '',
+								}
+							]))
+						}
+						break;
+					case 5:
+						if(!playByRandom){
+							if(soundInstance){
+								soundInstance.loop(false);
+							}
+							$dispatch(updatePauseWhenOver(true))
+							$dispatch(updatePlayByOrder(false))
+							$dispatch(updatePlayByRandom(true))
+							alert('随机播放')
+							$dispatch(updateMusicMenuBadge([
+								{
+									index: 2,
+									text: '',
+								}, {
+									index: 3,
+									text: '',
+								}, {
+									index: 4,
+									text: '',
+								}, {
+									index: 5,
+									text: '✔️',
+								}
+							]))
+						}
+						break;
+					case 6:
+						if(original === CONSTANT.musicOriginal.musicFinished){
+							confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
+								return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+									.then(() => {
+										if(filenameOrigin === currentPlayingSong){
+											localStorage.removeItem('lastPlaySongInfo')
+											localStorage.removeItem('lastPlaySongPageType')
+											localStorage.removeItem('lastPlaySongMusicDataList')
+											playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null)
+										}
+									})
+									.catch(error => {
+										logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
+										networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
+									})
+							})
+						} else {
+							const musicSrc = filePath
+							//  下载觅星峰服务器上的音乐，保存的文件名为filenameOrigin,
+							//  filenameOrigin由上传者用户名加文件名加时间戳构成，filenameOrigin是文件的id，唯一且不可变
+							//  下载网易云或qq音乐，保存的文件名为filename+_+fileMD5+后缀名
+							//  因为共享音乐列表可能存在秒传音乐，所以列表可能存在两个相同md5的音乐，
+							//  为了唯一的辨别每一个音乐，觅星峰服务器上的音乐md5由客户端随机生成，是不可靠的
+							//  所以在保存觅星峰服务器上的音乐时，保存的文件名特意为以上格式，
+							//  如果将要下载的音乐信息和已下载的音乐名称相同，则认为这个音乐已经下载了
+							saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
+						}
+						break;
+					case 7:
+						removeListenBackFunc()
+						if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
+							return
+						}
+						if(!token) return alert("请先登录")
+						const dataInfo = {
+							username: username || setMobile,
+							token,
+							filename,
+							type: "default-music"
+						}
+						if(original === CONSTANT.musicOriginal.musicShare){
+							let startToDelete = false
+							confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
+								if(!startToDelete){
+									startToDelete = true
+									return axios.delete(HTTP_URL.delFile, {data: dataInfo})
+										.then((result) => {
+											startToDelete = false
+											if(result.data.result.result === 'success'){
+												$dispatch(updateToken(result.data.result.token))
+												//  实时更新搜索列表里被删除的音乐
+												alert('删除成功')
+												return updateSearchList(original, filenameOrigin)
+											}  else if (result.data.result.result === 'file_deleted') {
+												alert("文件已删除!");
+												return updateSearchList(original, filenameOrigin)
+											} else {
+												logger.error("HTTP_URL.delFile result", result)
+											}
+										})
 										.then(() => {
 											if(filenameOrigin === currentPlayingSong){
 												localStorage.removeItem('lastPlaySongInfo')
 												localStorage.removeItem('lastPlaySongPageType')
 												localStorage.removeItem('lastPlaySongMusicDataList')
-												playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
+												playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null)
 											}
 										})
-										.catch(error => {
-											logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
-											networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
+										.catch(err => {
+											startToDelete = false
+											logger.error("HTTP_URL.delFile err", err)
+											networkErr(err, `musicPlayer delFile filenameOrigin: ${filenameOrigin}`);
 										})
-								})
-							} else {
-								const musicSrc = filePath
-								//  下载觅星峰服务器上的音乐，保存的文件名为filenameOrigin,
-								//  filenameOrigin由上传者用户名加文件名加时间戳构成，filenameOrigin是文件的id，唯一且不可变
-								//  下载网易云或qq音乐，保存的文件名为filename+_+fileMD5+后缀名
-								//  因为共享音乐列表可能存在秒传音乐，所以列表可能存在两个相同md5的音乐，
-								//  为了唯一的辨别每一个音乐，觅星峰服务器上的音乐md5由客户端随机生成，是不可靠的
-								//  所以在保存觅星峰服务器上的音乐时，保存的文件名特意为以上格式，
-								//  如果将要下载的音乐信息和已下载的音乐名称相同，则认为这个音乐已经下载了
-								saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload, this)
-							}
-							break;
-						case 7:
-							this.removeListenBackFunc()
-							if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
-								return
-							}
-							if(!token) return alert("请先登录")
-							const dataInfo = {
-								username: username || setMobile,
-								token,
-								filename,
-								type: "default-music"
-							}
-							if(original === CONSTANT.musicOriginal.musicShare){
-								confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
-									if(!this.startToDelete){
-										this.startToDelete = true
-										return axios.delete(HTTP_URL.delFile, {data: dataInfo})
-											.then((result) => {
-												this.startToDelete = false
-												if(result.data.result.result === 'success'){
-													$dispatch(updateToken(result.data.result.token))
-													//  实时更新搜索列表里被删除的音乐
-													alert('删除成功')
-													return this.updateSearchList(original, filenameOrigin)
-												}  else if (result.data.result.result === 'file_deleted') {
-													alert("文件已删除!");
-													return this.updateSearchList(original, filenameOrigin)
-												} else {
-													logger.error("HTTP_URL.delFile result", result)
-												}
-											})
-											.then(() => {
-												if(filenameOrigin === currentPlayingSong){
-													localStorage.removeItem('lastPlaySongInfo')
-													localStorage.removeItem('lastPlaySongPageType')
-													localStorage.removeItem('lastPlaySongMusicDataList')
-													playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null, self)
-												}
-											})
-											.catch(err => {
-												this.startToDelete = false
-												logger.error("HTTP_URL.delFile err", err)
-												networkErr(err, `musicPlayer delFile filenameOrigin: ${filenameOrigin}`);
-											})
-									}
-								})
-							} else if(original === CONSTANT.musicOriginal.musicRecent){
-								let startToDelete
-								confirm('提示', `确定要删除${filename}的播放记录吗`, "确定", () => {
-									if(!startToDelete){
-										startToDelete = true
-										const { recentMusicList } = this.props
-										let currentItemIndex = null
-										recentMusicList.some((item, index) => {
-											if(item.filenameOrigin === filenameOrigin){
-												currentItemIndex = index;
-												return true
-											}
-										})
-										if(currentItemIndex !== null){
-											recentMusicList.splice(currentItemIndex, 1)
-											$dispatch(updateRecentMusicList(recentMusicList))
-											removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
-											window.eventEmit.$emit("updateRecentMusicListEventEmit", recentMusicList)
-											if(filenameOrigin === currentPlayingSong){
-												localStorage.removeItem('lastPlaySongInfo')
-												localStorage.removeItem('lastPlaySongPageType')
-												localStorage.removeItem('lastPlaySongMusicDataList')
-												const currentMusicFilenameOriginalArr = recentMusicList.map(item => item.filenameOrigin)
-												playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, recentMusicList, null, self)
-											}
-										} else {
-											logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
+								}
+							})
+						} else if(original === CONSTANT.musicOriginal.musicRecent){
+							let startToDelete
+							confirm('提示', `确定要删除${filename}的播放记录吗`, "确定", () => {
+								if(!startToDelete){
+									startToDelete = true
+									let currentItemIndex = null
+									recentMusicList.some((item, index) => {
+										if(item.filenameOrigin === filenameOrigin){
+											currentItemIndex = index;
+											return true
 										}
+									})
+									if(currentItemIndex !== null){
+										const recentMusicListCopy = JSON.parse(JSON.stringify(recentMusicList))
+										recentMusicListCopy.splice(currentItemIndex, 1)
+										$dispatch(updateRecentMusicList(recentMusicListCopy))
+										removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
+										if(filenameOrigin === currentPlayingSong){
+											localStorage.removeItem('lastPlaySongInfo')
+											localStorage.removeItem('lastPlaySongPageType')
+											localStorage.removeItem('lastPlaySongMusicDataList')
+											const currentMusicFilenameOriginalArr = recentMusicList.map(item => item.filenameOrigin)
+											playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, recentMusicList, null)
+										}
+									} else {
+										logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
 									}
-								})
-							}
-							break;
-						default:
-							this.removeListenBackFunc()
-							break;
-					}
-					this.removeListenBackFunc()
+								}
+							})
+						}
+						break;
+					default:
+						removeListenBackFunc()
+						break;
 				}
-			);
-		} catch(err){
-			logger.error("showMenu err", err)
-		}
+				removeListenBackFunc()
+			}
+		);
 	}
 
-	updateSearchList = (original, filenameOrigin) => {
+	const updateSearchList = (original, filenameOrigin) => {
 		if(original === CONSTANT.musicOriginal.musicSearch){
-			const { lastMusicSearchResult=[], lastSearchAllMusicResult=[], pageType } = this.props;
 			let lastMusicSearchResultIndex, lastSearchAllMusicResultIndex
 			lastMusicSearchResult.some((item, index) => {
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
@@ -550,52 +391,36 @@ class MusicPlayer extends React.Component {
 					return true
 				}
 			})
-			lastMusicSearchResult.splice(lastMusicSearchResultIndex, 1)
+			const lastMusicSearchResultCopy = JSON.parse(JSON.stringify(lastMusicSearchResult))
+			lastMusicSearchResultCopy.splice(lastMusicSearchResultIndex, 1)
 			lastSearchAllMusicResult.some((item, index) => {
 				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
 					lastSearchAllMusicResultIndex = index
 					return true
 				}
 			})
-			lastSearchAllMusicResult.splice(lastSearchAllMusicResultIndex, 1)
-			$dispatch(updateLastMusicSearchResult(lastMusicSearchResult))
-			$dispatch(updateLastSearchAllMusicResult(lastSearchAllMusicResult))
-			if(pageType === "onlySearchShareMusic"){
-				this.setState({
-					musicDataList: lastMusicSearchResult
-				})
-			} else if(pageType === "onlineMusicSearchALl"){
-				this.setState({
-					musicDataList: lastSearchAllMusicResult
-				})
-			}
+			const lastSearchAllMusicResultCopy = JSON.parse(JSON.stringify(lastSearchAllMusicResult))
+			lastSearchAllMusicResultCopy.splice(lastSearchAllMusicResultIndex, 1)
+			$dispatch(updateLastMusicSearchResult(lastMusicSearchResultCopy))
+			$dispatch(updateLastSearchAllMusicResult(lastSearchAllMusicResultCopy))
 		}
 	}
 
-	removeDownloadItem = (filename, filenameOrigin) => {
+	const removeDownloadItem = (filename, filenameOrigin) => {
         confirm('提示', `确定要移除下载${filename}吗`, "确定", () => {
 			window.eventEmit.$emit(`FileTransfer-${removePrefixFromFileOrigin(filenameOrigin)}`, 'abort', ["music", filenameOrigin])
 		})
 	}
 
-	showSongMv = (e, mvId, original, filename) => {
+	const showSongMv = (e, mvId, original, filename) => {
 		e.stopPropagation();
-		const { that, self } = this.props
-		let _this = ""
-		if(that) {
-			_this = that.props.self
-		} else if(self) {
-			_this = self
-		} else {
-			return
-		}
-		_this.props.history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
+		history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
 	}
 
-	playingComponent = (filePath, currentSongTime, duration, filenameOrigin) => {
+	const playingComponent = (filePath, currentSongTime, duration) => {
 		return (
 			<div className="audio-player" >
-				<audio preload="auto" className="audio-selector" ref={ref => window["musicPlayerRef_" + filenameOrigin] = ref} >
+				<audio preload="auto" className="audio-selector" >
 					<source src={filePath} />
 				</audio>
 				<div className="audio-player-time audio-player-time-current">{secondsToTime(currentSongTime)}</div>
@@ -608,8 +433,7 @@ class MusicPlayer extends React.Component {
 		)
 	}
 
-	dealWithMusicUploadTime = (date) => {
-		const { original } = this.props;
+	const dealWithMusicUploadTime = (date) => {
 		if(!date) return ""
 		if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
 			return " " + date.split(" ")[0]
@@ -618,83 +442,92 @@ class MusicPlayer extends React.Component {
 		}
 	}
 
-	render() {
-		let { currentPlayingSong, currentSongTime, soundPlaying, original, pageType } = this.props;
-		let { musicDataList=[], showSongsLoadTimes } = this.state
-		musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
-		if(original === CONSTANT.musicOriginal.musicRecent || original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.savedSongs){
-			musicDataList = musicDataList.slice(0, CONSTANT.showMusicNumberPerTime * showSongsLoadTimes)
-		}
-		return (
-			<div className="music-list-container">
-				{
-					musicDataList.map((item, index) =>
-						<div className="music-list" key={item.filenameOrigin}>
-							<div className="music-content" onClick={() => checkStatus(item.filePath, item.filename, item.filenameOrigin, item.uploadUsername, item.fileSize, item.duration, item.original, original, musicDataList, pageType, Number(item.payPlay), item.id, this)} >
-								<div className="num">{index + 1}</div>
-								<div className="music-info">
-									<div className={`info ${item.saved ? 'song-saved' : ""}`}>
-										<div className="filename">{getFilenameWithoutExt(item.filename)}</div>
-										{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
-										{item.saved && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
-										{
-											(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished || original === CONSTANT.musicOriginal.musicRecent) && (
-												item.original === CONSTANT.musicOriginal.netEaseCloud
-												?	<div className="net-ease-source-flag">网易云</div>
-												:	item.original === CONSTANT.musicOriginal.qqMusic
-												?	<div className="qq-music-source-flag">QQ音乐</div>
-												: 	item.original === CONSTANT.musicOriginal.kuGouMusic
-												?	<div className="ku-gou-music-source-flag">酷狗音乐</div>
-												:	item.original === CONSTANT.musicOriginal.kuWoMusic
-												?	<div className="ku-wo-music-source-flag">酷我音乐</div>
-												:	null
-											)
-										}
-										{ item.mvId
-											&& (pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl")
-											? <i className="fa fa-youtube-play" aria-hidden="true" onClick={(e) => this.showSongMv(e, item.mvId, item.original, item.filename)}></i>
-											: null
-										}
-									</div>
+	musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
+	checkSongSavedFunc(musicDataList, pageType)
+	return (
+		<div className="music-list-container">
+			{
+				musicDataList.map((item, index) =>
+					<div className="music-list" key={item.filenameOrigin}>
+						<div className="music-content"
+							onClick={() => checkStatus({
+								filePath: item.filePath,
+								filename: item.filename,
+								filenameOrigin: item.filenameOrigin,
+								uploadUsername: item.uploadUsername,
+								fileSize: item.fileSize,
+								duration: item.duration,
+								songOriginal: item.original,
+								original,
+								musicDataList,
+								pageType,
+								payPlay: Number(item.payPlay),
+								musicId:item.id
+							})} >
+							<div className="num">{index + 1}</div>
+							<div className="music-info">
+								<div className={`info ${(item.saved && pageType !== CONSTANT.musicOriginal.savedSongs) ? 'song-saved' : ""}`}>
+									<div className="filename">{getFilenameWithoutExt(item.filename)}</div>
+									{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
+									{item.saved && pageType !== CONSTANT.musicOriginal.savedSongs && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 									{
-										currentPlayingSong === item.filenameOrigin
-										? 	this.playingComponent(item.filePath, currentSongTime, item.duration, item.filenameOrigin)
-										:	<div className="upload-duration">
-												<div className="upload-user">{item.uploadUsername || "未知"}{this.dealWithMusicUploadTime(item.date)}</div>
-												{
-													original !== CONSTANT.musicOriginal.musicDownloading
-													?	<div className="song-duration-time">{secondsToTime(item.duration)}</div>
-													:	<div className="song-duration-time">{item.progress}</div>
-												}
-											</div>
+										(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished || original === CONSTANT.musicOriginal.musicRecent) && (
+											item.original === CONSTANT.musicOriginal.netEaseCloud
+											?	<div className="net-ease-source-flag">网易云</div>
+											:	item.original === CONSTANT.musicOriginal.qqMusic
+											?	<div className="qq-music-source-flag">QQ音乐</div>
+											: 	item.original === CONSTANT.musicOriginal.kuGouMusic
+											?	<div className="ku-gou-music-source-flag">酷狗音乐</div>
+											:	item.original === CONSTANT.musicOriginal.kuWoMusic
+											?	<div className="ku-wo-music-source-flag">酷我音乐</div>
+											:	null
+										)
+									}
+									{ item.mvId
+										&& (pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl")
+										? <i className="fa fa-youtube-play" aria-hidden="true" onClick={(e) => showSongMv(e, item.mvId, item.original, item.filename)}></i>
+										: null
 									}
 								</div>
 								{
-									!soundPlaying && original !== CONSTANT.musicOriginal.musicDownloading && currentPlayingSong === item.filenameOrigin && (<div className="pause-button-overlay">
-										<div className="pause-button">
-											<div className="triangle"></div>
+									currentPlayingSong === item.filenameOrigin
+									? 	playingComponent(item.filePath, currentSongTime, item.duration)
+									:	<div className="upload-duration">
+											<div className="upload-user">{item.uploadUsername || "未知"}{dealWithMusicUploadTime(item.date)}</div>
+											{
+												original !== CONSTANT.musicOriginal.musicDownloading
+												?	<div className="song-duration-time">{secondsToTime(item.duration)}</div>
+												:	<div className="song-duration-time">{item.progress}</div>
+											}
 										</div>
-									</div>)
 								}
 							</div>
 							{
-								original !== CONSTANT.musicOriginal.musicDownloading
-								?	<div className="menu" onClick={this.showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date)}>
-										<div className="dot"></div>
-										<div className="dot"></div>
-										<div className="dot"></div>
+								!soundPlaying && original !== CONSTANT.musicOriginal.musicDownloading && currentPlayingSong === item.filenameOrigin && (<div className="pause-button-overlay">
+									<div className="pause-button">
+										<div className="triangle"></div>
 									</div>
-								:	<div className="move-downloading-item fa fa-remove" onClick={this.removeDownloadItem.bind(this, item.filename, item.filenameOrigin)}></div>
+								</div>)
 							}
 						</div>
-					)
-				}
-				{
-					pageType === CONSTANT.musicOriginal.savedSongs && <div className="music-picture"></div>
-				}
-			</div>
-		)
-	}
+						{
+							original !== CONSTANT.musicOriginal.musicDownloading
+							?	<div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date)}>
+									<div className="dot"></div>
+									<div className="dot"></div>
+									<div className="dot"></div>
+								</div>
+							:	<div className="move-downloading-item fa fa-remove" onClick={removeDownloadItem.bind(this, item.filename, item.filenameOrigin)}></div>
+						}
+					</div>
+				)
+			}
+			{
+				pageType === CONSTANT.musicOriginal.savedSongs && <div className="music-picture"></div>
+			}
+		</div>
+	)
+
 }
 
 const mapStateToProps = state => {

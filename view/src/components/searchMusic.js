@@ -1,21 +1,16 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from "react-redux";
 import SearchResourceComponent from './child/searchResourceComponent'
 
-class SearchMusic extends Component{
-
-	render(){
-		const { musicList, lastMusicSearchResult, lastMusicSearchString } = this.props;
-		return 	<SearchResourceComponent
-					musicDatalist={musicList}
-					navbarText="搜索音乐"
-					placeholder='搜索'
-					type="music"
-					self={this}
-					lastSearchResult={lastMusicSearchResult}
-					lastSearchString={lastMusicSearchString}
-				/>
-	}
+const SearchMusic = ({ musicList, lastMusicSearchResult, lastMusicSearchString }) => {
+	return 	<SearchResourceComponent
+				musicDatalist={musicList}
+				navbarText="搜索音乐"
+				placeholder='搜索'
+				type="music"
+				lastSearchResult={lastMusicSearchResult}
+				lastSearchString={lastMusicSearchString}
+			/>
 }
 
 const mapStateToProps = state => {

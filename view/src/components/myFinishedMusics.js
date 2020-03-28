@@ -1,36 +1,53 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import MusicPlayer from "./musicPlayer"
 import NavBar from "./child/navbar";
 import { CONSTANT } from "../constants/enumeration"
 import { checkSongSavedFunc } from "../logic/common"
+import { specialBackFunc } from "../services/utils"
 
-class MyFinishedMusics extends React.Component {
+const MyFinishedMusics = ({ downloadedMusicList, downloadingMusicItems }) => {
 
-	backToMainPage = () => {
-		window.goRoute(this, "/my_download_middle_page")
+	const history = useHistory()
+
+	useEffect(() => {
+		document.addEventListener("deviceready", listenBackButton, false);
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", handleMusicBackEventFunc, false)
+		}
+	}, [])
+
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", handleMusicBackEventFunc, false)
 	}
 
-    render() {
-		const { downloadedMusicList, downloadingMusicItems } = this.props
-		checkSongSavedFunc(downloadedMusicList, CONSTANT.musicOriginal.musicFinished)
-		return (
-			<div className="my-download-container">
-				<NavBar centerText="音乐" backToPreviousPage={this.backToMainPage} />
-				<div className="my-download-content">
-					<div className="downloading-file-container">
-						<div className="downloading-file-title">正在下载</div>
-						{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CONSTANT.musicOriginal.musicDownloading} /> }
-					</div>
-					<div className="interval-line"></div>
-					<div className="downloaded-file-container">
-						<div className="downloaded-file-title">已完成</div>
-						{ window.isCordova && <MusicPlayer musicDataList={downloadedMusicList} original={CONSTANT.musicOriginal.musicFinished} pageType={CONSTANT.musicOriginal.musicFinished} /> }
-					</div>
+	const handleMusicBackEventFunc = (isNav) => {
+		if(!window.cancelMenuFirst){
+			if(isNav !== "nav") specialBackFunc()
+			history.push("/my_download_middle_page")
+		}
+	}
+
+	checkSongSavedFunc(downloadedMusicList, CONSTANT.musicOriginal.musicFinished)
+	return (
+		<div className="my-download-container">
+			<NavBar centerText="音乐" backToPreviousPage={handleMusicBackEventFunc.bind(null, "nav")} />
+			<div className="my-download-content">
+				<div className="downloading-file-container">
+					<div className="downloading-file-title">正在下载</div>
+					{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CONSTANT.musicOriginal.musicDownloading} /> }
+				</div>
+				<div className="interval-line"></div>
+				<div className="downloaded-file-container">
+					<div className="downloaded-file-title">已完成</div>
+					{ window.isCordova && <MusicPlayer musicDataList={downloadedMusicList} original={CONSTANT.musicOriginal.musicFinished} pageType={CONSTANT.musicOriginal.musicFinished} /> }
 				</div>
 			</div>
-		);
-    }
+		</div>
+	)
+
 }
 
 const mapStateToProps = state => {

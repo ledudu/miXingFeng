@@ -1,103 +1,86 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import HearSvg from "./heartSvg"
 import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt } from "../../logic/common"
 import { updateSavedCurrentRoute } from "../../ducks/common"
 
-class MusicController extends React.Component{
+const MusicController = ({
+	currentPlayingSong,
+	currentPlayingMusicList=[],
+	musicCollection=[],
+	currentPlayingSongOriginal,
+	soundPlaying,
+	musicPageType,
+	soundInstance,
+	soundInstanceId,
+	currentMusicItemInfo,
+}) => {
+	const history = useHistory()
+	window.musicControllerRef = useRef()
 
-	componentDidMount(){
-		window.eventEmit.$on("listenMusicSaved", () => {
-			// redux更新已收藏的数据,但视图没更新,这里强制更新下
-			this.forceUpdate()
-		})
-	}
-
-	componentWillUnmount(){
-		window.eventEmit.$off("listenMusicSaved")
-	}
-
-	pause = (e) => {
+	const pause = (e) => {
 		if(e) e.stopPropagation();
-		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId) return
 		logger.info("MusicController pause currentPlayingSong", currentPlayingSong)
 		pauseMusic(soundInstance, soundInstanceId, currentPlayingSong)
 	}
 
-	resume = (e, self) => {
+	const resume = (e) => {
 		if(e) e.stopPropagation();
-		const { soundInstance, soundInstanceId, currentPlayingSong } = this.props
 		if(!soundInstance && !soundInstanceId && !currentPlayingSong) return alert('请选择一首歌播放')
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
-		resumeMusic(self)
+		resumeMusic()
 	}
 
-	gotoPlayingMusicPage = () => {
+	const gotoPlayingMusicPage = () => {
 		$dispatch(updateSavedCurrentRoute(window.getRoute()))
-		window.goRoute(null, "/music_playing")
+		history.push("/music_playing")
 	}
 
-	render(){
-		const {
-			currentPlayingSong,
-			currentPlayingMusicList=[],
-			musicCollection=[],
-			currentPlayingSongOriginal,
-			soundPlaying,
-			musicPageType,
-		} = this.props
-		let currentSongInfo = {}
-		currentPlayingMusicList.some(item => {
-			if(item.filenameOrigin === currentPlayingSong){
-				currentSongInfo = item;
-				return true
-			}
-		})
-		let savedMusicFilenameOriginalArr = []
-		let currentMusicFilenameOriginalArr = []
-		let currentFileIndex = null
-		if(currentPlayingSong){
-			savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
-			currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
-			currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
-		}
-		const songIsSaved = currentSongInfo.saved || currentPlayingSongOriginal === "savedSongs"
-		const currentSongFilename = currentSongInfo.filename ? getFilenameWithoutExt(currentSongInfo.filename) : "当前没有播放歌曲"
-		return (
-			<div className="window-music-controller"  ref={ref => window.musicController = ref} onClick={this.gotoPlayingMusicPage} >
-				<div className="song-pic" >{currentSongInfo.filename && currentSongInfo.filename.slice(0, 1).toUpperCase() || ""}</div>
-				<div className="song-info">
-					<div className="song-name">{currentSongFilename}</div>
-					<div className="singer-name">{currentSongInfo.uploadUsername || "无"}</div>
-				</div>
-				<div className={`${songIsSaved ? 'save-song-svg' : ""}`}
-					onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
-					<HearSvg />
-				</div>
-				<div className="fa fa-step-backward play-previous"
-					onClick={(e) => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
-				</div>
-				<div className="play-or-pause">
-					<svg width="32" height="32" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
-						<circle r="50" cx="50" cy="50" fill="transparent" className="progress-background"></circle>
-						<circle r="50" cx="50" cy="50" fill="transparent" ref={ref => window.circleControlRef = ref}
-							strokeDasharray={314.1592653589793} strokeDashoffset={314.1592653589793}
-							className="progress-bar"></circle>
-    				</svg>
-					{
-						soundPlaying
-						?	<div className="fa fa-pause" onClick={this.pause}></div>
-						:	<div className="fa fa-play" onClick={(e) => this.resume(e, this)}></div>
-					}
-				</div>
-				<div className="fa fa-step-forward play-next"
-					onClick={(e) => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e, this)}>
-
-				</div>
+	let savedMusicFilenameOriginalArr = []
+	let currentMusicFilenameOriginalArr = []
+	let currentFileIndex = null
+	if(currentPlayingSong){
+		savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
+		currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
+		currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
+	}
+	const songIsSaved = currentMusicItemInfo.saved || currentPlayingSongOriginal === "savedSongs"
+	const currentSongFilename = currentMusicItemInfo.filename ? getFilenameWithoutExt(currentMusicItemInfo.filename) : "当前没有播放歌曲"
+	return (
+		<div className="window-music-controller"  ref={window.musicControllerRef} onClick={gotoPlayingMusicPage} >
+			<div className="song-pic" >{currentMusicItemInfo.filename && currentMusicItemInfo.filename.slice(0, 1).toUpperCase() || ""}</div>
+			<div className="song-info">
+				<div className="song-name">{currentSongFilename}</div>
+				<div className="singer-name">{currentMusicItemInfo.uploadUsername || "无"}</div>
 			</div>
-		)
-	}
+			<div className={`${songIsSaved ? 'save-song-svg' : "not-save"}`}
+				onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType)}>
+				<HearSvg />
+			</div>
+			<div className="fa fa-step-backward play-previous"
+				onClick={(e) => playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
+			</div>
+			<div className="play-or-pause">
+				<svg width="32" height="32" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+					<circle r="50" cx="50" cy="50" fill="transparent" className="progress-background"></circle>
+					<circle r="50" cx="50" cy="50" fill="transparent" ref={ref => window.circleControlRef = ref}
+						strokeDasharray={314.1592653589793} strokeDashoffset={314.1592653589793}
+						className="progress-bar"></circle>
+				</svg>
+				{
+					soundPlaying
+					?	<div className="fa fa-pause" onClick={pause}></div>
+					:	<div className="fa fa-play" onClick={resume}></div>
+				}
+			</div>
+			<div className="fa fa-step-forward play-next"
+				onClick={(e) => playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
+
+			</div>
+		</div>
+	)
 }
 
 const mapStateToProps = state => {
@@ -110,6 +93,7 @@ const mapStateToProps = state => {
 		currentPlayingSongOriginal: state.fileServer.currentPlayingSongOriginal,
 		currentPlayingMusicList: state.fileServer.currentPlayingMusicList,
 		musicPageType: state.fileServer.musicPageType,
+		currentMusicItemInfo: state.fileServer.currentMusicItemInfo,
     };
 };
 

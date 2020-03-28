@@ -49,6 +49,7 @@ code {
 				border-top: 1px solid rgba(128,128,128, 0.1);
 				padding-bottom: 5px;
 				cursor: pointer;
+				position: relative;
 				.song-pic{
 					text-transform: uppercase;
 					border: 2px solid #81AFED;
@@ -91,11 +92,18 @@ code {
 						white-space: nowrap;
 					}
 				}
+				.save-song-svg{
+					position: relative;
+				}
+				.not-save{
+					position: relative;
+				}
 				.play-previous, .play-next, .play-or-pause{
 					width: 35px;
 					display: flex;
 					justify-content: center;
 					align-items: center;
+					position: relative;
 					&:active{
 						background-color: rgb(128, 128, 128, 0.5);
 						color: #fff;

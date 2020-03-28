@@ -1,5 +1,6 @@
-import React, { Component, Fragment, createRef } from 'react';
+import React, { Fragment, useRef, useEffect, useState } from 'react';
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom"
 import NavBar from "../child/navbar";
 import InputComponent from "../child/inputComponent"
 import FileManage from "../fileManage"
@@ -33,54 +34,71 @@ import {
 	updateNoMoreSearchAllKuGouMusicResults,
 	updateNoMoreSearchAllKuWoMusicResults,
 } from "../../ducks/fileServer"
-import { networkErr, backToPreviousPage } from "../../services/utils"
+import { networkErr, specialBackFunc } from "../../services/utils"
 import { CONSTANT } from "../../constants/enumeration"
 import { removePrefixFromFileOrigin, logActivity } from "../../logic/common"
 
-class SearchResourceComponent extends Component {
+const SearchResourceComponent = ({
+	lastSearchResult,
+	lastSearchString,
+	type,
+	musicCollection,
+	fileDatalist,
+	musicDatalist,
+	navbarText,
+	placeholder,
+	noMoreNetEaseCloudResults,
+	noMoreQQMusicResults,
+	noMoreKuGouMusicResults,
+	noMoreKuWoMusicResults,
+	noMoreSearchAllFileResults,
+	noMoreSearchAllMusicResults,
+	noMoreSearchAllNetEaseCloudResults,
+	noMoreSearchAllQQMusicResults,
+	noMoreSearchAllKuGouMusicResults,
+	noMoreSearchAllKuWoMusicResults,
+}) => {
+	const [ isSearching, setIsSearching ] = useState(false)
+	const [ makeUpSearchString, setMakeUpSearchString ] = useState(false) //用来表示只有真的搜不到结果时才显示没有结果
+	const [ moreNetEaseCloudSearch, setMoreNetEaseCloudSearch ] = useState(false)  //用来搜索过程中不可以重复点击
+	const [ moreQQMusicSearch, setMoreQQMusicSearch ] = useState(false)
+	const [ moreKuGouMusicSearch, setMoreKuGouMusicSearch ] = useState(false)
+	const [ moreKuWoMusicSearch, setMoreKuWoMusicSearch ] = useState(false)
+	const [ moreFileSearch, setMoreFileSearch ] = useState(false)
+	const [ moreMusicSearch, setMoreMusicSearch ] = useState(false)
+	const searchResourceInputRef = useRef()
+	const history = useHistory()
 
-	constructor(props){
-        super(props)
-        this.state = {
-			isSearching: false,
-			makeUpSearchString: props.lastSearchResult.length ? true : false,  //用来表示只有真的搜不到结果时才显示没有结果
-			moreNetEaseCloudSearch: false,  //用来搜索过程中不可以重复点击
-			moreQQMusicSearch: false,
-			moreKuGouMusicSearch: false,
-			moreKuWoMusicSearch: false,
-			moreFileSearch: false,
-			moreMusicSearch: false
+	useEffect(() => {
+		setMakeUpSearchString(lastSearchResult.length ? true : false)
+		document.addEventListener("deviceready", listenBackButton, false);
+		if(!lastSearchString && searchResourceInputRef.current){
+			searchResourceInputRef.current.focus()
 		}
-		this.searchResourceInput = createRef();
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
+		}
+	}, [])
+
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", backKeyDownToPrevious, false)
 	}
 
-	componentDidMount(){
-		document.addEventListener("deviceready", this.listenBackButton, false);
-		const { lastSearchString } = this.props
-		if(!lastSearchString && this.searchResourceInput.current){
-			this.searchResourceInput.current.focus()
+	const backKeyDownToPrevious = () => {
+		if(!window.cancelMenuFirst){
+			specialBackFunc()
+			history.push("/search_column")
 		}
 	}
 
-	componentWillUnmount(){
-		document.removeEventListener("deviceready", this.listenBackButton, false);
-		document.removeEventListener("backbutton", this.backKeyDownToPrevious, false)
+    const backToMainPage = () => {
+		if(!window.cancelMenuFirst){
+			history.push("/search_column")
+		}
 	}
 
-	listenBackButton = () => {
-		document.addEventListener("backbutton", this.backKeyDownToPrevious, false)
-	}
-
-	backKeyDownToPrevious = () => {
-		backToPreviousPage(this.props.self, "/search_column", {specialBack: true});
-	}
-
-    backToMainPage = () => {
-        backToPreviousPage(this.props.self, "/search_column");
-	}
-
-	generateOnlineMusicFilenameOrigin = (songInfo ) => {
-		const { type } = this.props
+	const generateOnlineMusicFilenameOrigin = (songInfo ) => {
 		if(type === "searchAll"){
 			return `searchAll_${songInfo.filenameOrigin ? songInfo.filenameOrigin : (songInfo.filename + "_" + songInfo.md5 + ".mp3")}`
 		} else if(type === "onlineMusic") {
@@ -90,8 +108,7 @@ class SearchResourceComponent extends Component {
 		}
 	}
 
-	checkSongSaveOrNot = (songInfo) => {
-		const { musicCollection } = this.props
+	const checkSongSaveOrNot = (songInfo) => {
 		musicCollection.forEach(item => {
 			if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(songInfo.filenameOrigin)){
 				songInfo.saved = true
@@ -99,12 +116,12 @@ class SearchResourceComponent extends Component {
 		})
 	}
 
-	dispatchSearchResult = (type, result) => {
+	const dispatchSearchResult = (type, result) => {
 		result = JSON.parse(JSON.stringify(result))
 		if(type !== "file" & type !== "fileSearchAll"){
 			result.forEach(item => {
-				item.filenameOrigin = this.generateOnlineMusicFilenameOrigin(item)
-				this.checkSongSaveOrNot(item)
+				item.filenameOrigin = generateOnlineMusicFilenameOrigin(item)
+				checkSongSaveOrNot(item)
 			})
 		}
 		switch(type){
@@ -163,7 +180,7 @@ class SearchResourceComponent extends Component {
 		}
 	}
 
-	dispatchSearchString = (type, query) => {
+	const dispatchSearchString = (type, query) => {
 		switch(type){
 			case "file":
 				$dispatch(updateLastFileSearchString(query))
@@ -182,79 +199,63 @@ class SearchResourceComponent extends Component {
 		}
 	}
 
-	pressEnter = (e) => {
+	const pressEnter = (e) => {
 		if(e.keyCode === 13){
-			logger.info("this.props.lastSearchString", this.props.lastSearchString)
-			this.getAutoSuggest(this.props.lastSearchString)
+			logger.info("lastSearchString", lastSearchString)
+			getAutoSuggest(lastSearchString)
 		}
 	}
 
-	updateValue = (e) => {
+	const updateValue = (e) => {
 		try {
-			const { type } = this.props
-			this.setState({
-				makeUpSearchString: false
-			});
+			setMakeUpSearchString(false)
 			const query = e ? e.target.value : ""
-			this.dispatchSearchString(type, query)
+			dispatchSearchString(type, query)
 			if(!query) {
-				this.setState({
-					moreNetEaseCloudSearch: false,
-					moreQQMusicSearch: false,
-					moreKuGouMusicSearch: false,
-					moreKuWoMusicSearch: false,
-					moreFileSearch: false,
-					moreMusicSearch: false
-				})
+				setMoreNetEaseCloudSearch(false)
+				setMoreQQMusicSearch(false)
+				setMoreKuGouMusicSearch(false)
+				setMoreKuWoMusicSearch(false)
+				setMoreFileSearch(false)
+				setMoreMusicSearch(false)
 				return
 			}
-			if (this.timer) clearTimeout(this.timer);
-			let debounceTime = 100;
-			if(type === "onlineMusic" || type === "searchAll"){
-				debounceTime = 800;
-			}
-			this.timer = setTimeout(() => this.getAutoSuggest(query), debounceTime);
 		} catch(err){
-			logger.error("SearchResourceComponent updateValue type", this.props.type, "err", err)
+			logger.error("SearchResourceComponent updateValue type", type, "err", err)
 			alertDebug("SearchResourceComponent updateValue err")
 		}
 	}
 
-	getAutoSuggest = (query) => {
+	const getAutoSuggest = (query) => {
 		logger.info("SearchResourceComponent getAutoSuggest query", query)
-		const { lastSearchString } = this.props;
 		if(!query || !lastSearchString) return;
-		const { type } = this.props
-		this.setState({
-			isSearching: true,
-			moreNetEaseCloudSearch: false,
-			moreQQMusicSearch: false,
-			moreKuGouMusicSearch: false,
-			moreKuWoMusicSearch: false,
-			moreFileSearch: false,
-			moreMusicSearch: false
-		})
+		setIsSearching(true)
+		setMoreNetEaseCloudSearch(false)
+		setMoreQQMusicSearch(false)
+		setMoreKuGouMusicSearch(false)
+		setMoreKuWoMusicSearch(false)
+		setMoreFileSearch(false)
+		setMoreMusicSearch(false)
 		if(type === "onlineMusic"){
 			$dispatch(updateNoMoreNetEaseCloudResults(false))
 			$dispatch(updateNoMoreQQMusicResults(false))
 			$dispatch(updateNoMoreKuGouMusicResults(false))
 			$dispatch(updateNoMoreKuWoMusicResults(false))
-			return this.fetchOnlineSongs(query, CONSTANT.musicOriginal.netEaseCloud, CONSTANT.musicOriginal.qqMusic, CONSTANT.musicOriginal.kuGouMusic, CONSTANT.musicOriginal.kuWoMusic)
+			return fetchOnlineSongs(query, CONSTANT.musicOriginal.netEaseCloud, CONSTANT.musicOriginal.qqMusic, CONSTANT.musicOriginal.kuGouMusic, CONSTANT.musicOriginal.kuWoMusic)
 		} else if(type === "file" || type === "music") {
-			this.dealWithLocalSearch(query, type)
+			dealWithLocalSearch(query, type)
 		} else if(type === "searchAll"){
 			$dispatch(updateNoMoreSearchAllNetEaseCloudResults(false))
 			$dispatch(updateNoMoreSearchAllQQMusicResults(false))
-			return this.fetchOnlineSongs(query, "netEaseCloudSearchAll", "qqMusicSearchAll", "kuGouMusicSearchAll", "kuWoMusicSearchAll")
+			return fetchOnlineSongs(query, "netEaseCloudSearchAll", "qqMusicSearchAll", "kuGouMusicSearchAll", "kuWoMusicSearchAll")
 				.then(() => {
-					this.dealWithLocalSearch(query, "fileSearchAll", 5)
-					this.dealWithLocalSearch(query, "musicSearchAll", 5)
+					dealWithLocalSearch(query, "fileSearchAll", 5)
+					dealWithLocalSearch(query, "musicSearchAll", 5)
 				})
 		}
 	}
 
-	dealWithLocalSearch = (query, type, slice) => {
-		const { fileDatalist=[], musicDatalist=[] } = this.props
+	const dealWithLocalSearch = (query, type, slice) => {
 		let result = []
 		if(type === "file" || type === "fileSearchAll"){
 			fileDatalist.forEach(item => {
@@ -291,143 +292,117 @@ class SearchResourceComponent extends Component {
 				$dispatch(updateNoMoreSearchAllMusicSearchResult(true))
 			}
 		}
-		this.dispatchSearchResult(type, result)
-		this.setState({
-			isSearching: false,
-			makeUpSearchString: true
-		})
+		dispatchSearchResult(type, result)
+		setIsSearching(false)
+		setMakeUpSearchString(true)
 	}
 
-	fetchOnlineSongs = (query, netEaseCloudType, qqMusicType, kuGouMusicType, kuWoMusicType) => {
+	const fetchOnlineSongs = (query, netEaseCloudType, qqMusicType, kuGouMusicType, kuWoMusicType) => {
 		if(!query) return;
 		logger.info("SearchResourceComponent fetchOnlineSongs query", query)
 		return axios.get(HTTP_URL.getOnlineMusicLists.format({query}))
 			.then((response) => {
 				const result = response.data.result.response;
 				logger.info("SearchResourceComponent fetchOnlineSongs result")
-				this.setState({
-					isSearching: false
-				})
-				this.dispatchSearchResult(netEaseCloudType, result.netEaseCloud)
-				this.dispatchSearchResult(qqMusicType, result.qqMusic)
-				this.dispatchSearchResult(kuGouMusicType, result.kuGouMusic)
-				this.dispatchSearchResult(kuWoMusicType, result.kuWoMusic)
+				setIsSearching(false)
+				dispatchSearchResult(netEaseCloudType, result.netEaseCloud)
+				dispatchSearchResult(qqMusicType, result.qqMusic)
+				dispatchSearchResult(kuGouMusicType, result.kuGouMusic)
+				dispatchSearchResult(kuWoMusicType, result.kuWoMusic)
 				logActivity({
 					msg: ('search online music query: ' + query)
 				})
 			})
 			.catch((err) => {
-				this.setState({
+				setState({
 					isSearching: false
 				})
 				return networkErr(err, `fetchOnlineSongs ${query}`);
 			})
 	}
 
-	showMoreSearchResult = (original) => {
-		const { moreNetEaseCloudSearch, moreQQMusicSearch, moreKuGouMusicSearch, moreKuWoMusicSearch, moreFileSearch, moreMusicSearch } = this.state;
-		const { lastSearchString } = this.props;
+	const showMoreSearchResult = (original) => {
 		let fetchMoreMusicUrl
 		if(original === CONSTANT.musicOriginal.netEaseCloud || original === "netEaseCloudSearchAll"){
 			if(moreNetEaseCloudSearch) return;
 			fetchMoreMusicUrl = HTTP_URL.getNetEaseCloudMusicLists
-			this.setState({
-				moreNetEaseCloudSearch: true
-			})
+			setMoreNetEaseCloudSearch(true)
 		} else if(original === CONSTANT.musicOriginal.qqMusic || original === "qqMusicSearchAll"){
 			if(moreQQMusicSearch) return;
 			fetchMoreMusicUrl = HTTP_URL.getQQMusicLists
-			this.setState({
-				moreQQMusicSearch: true
-			})
+			setMoreQQMusicSearch(true)
 		} else if(original === CONSTANT.musicOriginal.kuGouMusic || original === "kuGouMusicSearchAll"){
 			if(moreKuGouMusicSearch) return;
 			fetchMoreMusicUrl = HTTP_URL.getKuGouMusicLists
-			this.setState({
-				moreKuGouMusicSearch: true
-			})
+			setMoreKuGouMusicSearch(true)
 		} else if(original === CONSTANT.musicOriginal.kuWoMusic || original === "kuWoMusicSearchAll"){
 			if(moreKuWoMusicSearch) return;
 			fetchMoreMusicUrl = HTTP_URL.getKuWoMusicLists
-			this.setState({
-				moreKuWoMusicSearch: true
-			})
+			setMoreKuWoMusicSearch(true)
 		} else if(original === "file"){
 			if(moreFileSearch) return;
-			this.setState({
-				moreFileSearch: true
-			})
-			this.dealWithLocalSearch(lastSearchString, "fileSearchAll")
+			setMoreFileSearch(true)
+			dealWithLocalSearch(lastSearchString, "fileSearchAll")
 			return
 		} else if(original === "music"){
 			if(moreMusicSearch) return;
-			this.setState({
-				moreMusicSearch: true
-			})
-			this.dealWithLocalSearch(lastSearchString, "musicSearchAll")
+			setMoreMusicSearch(true)
+			dealWithLocalSearch(lastSearchString, "musicSearchAll")
 			return
 		}
 		if(!lastSearchString) {
-			return this.dispatchOnlineSongResults(original)
+			return dispatchOnlineSongResults(original)
 		}
 		logger.info("SearchResourceComponent showMoreSearchResult original, lastSearchString", original, lastSearchString)
 		return axios.get(fetchMoreMusicUrl.format({query: lastSearchString}))
 			.then((response) => {
 				const result = response.data.result.response;
 				logger.info("SearchResourceComponent showMoreSearchResult original, result.length", original, result.length)
-				this.dispatchOnlineSongResults(original, result)
+				dispatchOnlineSongResults(original, result)
 			})
 			.catch(err => {
-				this.dispatchOnlineSongResults(original)
+				dispatchOnlineSongResults(original)
 				return networkErr(err, `showMoreSearchResult axios ${original}`);
 			})
 	}
 
-	dispatchOnlineSongResults = (original, result) => {
+	const dispatchOnlineSongResults = (original, result) => {
 		if(original === CONSTANT.musicOriginal.netEaseCloud || original === "netEaseCloudSearchAll"){
-			if(result) this.dispatchSearchResult(original, result)
+			if(result) dispatchSearchResult(original, result)
 			if(original === CONSTANT.musicOriginal.netEaseCloud){
 				$dispatch(updateNoMoreNetEaseCloudResults(true))
 			} else {
 				$dispatch(updateNoMoreSearchAllNetEaseCloudResults(true))
 			}
-			this.setState({
-				moreNetEaseCloudSearch: false
-			})
+			setMoreNetEaseCloudSearch(false)
 		} else if(original === CONSTANT.musicOriginal.qqMusic || original === "qqMusicSearchAll"){
-			if(result) this.dispatchSearchResult(original, result)
+			if(result) dispatchSearchResult(original, result)
 			if(original === CONSTANT.musicOriginal.qqMusic){
 				$dispatch(updateNoMoreQQMusicResults(true))
 			} else {
 				$dispatch(updateNoMoreSearchAllQQMusicResults(true))
 			}
-			this.setState({
-				moreQQMusicSearch: false
-			})
+			setMoreQQMusicSearch(false)
 		} else if(original === CONSTANT.musicOriginal.kuGouMusic || original === "kuGouMusicSearchAll"){
-			if(result) this.dispatchSearchResult(original, result)
+			if(result) dispatchSearchResult(original, result)
 			if(original === CONSTANT.musicOriginal.kuGouMusic){
 				$dispatch(updateNoMoreKuGouMusicResults(true))
 			} else {
 				$dispatch(updateNoMoreSearchAllKuGouMusicResults(true))
 			}
-			this.setState({
-				moreQQMusicSearch: false
-			})
+			setMoreKuGouMusicSearch(false)
 		} else if(original === CONSTANT.musicOriginal.kuWoMusic || original === "kuWoMusicSearchAll"){
-			if(result) this.dispatchSearchResult(original, result)
+			if(result) dispatchSearchResult(original, result)
 			if(original === CONSTANT.musicOriginal.kuWoMusic){
 				$dispatch(updateNoMoreKuWoMusicResults(true))
 			} else {
 				$dispatch(updateNoMoreSearchAllKuWoMusicResults(true))
 			}
-			this.setState({
-				moreQQMusicSearch: false
-			})
+			setMoreKuWoMusicSearch(false)
 		}
 	}
 
-	onlineMusicComponent = (
+	const onlineMusicComponent = ({
 		origin,
 		lastSearchResult,
 		noMoreNetEaseCloudResults,
@@ -438,15 +413,16 @@ class SearchResourceComponent extends Component {
 		moreKuGouMusicSearch,
 		noMoreKuWoMusicResults,
 		moreKuWoMusicSearch,
-	) => {
+	}) => {
+		console.log('lastSearchResult', lastSearchResult)
 		return (
 			<Fragment>
 				{
-					lastSearchResult[3]['lastQQMusicSearchResult'].length !==0 && <div className="online-music-container">
+					lastSearchResult[2]['lastQQMusicSearchResult'].length !==0 && <div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">QQ音乐</div>
-						<MusicPlayer musicDataList={lastSearchResult[3]['lastQQMusicSearchResult']} original={CONSTANT.musicOriginal.qqMusic} pageType={origin} that={this} />
-						<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.qqMusic : "qqMusicSearchAll")}>
+						<MusicPlayer musicDataList={lastSearchResult[2]['lastQQMusicSearchResult']} original={CONSTANT.musicOriginal.qqMusic} pageType={origin} />
+						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.qqMusic : "qqMusicSearchAll")}>
 							{!noMoreQQMusicResults && <i className={`fa fa-search ${moreQQMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
 								(moreQQMusicSearch && !noMoreQQMusicResults)
@@ -459,11 +435,11 @@ class SearchResourceComponent extends Component {
 					</div>
 				}
 				{
-					lastSearchResult[2]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
+					lastSearchResult[3]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
 						<div className="interval-line first-line"></div>
 						<div className="online-music-header">网易云</div>
-						<MusicPlayer musicDataList={lastSearchResult[2]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} that={this} />
-						<div className="online-music-more-btn" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
+						<MusicPlayer musicDataList={lastSearchResult[3]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} />
+						<div className="online-music-more-btn" onClick={() => showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
 							{!noMoreNetEaseCloudResults && <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
 								(moreNetEaseCloudSearch && !noMoreNetEaseCloudResults)
@@ -480,7 +456,7 @@ class SearchResourceComponent extends Component {
 						<div className="interval-line"></div>
 						<div className="online-music-header">酷狗音乐</div>
 						<MusicPlayer musicDataList={lastSearchResult[4]['lastKuGouMusicSearchResult']} original={CONSTANT.musicOriginal.kuGouMusic} pageType={origin} />
-						<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuGouMusic : "kuGouMusicSearchAll")}>
+						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuGouMusic : "kuGouMusicSearchAll")}>
 							{!noMoreKuGouMusicResults && <i className={`fa fa-search ${moreKuGouMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
 								(moreKuGouMusicSearch && !noMoreKuGouMusicResults)
@@ -497,7 +473,7 @@ class SearchResourceComponent extends Component {
 						<div className="interval-line"></div>
 						<div className="online-music-header">酷我音乐</div>
 						<MusicPlayer musicDataList={lastSearchResult[5]['lastKuWoMusicSearchResult']} original={CONSTANT.musicOriginal.kuWoMusic} pageType={origin} />
-						<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuWoMusic : "kuWoMusicSearchAll")}>
+						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuWoMusic : "kuWoMusicSearchAll")}>
 							{!noMoreKuWoMusicResults && <i className={`fa fa-search ${moreKuWoMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
 							{
 								(moreKuWoMusicSearch && !noMoreKuWoMusicResults)
@@ -513,102 +489,111 @@ class SearchResourceComponent extends Component {
 		)
 	}
 
-    render(){
-		const { isSearching, makeUpSearchString, moreFileSearch, moreMusicSearch, moreNetEaseCloudSearch, moreQQMusicSearch, moreKuGouMusicSearch, moreKuWoMusicSearch } = this.state;
-		const {
-			navbarText,
-			placeholder,
-			type,
-			lastSearchString,
-			lastSearchResult,
-			noMoreNetEaseCloudResults,
-			noMoreQQMusicResults,
-			noMoreKuGouMusicResults,
-			noMoreKuWoMusicResults,
-			noMoreSearchAllFileResults,
-			noMoreSearchAllMusicResults,
-			noMoreSearchAllNetEaseCloudResults,
-			noMoreSearchAllQQMusicResults,
-			noMoreSearchAllKuGouMusicResults,
-			noMoreSearchAllKuWoMusicResults,
-		} = this.props;
-        return (
-            <div className="search-component-container">
-                <NavBar centerText={navbarText}  backToPreviousPage={this.backToMainPage} />
-                <div className="search-header">
-                    <div className="search-input">
-						<InputComponent
-							value={lastSearchString}
-							placeholder={placeholder}
-							handleChange={this.updateValue}
-							handleKeyDown={this.pressEnter}
-							className="search-input-content"
-							ref={this.searchResourceInput}
-						/>
-						<i className="fa fa-search" aria-hidden="true"></i>
-						{lastSearchString && <i className="fa fa-times-circle-o" aria-hidden="true" onClick={() => this.updateValue()}></i>}
-                    </div>
-                </div>
-                <div className={`search-result-container ${type === "file" && 'isFileSearchColumn'}`}>
-					{
-						isSearching
-						? 	<div className="searching">正在查询...</div>
-						: 	lastSearchResult.length
-						?	<div className="search-result-content">
-								{
-									type === "file"
-									?	<FileManage fileDataList={lastSearchResult} original="fileSearch" type="file" />
-									:	type === 'music'
-									?	<MusicPlayer musicDataList={lastSearchResult} original={CONSTANT.musicOriginal.musicSearch} pageType="onlySearchShareMusic" />
-									:	type === 'onlineMusic'
-									?	this.onlineMusicComponent("onlineMusic", lastSearchResult, noMoreNetEaseCloudResults, moreNetEaseCloudSearch, noMoreQQMusicResults, moreQQMusicSearch, noMoreKuGouMusicResults, moreKuGouMusicSearch, noMoreKuWoMusicResults, moreKuWoMusicSearch)
-									:	type === "searchAll"
-									?	<Fragment>
-											{
-												lastSearchResult[0]['lastSearchAllFileResult'].length !==0 && <div className="online-music-container">
-													<div className="online-music-header">文件</div>
-													<FileManage fileDataList={lastSearchResult[0]['lastSearchAllFileResult']} original="fileSearch" type="searchAll" />
-													<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult("file")}>
-														{!noMoreSearchAllFileResults && <i className={`fa fa-search ${moreFileSearch && "searching-status"}`} aria-hidden="true"></i>}
-														{
-															(moreFileSearch && !noMoreSearchAllFileResults)
-															?	<span className="searching-text">正在查询...</span>
-															:	noMoreSearchAllFileResults
-															?	null
-															:	<span className="more-results-text">更多结果</span>
-														}
-													</div>
-												</div>
-											}
-											{
-												lastSearchResult[1]['lastSearchAllMusicResult'].length !==0 && <div className="online-music-container">
-													<div className="interval-line"></div>
-													<div className="online-music-header">音乐</div>
-													<MusicPlayer musicDataList={lastSearchResult[1]['lastSearchAllMusicResult']} original={CONSTANT.musicOriginal.musicSearch} pageType="onlineMusicSearchALl" />
-													<div className="online-music-more-btn last-one" onClick={() => this.showMoreSearchResult("music")}>
-														{!noMoreSearchAllMusicResults && <i className={`fa fa-search ${moreMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
-														{
-															(moreMusicSearch && !noMoreSearchAllMusicResults)
-															?	<span className="searching-text">正在查询...</span>
-															:	noMoreSearchAllMusicResults
-															?	null
-															:	<span className="more-results-text">更多结果</span>
-														}
-													</div>
-												</div>
-											}
-											{this.onlineMusicComponent("onlineMusicSearchALl", lastSearchResult, noMoreSearchAllNetEaseCloudResults, moreNetEaseCloudSearch, noMoreSearchAllQQMusicResults, moreQQMusicSearch, noMoreSearchAllKuGouMusicResults, moreKuGouMusicSearch, noMoreSearchAllKuWoMusicResults, moreKuWoMusicSearch)}
-										</Fragment>
-									:	null
-								}
-							</div>
-						:	(makeUpSearchString && <div className="no-result">没有结果</div>)
-					}
+    return (
+        <div className="search-component-container">
+            <NavBar centerText={navbarText}  backToPreviousPage={backToMainPage} />
+            <div className="search-header">
+                <div className="search-input">
+					<InputComponent
+						value={lastSearchString}
+						placeholder={placeholder}
+						handleChange={updateValue}
+						handleKeyDown={pressEnter}
+						className="search-input-content"
+						ref={searchResourceInputRef}
+					/>
+					<i className="fa fa-search" aria-hidden="true"></i>
+					{lastSearchString && <i className="fa fa-times-circle-o" aria-hidden="true" onClick={updateValue}></i>}
                 </div>
             </div>
-        )
-    }
-};
+            <div className={`search-result-container ${type === "file" && 'isFileSearchColumn'}`}>
+				{
+					isSearching
+					? 	<div className="searching">正在查询...</div>
+					: 	lastSearchResult.length
+					?	<div className="search-result-content">
+							{
+								type === "file"
+								?	<FileManage fileDataList={lastSearchResult} original="fileSearch" type="file" />
+								:	type === 'music'
+								?	<MusicPlayer musicDataList={lastSearchResult} original={CONSTANT.musicOriginal.musicSearch} pageType="onlySearchShareMusic" />
+								:	type === 'onlineMusic'
+								? 	onlineMusicComponent({
+									origin: "onlineMusic",
+									lastSearchResult,
+									noMoreNetEaseCloudResults,
+									moreNetEaseCloudSearch,
+									noMoreQQMusicResults,
+									moreQQMusicSearch,
+									noMoreKuGouMusicResults,
+									moreKuGouMusicSearch,
+									noMoreKuWoMusicResults,
+									moreKuWoMusicSearch,
+								})
+								:	type === "searchAll"
+								?	<Fragment>
+										{
+											lastSearchResult[0]['lastSearchAllFileResult'].length !==0 && <div className="online-music-container">
+												<div className="online-music-header">文件</div>
+												<FileManage fileDataList={lastSearchResult[0]['lastSearchAllFileResult']} original="fileSearch" type="searchAll" />
+												<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult("file")}>
+													{!noMoreSearchAllFileResults && <i className={`fa fa-search ${moreFileSearch && "searching-status"}`} aria-hidden="true"></i>}
+													{
+														(moreFileSearch && !noMoreSearchAllFileResults)
+														?	<span className="searching-text">正在查询...</span>
+														:	noMoreSearchAllFileResults
+														?	null
+														:	<span className="more-results-text">更多结果</span>
+													}
+												</div>
+											</div>
+										}
+										{
+											lastSearchResult[1]['lastSearchAllMusicResult'].length !==0 && <div className="online-music-container">
+												<div className="interval-line"></div>
+												<div className="online-music-header">音乐</div>
+												< MusicPlayer musicDataList = {lastSearchResult[1]['lastSearchAllMusicResult']}
+													original = {CONSTANT.musicOriginal.musicSearch}
+													pageType = "onlineMusicSearchALl"
+												/>
+												<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult("music")}>
+													{!noMoreSearchAllMusicResults && <i className={`fa fa-search ${moreMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
+													{
+														(moreMusicSearch && !noMoreSearchAllMusicResults)
+														?	<span className="searching-text">正在查询...</span>
+														:	noMoreSearchAllMusicResults
+														?	null
+														:	<span className="more-results-text">更多结果</span>
+													}
+												</div>
+											</div>
+										}
+										{
+											onlineMusicComponent({
+												origin: "onlineMusicSearchALl",
+												lastSearchResult,
+												noMoreNetEaseCloudResults: noMoreSearchAllNetEaseCloudResults,
+												moreNetEaseCloudSearch,
+												noMoreQQMusicResults: noMoreSearchAllQQMusicResults,
+												moreQQMusicSearch,
+												noMoreKuGouMusicResults: noMoreSearchAllKuGouMusicResults,
+												moreKuGouMusicSearch,
+												noMoreKuWoMusicResults: noMoreSearchAllKuWoMusicResults,
+												moreKuWoMusicSearch,
+											})
+										}
+									</Fragment>
+								:	null
+							}
+						</div>
+					:	(makeUpSearchString && <div className="no-result">没有结果</div>)
+				}
+            </div>
+        </div>
+    )
+
+}
+
 
 const mapStateToProps = state => {
 	return {
@@ -628,4 +613,3 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = () => ({});
 export default connect(mapStateToProps, mapDispatchToProps)(SearchResourceComponent);
-

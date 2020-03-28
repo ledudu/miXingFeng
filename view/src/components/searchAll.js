@@ -2,50 +2,45 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import SearchResourceComponent from './child/searchResourceComponent'
 
-class SearchAll extends Component{
-
-	render(){
-		const {
-			lastSearchAllNetEaseCloudResult,
-			lastSearchAllQQMusicSearchResult,
-			lastSearchAllKuGouMusicSearchResult,
-			lastSearchAllKuWoMusicSearchResult,
-			lastSearchAllSearchString,
-			lastSearchAllFileResult,
-			lastSearchAllMusicResult,
-			musicList,
-			fileList
-		} = this.props;
-		const lastSearchResult = []
-		lastSearchResult.push({
-			lastSearchAllFileResult
-		})
-		lastSearchResult.push({
-			lastSearchAllMusicResult
-		})
-		lastSearchResult.push({
-			lastNetEaseCloudSearchResult: lastSearchAllNetEaseCloudResult
-		})
-		lastSearchResult.push({
-			lastQQMusicSearchResult: lastSearchAllQQMusicSearchResult
-		})
-		lastSearchResult.push({
-			lastKuGouMusicSearchResult: lastSearchAllKuGouMusicSearchResult
-		})
-		lastSearchResult.push({
-			lastKuWoMusicSearchResult: lastSearchAllKuWoMusicSearchResult
-		})
-		return 	<SearchResourceComponent
-					navbarText="全局搜索"
-					placeholder='搜索'
-					type="searchAll"
-					self={this}
-					lastSearchResult={lastSearchResult}
-					lastSearchString={lastSearchAllSearchString}
-					musicDatalist={musicList}
-					fileDatalist={fileList}
-				/>
-	}
+const SearchAll = ({
+	lastSearchAllNetEaseCloudResult,
+	lastSearchAllQQMusicSearchResult,
+	lastSearchAllKuGouMusicSearchResult,
+	lastSearchAllKuWoMusicSearchResult,
+	lastSearchAllSearchString,
+	lastSearchAllFileResult,
+	lastSearchAllMusicResult,
+	musicList,
+	fileList
+}) => {
+	const lastSearchResult = []
+	lastSearchResult.push({
+		lastSearchAllFileResult
+	})
+	lastSearchResult.push({
+		lastSearchAllMusicResult
+	})
+	lastSearchResult.push({
+		lastQQMusicSearchResult: lastSearchAllQQMusicSearchResult
+	})
+	lastSearchResult.push({
+		lastNetEaseCloudSearchResult: lastSearchAllNetEaseCloudResult
+	})
+	lastSearchResult.push({
+		lastKuGouMusicSearchResult: lastSearchAllKuGouMusicSearchResult
+	})
+	lastSearchResult.push({
+		lastKuWoMusicSearchResult: lastSearchAllKuWoMusicSearchResult
+	})
+	return 	<SearchResourceComponent
+				navbarText="全局搜索"
+				placeholder='搜索'
+				type="searchAll"
+				lastSearchResult={lastSearchResult}
+				lastSearchString={lastSearchAllSearchString}
+				musicDatalist={musicList}
+				fileDatalist={fileList}
+			/>
 }
 
 const mapStateToProps = state => {
