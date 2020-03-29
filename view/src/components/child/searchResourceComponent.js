@@ -219,6 +219,8 @@ const SearchResourceComponent = ({
 				setMoreFileSearch(false)
 				setMoreMusicSearch(false)
 				return
+			} else if(type === "music" || type === "file") {
+				getAutoSuggest(query)
 			}
 		} catch(err){
 			logger.error("SearchResourceComponent updateValue type", type, "err", err)
@@ -228,7 +230,7 @@ const SearchResourceComponent = ({
 
 	const getAutoSuggest = (query) => {
 		logger.info("SearchResourceComponent getAutoSuggest query", query)
-		if(!query || !lastSearchString) return;
+		if(!query) return;
 		setIsSearching(true)
 		setMoreNetEaseCloudSearch(false)
 		setMoreQQMusicSearch(false)

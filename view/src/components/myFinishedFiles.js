@@ -10,7 +10,7 @@ import { confirm, specialBackFunc } from "../services/utils"
 const MyFinishedFiles = ({ downloadingFileList, downloadedFileList } ) => {
 
 	const history = useHistory()
-	function backToMainPage(){
+	function backToMainPage(isNav){
 		if(!window.cancelMenuFirst){
 			if(isNav !== "nav") specialBackFunc()
 			history.push("/main/myInfo")

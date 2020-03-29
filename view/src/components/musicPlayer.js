@@ -307,7 +307,7 @@ const MusicPlayer = ({
 							filename,
 							type: "default-music"
 						}
-						if(original === CONSTANT.musicOriginal.musicShare){
+						if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
 							let startToDelete = false
 							confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
 								if(!startToDelete){
