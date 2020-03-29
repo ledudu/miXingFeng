@@ -9,7 +9,7 @@ import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { confirm, alertDialog } from "../services/utils";
 import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize, updateUpgradeProgressPercent } from "../ducks/common"
-import { previewNew, checkExternalFileExistOrNot, logActivity } from "../logic/common";
+import { previewNew, checkDownloadedOrNot, checkAppMD5 } from "../logic/common";
 
 const itemColumns = [
 	{
@@ -69,7 +69,7 @@ class About extends React.Component {
 					Toast.hide();
 					$dispatch(updateAppSize(appSize))
 					confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
-						self.checkDownloadedOrNot(HTTP_URL.appRelease ,"sign_release.apk", MD5);
+						checkDownloadedOrNot(HTTP_URL.appRelease ,"miXingFeng.apk", MD5, self.downloadAppFunc, self.preview);
 					})
 				} else {
 					window.logger.info("已是最新版本");
@@ -79,43 +79,6 @@ class About extends React.Component {
             .catch(err => {
                 networkErr(err, `checkUpdate`);
             })
-	}
-
-	checkDownloadedOrNot = async (fileUrl, appName, MD5) => {
-		const isAppExisted = await checkExternalFileExistOrNot(appName)
-		const self = this
-		logActivity({
-			msg: "start to upgrade app in about page"
-		})
-		if(isAppExisted){
-			window.resolveLocalFileSystemURL(
-				window.cordova.file.externalApplicationStorageDirectory,
-				function (fs) {
-					fs.getFile(
-						appName,
-						{create: false,exclusive: true},
-						function (fileEntry) {
-							return new Promise(res => {
-								return self.checkAppMD5(fileEntry, MD5, null, res, self, false)
-							})
-							.then(md5IsEqual => {
-								logger.info("checkDownloadedOrNot md5IsEqual", md5IsEqual)
-								if(md5IsEqual){
-									self.preview(fileEntry, 'application/vnd.android.package-archive')
-								} else {
-									self.downloadAppFunc(fileUrl, appName, MD5)
-								}
-							})
-						},
-						function(err){
-							logger.error("about checkDownloadedOrNot err", err)
-						}
-					)
-				}
-			)
-		} else {
-			this.downloadAppFunc(fileUrl, appName, MD5)
-		}
 	}
 
 	downloadAppFunc = (fileUrl, appName, MD5) => {
@@ -185,7 +148,7 @@ class About extends React.Component {
 										// 下载完成执行本地预览
 										if (progressPercent > 1 || progressPercent === 1) {
 											setTimeout(() => {
-												self.checkAppMD5(fileEntry, MD5, entry, res, self, true)
+												checkAppMD5(fileEntry, MD5, entry, res, true, self.preview)
 												$dispatch(updateUpgradeProgressPercent(0))
 											})
 										}
@@ -218,49 +181,7 @@ class About extends React.Component {
 		})
 	}
 
-	checkAppMD5 = (fileEntry, MD5, entry, res, self, needErrorTip) => {
-		md5chksum.file(fileEntry, win, fail);
-		function win(md5sum){
-			logger.info("about page app package MD5SUM: " + md5sum);
-			if(md5sum === MD5){
-				$dispatch(updateAppUpdating(false))
-				$dispatch(updateHasDownloadedPackage(true))
-				cordova.plugins.notification.local.schedule({
-					title: '下载完成',
-					text: '点击安装',
-					progressBar: false
-				});
-				confirm("提示","下载完成","立即安装", function(){
-					if(entry){
-						entry.file(data => {
-							self.preview(fileEntry, data.type)
-							// 此处data.type可以直接得到文件的MIME-TYPE类型
-						});
-					}
-					logActivity({
-						msg: "start to install app in about page"
-					})
-					res(true);
-				})
-			} else{
-				if(needErrorTip){
-					logger.error("about page checkAppMD5 md5sum !== MD5 md5sum, MD5", md5sum, MD5)
-					$dispatch(updateAppUpdating(false))
-					$dispatch(updateHasDownloadedPackage(true))
-					alertDialog('提示', "安装包已损坏，请重新安装")
-				}
-				res(false)
-			}
-		}
-		function fail(error){
-			if(needErrorTip){
-				logger.error("about page checkAppMD5 fail Error-Message: ",  error);
-				$dispatch(updateAppUpdating(false))
-				$dispatch(updateHasDownloadedPackage(true))
-				alertDialog('提示', "安装包已损坏，请重新安装")
-			}
-		}
-	}
+
 
 	preview = (fileEntry, mineType = 'application/vnd.android.package-archive') => {
 		previewNew(fileEntry, mineType)

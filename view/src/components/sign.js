@@ -10,7 +10,9 @@ import {
 	alertDialog,
 	networkErr,
 	debounce,
-	saveFileToLocal
+	saveFileToLocal,
+	exitApp,
+	openBrowserLink
 } from "../services/utils";
 import { HTTP_URL } from "../constants/httpRoute";
 import MyProgress from "./child/progress";
@@ -25,7 +27,8 @@ import {
 	reconnectAndSend,
 	checkOnlinePersons,
 	logActivity,
-	removePrefixFromFileOrigin
+	removePrefixFromFileOrigin,
+	checkDownloadedOrNot
 } from "../logic/common";
 import {
 	updateDirectShowSignPage,
@@ -113,65 +116,46 @@ class Sign extends Component {
 			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
 				logger.info("directShowSignPage", directShowSignPage)
-
 				const adsName = localStorage.getItem("adsName")
 				const isWiFiNetwork = localStorage.getItem("isWiFiNetwork")
 				logger.info("adsName", adsName, 'isWiFiNetwork', isWiFiNetwork, 'fromResume', fromResume)
 				//  启动app的时候先计时下载广告；翻页过来的时候如果已经下载好但是还没使用的情况下，不要再次下载广告
-				if(!window.downloadAdPicTimer && !adsName && !isWiFiNetwork){
-					downloadAdPic()
-				}
-
+				if(!window.downloadAdPicTimer && !adsName && !isWiFiNetwork) downloadAdPic()
 				if(!directShowSignPage){
-					if(window.isCordova){
-						if(!window.localStorage.getItem('everLaunched')){
-							window.localStorage.setItem('everLaunched', 'true');
-							window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
-							Loadable.preloadAll()
-							$dispatch(updateDirectShowSignPage(true))
-							$dispatch(updateHideNavBar(false))
-							setTimeout(() => {
-								window.navigator.splashscreen.hide();
-							}, 800)
-						} else {
-							Loadable.preloadAll()
-							try {
-								window.navigator.splashscreen.hide();
-								this.leftRectRef.style.animation = `left ${skipTime - 0.9}s linear`
-								this.rightRectRef.style.animation = `right ${skipTime - 0.9}s linear`
-								this.leftRectRef.style['-webkit-animation'] = `left ${skipTime - 0.9}s linear`
-								this.rightRectRef.style['-webkit-animation'] = `right ${skipTime - 0.9}s linear`
-								logger.info("start ad page this.getAdsConfig skipTime", skipTime)
-								this.getAdsConfig();
-								// 刚安装app时打开不要检查更新
-								if(justOpenApp){
-									this.checkUpdateSignTimer = setTimeout(() => {
-										document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
-									}, 3500);
-								}
-							} catch (err) {
-								window.logger.error("splashscreen err", err.stack || err.toString())
-							}
-						}
-					} else {
-						this.leftRectRef.style.animation = `left ${skipTime - 0.9}s linear`
-						this.rightRectRef.style.animation = `right ${skipTime - 0.9}s linear`
-						this.leftRectRef.style['-webkit-animation'] = `left ${skipTime - 0.9}s linear`
-						this.rightRectRef.style['-webkit-animation'] = `right ${skipTime - 0.9}s linear`
+					if(!window.localStorage.getItem('everLaunched')){
+						window.localStorage.setItem('everLaunched', 'true');
+						window.StatusBar && window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
 						Loadable.preloadAll()
-						this.topAdsRef.style.width = "auto"
-						this.getAdsConfig();
+						$dispatch(updateDirectShowSignPage(true))
+						$dispatch(updateHideNavBar(false))
+						setTimeout(() => {
+							window.navigator.splashscreen && window.navigator.splashscreen.hide();
+						}, 800)
+					} else {
+						Loadable.preloadAll()
+						try {
+							window.navigator.splashscreen && window.navigator.splashscreen.hide();
+							this.leftRectRef.style.animation = `left ${skipTime - 0.9}s linear`
+							this.rightRectRef.style.animation = `right ${skipTime - 0.9}s linear`
+							this.leftRectRef.style['-webkit-animation'] = `left ${skipTime - 0.9}s linear`
+							this.rightRectRef.style['-webkit-animation'] = `right ${skipTime - 0.9}s linear`
+							logger.info("start ad page this.getAdsConfig skipTime", skipTime)
+							this.getAdsConfig();
+						} catch (err) {
+							window.logger.error("splashscreen err", err.stack || err.toString())
+						}
 					}
 				}
 			} else {
 				logger.info("componentDidMount alwaysShowAdsPage", alwaysShowAdsPage);
 				Loadable.preloadAll()
-				setTimeout(() => {
-					if(window.isCordova){
+				if(window.isCordova){
+					setTimeout(() => {
 						window.StatusBar.backgroundColorByHexString(CONSTANT.statusBarColor)
+						document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
 						window.navigator.splashscreen.hide();
-					}
-				}, 800)
+					}, 800)
+				}
 			}
 			this.getGreeting();  // go to this page from other page
 			document.addEventListener("deviceready", this.listenBackKeyDown);
@@ -183,7 +167,7 @@ class Sign extends Component {
 			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
 				if(justOpenApp || needRetryRequestWhenLaunch){
 					if(new Date().getHours() < 6){
-						setTimeout(() => alert("夜深了,请注意休息"), 5000)
+						setTimeout(() => alert("夜深了,请注意休息"), (skipTime-1) * 1000);
 					}
 					$dispatch(updateJustOpenApp(false))
 					// get file list
@@ -269,7 +253,7 @@ class Sign extends Component {
 					window.$dispatch(updateIsFromLoginPage(false));
 				}
 			}
-			this.dealWithOthersWhenDidMount();
+			this.dealWithLocation();
 			setTimeout(() => {
 				reconnectAndSend("homeSocket check")
 			}, 3500)
@@ -358,6 +342,11 @@ class Sign extends Component {
 			}, 1)
 		}
 		$dispatch(updateHideNavBar(false))
+		// 刚安装app时打开不要检查更新
+		if(!this.checkUpdateFlag){
+			this.checkUpdateFlag = true
+			document.addEventListener("deviceready", this.checkUpdateSign, false);  //check update
+		}
 		if(savedCurrentRoute){
 			$dispatch(updateSavedCurrentRoute(""))
 			window.goRoute(this, savedCurrentRoute);
@@ -373,7 +362,7 @@ class Sign extends Component {
 		document.addEventListener("backbutton", this.onBackKeyDownSign, false); //back button logic
 	}
 
-	dealWithOthersWhenDidMount = () => {
+	dealWithLocation = () => {
 		if(window.isCordova){
 			this.props.allowGetPosition && document.addEventListener("deviceready", getUserPosition, false)
 		} else {
@@ -395,6 +384,9 @@ class Sign extends Component {
 					showProgress: false
 				}, () => {
 					self.state.fileTransfer.abort && self.state.fileTransfer.abort();
+					if(self.forceUpgrade){
+						exitApp()
+					}
 				});
 			},() => {
 				self.setState({
@@ -411,33 +403,57 @@ class Sign extends Component {
     }
 
 	checkUpdateSign = async () => {
-		let self = this;
-		let date = Date.now();
-		let content = await getAndReadFile("last_close_update.txt", true)
+		const self = this;
+		const date = Date.now();
+		const content = await getAndReadFile("last_close_update.txt", true)
 		return axios.get(HTTP_URL.checkUpdate)
-			.then(response => {
-				if(!response.data){
-					return
-				}
+			.then(async response => {
+				if(!response.data) return
 				const result = response.data;
-				if(result.disableUpdate) return logger.info('disableUpdate')
 				const remoteAppVersion = result.version,
 					appSize = result.appSize,
 					MD5 = result.MD5,
 					newAppVersionContent = result.content,
-					{ appVersion } = window.$getState().common;
+					forceUpgradeText =  result.forceUpgradeText || "因系统接口重大升级,必须更新app才能使用",
+					alertNotice = result.alertNotice,
+					confirmNotice = result.confirmNotice,
+					{ appVersion } = this.props;
+				this.forceUpgrade = result.forceUpgrade,
 				window.logger.info(`remote appVersion, ${remoteAppVersion}`);
 				window.logger.info(`local appVersion, ${appVersion}`);
-				if(remoteAppVersion > appVersion){
+				if(alertNotice && alertNotice.enable){
+					await new Promise((res => {
+						alertDialog("公告", alertNotice.content, "我知道了", res)
+					}))
+				} else if(confirmNotice && confirmNotice.enable){
+					return confirm(`提示`, confirmNotice.content, confirmNotice.confirmButton, function(){
+						openBrowserLink(confirmNotice.link)
+					})
+				}
+				if(result.disableUpdate) return logger.info('disableUpdate')
+				if((remoteAppVersion > appVersion) || this.forceUpgrade){
 					logger.info("发现新版本 remoteAppVersion", remoteAppVersion, "appVersion", appVersion);
 					content && logger.info("(date - content.closeUpdateDate) / (1000 * 3600 * 24))", (date - content.closeUpdateDate) / (1000 * 36 * 24))
 					window.$dispatch(updateSetSystemSetupDot(true));
-					if((!content || ((date - content.closeUpdateDate) / (1000 * 3600 * 24)) >  2) && window.getRoute() === "/main/sign"){
-						//两天内不提醒
-						confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
-							self.checkUpdate(HTTP_URL.appRelease ,"sign_release.apk", MD5);
-						})
-						let date = Date.now()
+					if((this.forceUpgrade || !content || ((date - content.closeUpdateDate) / (1000 * 3600 * 24)) >  2) && window.getRoute() === "/main/sign"){
+						if(this.forceUpgrade){
+							// 告诉用户为什么这次要强制升级
+							alertDialog("提示", forceUpgradeText, "知道了", () => {
+								confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
+									self.checkUpdate(HTTP_URL.appRelease ,"miXingFeng.apk", MD5);
+								}, exitApp)
+							})
+						} else {
+							//两天内不提醒
+							confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
+								self.checkUpdate(HTTP_URL.appRelease ,"miXingFeng.apk", MD5);
+							}, () => {
+								if(self.forceUpgrade){
+									exitApp()
+								}
+							})
+						}
+						const date = Date.now()
 						let data = Object.assign({}, {"closeUpdateDate": date});
         				data = JSON.stringify(data);
         				let b = new window.Base64();
@@ -458,6 +474,10 @@ class Sign extends Component {
 	}
 
 	checkUpdate = (fileUrl, appName, MD5) => {
+		checkDownloadedOrNot(fileUrl, appName, MD5, this.downloadAppFunc, this.preview, { exit: exitApp, forceUpgrade: this.forceUpgrade });
+	}
+
+	downloadAppFunc = (fileUrl, appName, MD5) => {
 		const self = this;
 		logActivity({
 			msg: "start to upgrade app in sign page"
@@ -527,6 +547,10 @@ class Sign extends Component {
 															res(self.preview(fileEntry, data.type));
 															// 此处data.type可以直接得到文件的MIME-TYPE类型
 														});
+													}, () => {
+														if(self.forceUpgrade){
+															exitApp()
+														}
 													})
 												} else{
 													logger.error("sign page MD5", MD5)
@@ -581,6 +605,7 @@ class Sign extends Component {
 	}
 
 	preview = (fileEntry, mineType = 'application/vnd.android.package-archive') => {
+		if(this.forceUpgrade) setTimeout(exitApp, 1000)
 		previewNew(fileEntry, mineType)
 	}
 
@@ -762,7 +787,8 @@ const mapStateToProps = state => {
 		showUpdateConfirm: state.sign.showUpdateConfirm,
 		needRetryRequestWhenLaunch: state.sign.needRetryRequestWhenLaunch,
 		showDownloadAppTip: state.sign.showDownloadAppTip,
-		setMobile: state.myInfo.setMobile
+		setMobile: state.myInfo.setMobile,
+		appVersion: state.common.appVersion,
 	};
 };
 

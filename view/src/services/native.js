@@ -119,7 +119,7 @@ const installPackage  = () => {
 	}
 	logger.info("cordova.plugins.fileOpener2.open  installPackage")
 	cordova.plugins.fileOpener2.open(
-		'cdvfile://localhost/sdcard/Android/data/com.szhou.mixingfeng/sign_release.apk', // You can also use a Cordova-style file uri: cdvfile://localhost/persistent/Downloads/starwars.pdf
+		'cdvfile://localhost/sdcard/Android/data/com.szhou.mixingfeng/miXingFeng.apk', // You can also use a Cordova-style file uri: cdvfile://localhost/persistent/Downloads/starwars.pdf
 		'application/vnd.android.package-archive',
 		{
 			error : function(e) {

@@ -9,7 +9,7 @@ export default class TypeShell extends React.Component {
 		super(props)
 		this.state={
 			isSearching: false,
-			value: props.token ? "tail -100 miXingFeng.log" : "",
+			value: $getState().login.token ? "tail -100 miXingFeng.log" : "",
 			shellResponse: ""
 		}
 	}

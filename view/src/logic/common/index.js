@@ -6,7 +6,9 @@ import {
 	updateCurrentXYPosition,
 	updateCurrentProvince,
 	updateAllowGetPosition,
-	updateSharedNicknames
+	updateSharedNicknames,
+	updateHasDownloadedPackage,
+	updateAppUpdating
 } from "../../ducks/common"
 import {
 	networkErr,
@@ -1050,6 +1052,7 @@ export const playMusic = async ({
 			soundInstance.stop(soundInstanceId)
 			soundInstance.unload()
 		}
+		$dispatch(updateCurrentSongTime(0))
 		$dispatch(updateCurrentPlayingMusicList(musicDataList))
 		if(!checkLastMusicWhenLaunch) $dispatch(updateSoundPlaying(true))
 		$dispatch(updateCurrentPlayingSong(filenameOrigin))
@@ -1138,7 +1141,7 @@ export const playMusic = async ({
 			}
 			$dispatch(updateRecentMusicList(recentMusicListCopy))
 		} else {
-			logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList", filenameOrigin, musicDataList)
+			logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList.length", filenameOrigin, musicDataList.length)
 		}
 		$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(!checkLastMusicWhenLaunch){
@@ -1720,8 +1723,8 @@ function touchEnd(defaults, direction, fun, event){
 
 export const logActivity = (data={}) => {
 	const { username } = $getState().login
-	const { appVersion, currentLocation, deviceInfo, allowOthersGetPosition, allowShareMyNickname, adPicSrc } = $getState().common
-	const { musicCollection, playByOrder, pauseWhenOver, currentMusicItemInfo } = $getState().fileServer
+	const { appVersion, currentLocation, allowOthersGetPosition, allowShareMyNickname, adPicSrc } = $getState().common
+	const { musicCollection, playByOrder, pauseWhenOver } = $getState().fileServer
 	const { isSignedUp, lastSignUpTime, onlinePersonsNum } = $getState().sign
 	const obj = {
 		userId: $getState().login.userId,
@@ -1729,14 +1732,12 @@ export const logActivity = (data={}) => {
 		username,
 		appVersion,
 		currentLocation,
-		deviceInfo,
 		allowOthersGetPosition,
 		allowShareMyNickname,
 		adPicSrc,
 		musicCollectionLength: musicCollection.length,
 		playByOrder,
 		pauseWhenOver,
-		currentMusicItemInfo,
 		isSignedUp,
 		lastSignUpTime,
 		onlinePersonsNum,
@@ -1845,4 +1846,84 @@ export const jsonp = (url, params, cb) => {
 		script.src = `${url}?${arrs.join('&')}`
 		document.body.appendChild(script)
 	})
+}
+
+export const checkDownloadedOrNot = async (fileUrl, appName, MD5, downloadAppFunc, preview, obj={}) => {
+	const isAppExisted = await checkExternalFileExistOrNot(appName)
+	logActivity({msg: "start to upgrade app"})
+	if(isAppExisted){
+		window.resolveLocalFileSystemURL(
+			window.cordova.file.externalApplicationStorageDirectory,
+			function (fs) {
+				fs.getFile(
+					appName,
+					{create: false, exclusive: true},
+					function (fileEntry) {
+						return new Promise(res => {
+							return checkAppMD5(fileEntry, MD5, null, res, false, preview)
+						})
+						.then(md5IsEqual => {
+							logger.info("checkDownloadedOrNot md5IsEqual", md5IsEqual)
+							if(md5IsEqual === false) {
+								downloadAppFunc(fileUrl, appName, MD5)
+							} else if(md5IsEqual === "cancel"){
+								obj.forceUpgrade && obj.exit()
+							} else if(md5IsEqual){
+								preview(fileEntry, 'application/vnd.android.package-archive')
+							}
+						})
+					},
+					function(err){
+						logger.error("about checkDownloadedOrNot err", err)
+					}
+				)
+			}
+		)
+	} else {
+		downloadAppFunc(fileUrl, appName, MD5)
+	}
+}
+
+export const checkAppMD5 = (fileEntry, MD5, entry, res, needErrorTip, preview) => {
+	md5chksum.file(fileEntry, win, fail);
+	function win(md5sum){
+		logger.info("about page app package MD5SUM: " + md5sum);
+		if(md5sum === MD5){
+			$dispatch(updateAppUpdating(false))
+			$dispatch(updateHasDownloadedPackage(true))
+			cordova.plugins.notification.local.schedule({
+				title: '下载完成',
+				text: '点击安装',
+				progressBar: false
+			});
+			confirm("提示","下载完成","立即安装", function(){
+				if(entry){
+					entry.file(data => {
+						preview(fileEntry, data.type)
+						// 此处data.type可以直接得到文件的MIME-TYPE类型
+					});
+				}
+				logActivity({msg: "start to install app"})
+				res(true);
+			}, () => {
+				res("cancel");
+			})
+		} else{
+			if(needErrorTip){
+				logger.error("about page checkAppMD5 md5sum !== MD5 md5sum, MD5", md5sum, MD5)
+				$dispatch(updateAppUpdating(false))
+				$dispatch(updateHasDownloadedPackage(true))
+				alertDialog('提示', "安装包已损坏，请重新安装")
+			}
+			res(false)
+		}
+	}
+	function fail(error){
+		if(needErrorTip){
+			logger.error("about page checkAppMD5 fail Error-Message: ",  error);
+			$dispatch(updateAppUpdating(false))
+			$dispatch(updateHasDownloadedPackage(true))
+			alertDialog('提示', "安装包已损坏，请重新安装")
+		}
+	}
 }
