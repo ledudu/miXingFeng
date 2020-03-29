@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import { Howler } from 'howler';
@@ -21,7 +21,7 @@ import {
 import { updateToken } from "../ducks/login";
 import {
 	calcSize,
-	removeDuplicateObjectList,
+	optimizeLoadPerformance,
 	removeFileFromDownload,
 	removePrefixFromFileOrigin,
 	saveSongFunc,
@@ -66,10 +66,10 @@ const MusicPlayer = ({
 }) => {
 
 	const history = useHistory()
+	const [ firstRender, setFirstRender ] = useState(true)
 
 	useEffect(() => {
 		Howler.volume(0.8);
-		// checkSongSaved()
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
 			if(soundInstance) getMusicCurrentPlayProcess(false)
 		}
@@ -442,12 +442,12 @@ const MusicPlayer = ({
 		}
 	}
 
-	musicDataList = removeDuplicateObjectList(musicDataList, 'filenameOrigin')
-	checkSongSavedFunc(musicDataList, pageType)
+	const musicDataListCopy = optimizeLoadPerformance(musicDataList, firstRender, CONSTANT.showMusicNumberPerTime, setFirstRender)
+	checkSongSavedFunc(musicDataListCopy, pageType)
 	return (
 		<div className="music-list-container">
 			{
-				musicDataList.map((item, index) =>
+				musicDataListCopy.map((item, index) =>
 					<div className="music-list" key={item.filenameOrigin}>
 						<div className="music-content"
 							onClick={() => checkStatus({

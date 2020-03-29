@@ -1927,3 +1927,13 @@ export const checkAppMD5 = (fileEntry, MD5, entry, res, needErrorTip, preview) =
 		}
 	}
 }
+
+export const optimizeLoadPerformance = (dataList, firstRender, showNumbers, setFirstRender) => {
+	let dataListCopy = JSON.parse(JSON.stringify(dataList))
+	if(firstRender){
+		dataListCopy = dataListCopy.slice(0, showNumbers)
+		setTimeout(() => setFirstRender(false), parseInt(1000 / 60))
+	}
+	dataListCopy = removeDuplicateObjectList(dataListCopy, 'filenameOrigin')
+	return dataListCopy
+}

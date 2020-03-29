@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState }  from 'react'
 import { useHistory } from "react-router-dom"
 import { connect } from "react-redux"
 import { ActionSheet } from 'antd-mobile'
@@ -6,8 +6,9 @@ import MINE from "mime-types"
 import { calcSize } from "../logic/common"
 import { networkErr, confirm, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils"
 import { HTTP_URL } from "../constants/httpRoute"
+import { CONSTANT } from "../constants/enumeration"
 import { updateToken } from "../ducks/login"
-import { openDownloadedFile, removeFileFromDownload, removeDuplicateObjectList, removePrefixFromFileOrigin } from "../logic/common"
+import { openDownloadedFile, removeFileFromDownload, optimizeLoadPerformance, removePrefixFromFileOrigin } from "../logic/common"
 import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
@@ -32,6 +33,7 @@ const FileManage = ({
 	}) => {
 
 	const history = useHistory()
+	const [ firstRender, setFirstRender ] = useState(true)
 	let startToDeleteOnline = false
 
 	const listenBackFunc = () => {
@@ -278,11 +280,11 @@ const FileManage = ({
 		}
 	}
 
-	fileDataList = removeDuplicateObjectList(fileDataList, 'filenameOrigin')
+	const fileDataListCopy = optimizeLoadPerformance(fileDataList, firstRender, CONSTANT.showFileNumberPerTime, setFirstRender)
 	return (
 		<div className={`file-manage-container`}>
 			{
-				fileDataList.map((item, index) =>
+				fileDataListCopy.map((item, index) =>
 					<div className="file-list" key={item.filenameOrigin}>
 						<div className={`file-content ${original === "fileDownloading" && "downloading"}`} onClick={downloadOrOpenFile.bind(this, item.filename, item.uploadUsername, item.fileSize, item.filePath, item.filenameOrigin)}>
 							<div className="num">{index + 1}</div>
