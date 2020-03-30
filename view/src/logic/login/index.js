@@ -133,11 +133,11 @@ export const dealtWithLogin = (result, userProfile={}) => {
 		}
 	},false);
 
-	const original = $getState().login.userId;
+	const original = localStorage.getItem("oldUserId") || "";
 	const newOne = (result.username || result.mobile)
 	$dispatch(updateUserId(newOne))
 	const data = { original, newOne }
-	if(original !== newOne){
+	if(original !== newOne && original){
 		replaceSocketLink(data, "login success")
 	}
 	if(window.getRoute() !== "/main/sign"){

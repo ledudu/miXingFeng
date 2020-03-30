@@ -56,7 +56,7 @@ class UpdateUserInfoComponent extends React.Component {
 				return alertDialog("用户名首字母不能是数字");
 			}
 		}
-		value = value.trim()
+		value = value.replace(/\s/g, "")
 		const { username, token } = $getState().login;
 		const { setMobile } = $getState().myInfo;
         if(!token && !registerFromLogin) {

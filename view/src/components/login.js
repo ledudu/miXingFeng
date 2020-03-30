@@ -29,7 +29,8 @@ class Login extends Component {
 		document.addEventListener("deviceready", this.listenBackButton, false);
 		if (this.props.logOutFlag) {
 			//  为了加快注销速度，把更换websocket id的任务放在注销后跳往登录的逻辑里
-			const original = this.props.userId;
+			const original = this.props.userId || ""
+			localStorage.setItem("oldUserId", original)
 			const newOne = generateRandomUserId()
 			$dispatch(updateUserId(newOne))
 			logger.info("Login replace userId original, newOne", original, newOne)

@@ -108,7 +108,7 @@ class CheckEmailOrMobile extends React.Component {
 		const value3 = this.inputValueRef3.value
 		const value4 = this.inputValueRef4.value
 		const value = (value1 + value2 + value3 + value4)
-		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, forgetPasswordToken, setMobile } = this.props
+		const { username, setTempEmail, setTempMobile, hasForgetPassword, registerFromLogin, self, forgetPasswordToken, setMobile, userId } = this.props
 		logger.info("checkEmail submit value", value)
 		if(!this.startToSubmit){
 			this.startToSubmit = true
@@ -139,6 +139,7 @@ class CheckEmailOrMobile extends React.Component {
 						} else if(this.isMobile){
 							const { username } = this.props
 							if(!username){
+								localStorage.setItem("oldUserId", userId || "")
 								$dispatch(updateUserId(setTempMobile));
 							}
 							$dispatch(updateSetMobile(setTempMobile))
@@ -156,6 +157,7 @@ class CheckEmailOrMobile extends React.Component {
 						$dispatch(updateRegisterFromLogin(false))
 						$dispatch(updateToken(result.token));
 						$dispatch(updateSetMobile(setTempMobile));
+						localStorage.setItem("oldUserId", userId || "")
 						$dispatch(updateUserId(setTempMobile));
 						if(forgetPasswordToken){
 							// 忘记密码
@@ -222,7 +224,8 @@ const mapStateToProps = state => {
 		registerFromLogin: state.login.registerFromLogin,
 		forgetPasswordToken: state.login.forgetPasswordToken,
 		token: state.login.token,
-		setMobile: state.myInfo.setMobile
+		setMobile: state.myInfo.setMobile,
+		userId: state.login.userId,
 	};
 };
 
