@@ -55,7 +55,7 @@ import {
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
-import { dealtWithLoginIn } from "../../logic/login"
+import { dealtWithLogin } from "../../logic/login"
 import { removeMusicDataByIndexFromIndexDB } from "../../services/indexDBMusic"
 import { CONSTANT } from "../../constants/enumeration"
 import { addRecentMusicDataFromIndexDB, removeRecentMusicDataByIndexFromIndexDB } from "../../services/indexDBRecentMusic"
@@ -391,7 +391,7 @@ export const autoLogin = function(token){
 			.then((response) => {
 				let result = response.data.result;
 				if (result.token) {
-					dealtWithLoginIn(result, result.userProfile)
+					dealtWithLogin(result, result.userProfile)
 					res()
 				} else if (result === 'token_expired') {
 					window.logger.warn("身份已过期,请重新登录");

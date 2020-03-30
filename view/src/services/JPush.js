@@ -1,7 +1,7 @@
 import { HTTP_URL } from "../constants/httpRoute"
 import { updateReceiveNotification } from "../ducks/common"
 
-let registrationID, receivedMessage;
+let registrationID=null, receivedMessage;
 
 var onDeviceReady = function () {
 
@@ -24,10 +24,10 @@ var onGetRegistrationID = function (data) {
 			var t1 = window.setTimeout(getRegistrationID, 1000);
 		} else {
 			logger.info("JPushPlugin:registrationID is " + data);
-			const { username, token } = $getState().login
+			const { token } = $getState().login
 			window.JPush.setTags("miXingFengApp")
-			window.JPush.setAlias(username)
-			if(token && username){
+			window.JPush.setAlias(data)
+			if(token){
 				uploadRegisterID()
 			} else {
 				window.eventEmit.$once("hasLogin", uploadRegisterID)
@@ -71,7 +71,7 @@ var onReceiveNotification = function (event) {
 		}
 		logger.info("onReceiveNotification alertContent", alertContent)
 	} catch (exception) {
-		logger.error(exception)
+		logger.error("onReceiveNotification", exception)
 	}
 };
 
@@ -114,17 +114,17 @@ function uploadRegisterID(){
 	const username = $getState().login.username
 	const mobile = $getState().myInfo.setMobile
 	logger.info(`localStorage.getItem("registrationID")`, localStorage.getItem("registrationID"))
-	// if (registrationID !== localStorage.getItem("registrationID")) {
-			const data = { registrationID, username: username || mobile }
-			logger.info("uploadRegistrationID", data)
-			axios.post(HTTP_URL.uploadRegistrationID, data)
-				.then((response) => {
-					localStorage.setItem("registrationID", registrationID)
-				})
-				.catch(err => {
-					logger.error('uploadRegistrationID', err);
-				})
-	// }
+	if (registrationID !== localStorage.getItem("registrationID")) {
+		const data = { registrationID, username: username || mobile }
+		logger.info("uploadRegistrationID", data)
+		axios.post(HTTP_URL.uploadRegistrationID, data)
+			.then((response) => {
+				localStorage.setItem("registrationID", registrationID)
+			})
+			.catch(err => {
+				logger.error('uploadRegistrationID', err);
+			})
+	}
 }
 
 export const stopPush = () => {

@@ -66,7 +66,7 @@ export const loginApp = (username, password, self) => {
             } else if(response.data.result.token){
                 const result = response.data.result;
 				$dispatch(updateIsFromLoginPage(true));
-				dealtWithLoginIn(result, result.userProfile)
+				dealtWithLogin(result, result.userProfile)
 				Toast.hide();
             } else {
 				alert("")
@@ -86,7 +86,7 @@ export const loginApp = (username, password, self) => {
 		})
 }
 
-export const dealtWithLoginIn = (result, userProfile={}) => {
+export const dealtWithLogin = (result, userProfile={}) => {
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
@@ -111,24 +111,26 @@ export const dealtWithLoginIn = (result, userProfile={}) => {
 	if(userProfile.user_pic  && window.isCordova){
 		saveHeadPicToLocal(userProfile.user_pic, result.username, 'loginApp');
 	}
+	window.eventEmit.$emit("hasLogin")
 
 	favoriteSongs.forEach(item => {
 		delete item.getNewestPath
 	})
 
-	document.addEventListener('deviceready',function(){
+	document.addEventListener('deviceready', function(){
 		window.$dispatch(updateDeviceInfo(device))
 		logger.info('device', device);
-		const deviceInfo = { deviceInfo: device }
-		const info = Object.assign(deviceInfo, { token: result.token })
-		axios.post(HTTP_URL.uploadDeviceInfo, info)
-			.then((response) => {
-				logger.info('uploadDeviceInfo', response.data)
-				window.eventEmit.$emit("hasLogin")
-			})
-			.catch(err => {
-				logger.error("loginApp uploadDeviceInfo", err)
-			})
+		if(!localStorage.getItem("device")){
+			const info = { deviceInfo: device, token: result.token }
+			axios.post(HTTP_URL.uploadDeviceInfo, info)
+				.then((response) => {
+					localStorage.setItem("device", device || "")
+					logger.info('uploadDeviceInfo', response.data)
+				})
+				.catch(err => {
+					logger.error("loginApp uploadDeviceInfo", err)
+				})
+		}
 	},false);
 
 	const original = $getState().login.userId;
