@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import { Howler } from 'howler';
 import { ActionSheet } from 'antd-mobile';
 import { HTTP_URL } from "../constants/httpRoute";
+import MusicPlaying from "./musicPlaying"
 import {
 	updatePauseWhenOver,
 	updatePlayByOrder,
@@ -62,7 +63,9 @@ const MusicPlayer = ({
 	musicDataList,
 	lastMusicSearchResult,
 	lastSearchAllMusicResult,
-	recentMusicList
+	recentMusicList,
+	showMusicPlayingFromMusicControl,
+	noShowMusicPlaying=false
 }) => {
 
 	const history = useHistory()
@@ -300,7 +303,7 @@ const MusicPlayer = ({
 						if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
 							return
 						}
-						if(!token) return alert("请先登录")
+						if(!token) return window.goRoute(this, "/login")
 						const dataInfo = {
 							username: username || setMobile,
 							token,
@@ -445,10 +448,11 @@ const MusicPlayer = ({
 	const musicDataListCopy = optimizeLoadPerformance(musicDataList, firstRender, CONSTANT.showMusicNumberPerTime, setFirstRender)
 	checkSongSavedFunc(musicDataListCopy, pageType)
 	return (
-		<div className="music-list-container">
-			{
-				musicDataListCopy.map((item, index) =>
-					<div className="music-list" key={item.filenameOrigin}>
+		<Fragment >
+			<div className="music-list-container">
+				{
+					musicDataListCopy.map((item, index) =>
+						<div className="music-list" key={item.filenameOrigin}>
 						<div className="music-content"
 							onClick={() => checkStatus({
 								filePath: item.filePath,
@@ -520,12 +524,16 @@ const MusicPlayer = ({
 							:	<div className="move-downloading-item fa fa-remove" onClick={removeDownloadItem.bind(this, item.filename, item.filenameOrigin)}></div>
 						}
 					</div>
-				)
-			}
+					)
+				}
+			</div>
 			{
 				pageType === CONSTANT.musicOriginal.savedSongs && <div className="music-picture"></div>
 			}
-		</div>
+			{
+				!noShowMusicPlaying && showMusicPlayingFromMusicControl && <MusicPlaying fromMusicControl={true} />
+			}
+		</Fragment>
 	)
 
 }
@@ -551,6 +559,7 @@ const mapStateToProps = state => {
 		recentMusicList: state.fileServer.recentMusicList,
 		musicPageType: state.fileServer.musicPageType,
 		setMobile: state.myInfo.setMobile,
+		showMusicPlayingFromMusicControl: state.fileServer.showMusicPlayingFromMusicControl
     };
 };
 

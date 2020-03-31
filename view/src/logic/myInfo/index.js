@@ -108,7 +108,7 @@ const onPhotoURISuccess = (imageURI) => {
 export const searchShellCommand = (self, command) => {
 	const { username, token } = $getState().login;
 	const { setRole, setMobile } = $getState().myInfo;
-	if(!token) return alert("请先登录");
+	if(!token) return window.goRoute(null, "/login")
 	if(!command) return;
 	const data = Object.assign({ username: username||setMobile, token, command, role: setRole })
 	logger.info('searchShellCommand data', data)

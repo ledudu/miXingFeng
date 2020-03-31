@@ -45,8 +45,7 @@ const Music = ({ musicList, username, token, musicSubmitStatus, musicUploadProgr
 			const files = fileToUploadRef.current.files;
 			if(!files[0]) return;
 			if(!token){
-				alert("请先登录");
-				return;
+				return window.goRoute(this, "/login")
 			}
 			if(!startToUpload){
 				startToUpload = true;

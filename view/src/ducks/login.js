@@ -3,7 +3,7 @@ const USERNAME = "login/username";
 const PASSWORD = "login/password";
 const TOKEN = "login/token";
 const IS_FROM_LOGIN_PAGE = "login/isFromLoginPage";
-const LOG_OUT_Flag = 'login/logOutFlag';
+const LOG_OUT_FLAG = 'login/logOutFlag';
 const HAS_FORGET_PASSWORD = "login/hasForgetPassword"
 const REGISTER_FROM_LOGIN = "login/registerFromLogin"
 const FORGET_PASSWORD_TOKEN = "login/forgetPasswordToken"
@@ -49,7 +49,7 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {
 				isFromLoginPage: action.data
 			});
-		case LOG_OUT_Flag:
+		case LOG_OUT_FLAG:
 			return Object.assign({}, state, {
 				logOutFlag: action.data
 			});
@@ -101,7 +101,7 @@ export const updateIsFromLoginPage = data => ({
 })
 
 export const updateLogOutFlag = data => ({
-	type: LOG_OUT_Flag,
+	type: LOG_OUT_FLAG,
 	data
 })
 

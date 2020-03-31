@@ -699,7 +699,6 @@ export const replaceSocketLink = (data, logInfo="logInfo") => {
 		.then(response => {
 			if (response.data.result.response === "success") {
 				logger.info('replaceSocketLink success', logInfo)
-				localStorage.removeItem("oldUserId")
 				reconnectSocket()
 			} else {
 				logger.warn("replaceSocketLink fail", logInfo)

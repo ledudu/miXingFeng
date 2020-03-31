@@ -38,8 +38,7 @@ const FileServer = ( { fileList, fileSubmitStatus, fileUploadProgress, token, us
 
 	const submitFile = () => {
 		if(!token){
-			alert("请先登录");
-			return;
+			return window.goRoute(this, "/login")
 		}
 		if(!startToUpload){  //forbid upload more times
 			startToUpload = true;

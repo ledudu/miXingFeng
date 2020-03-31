@@ -66,7 +66,7 @@ export const loginApp = (username, password, self) => {
             } else if(response.data.result.token){
                 const result = response.data.result;
 				$dispatch(updateIsFromLoginPage(true));
-				dealtWithLogin(result, result.userProfile)
+				dealtWithLogin(result)
 				Toast.hide();
             } else {
 				alert("")
@@ -86,7 +86,8 @@ export const loginApp = (username, password, self) => {
 		})
 }
 
-export const dealtWithLogin = (result, userProfile={}) => {
+export const dealtWithLogin = (result) => {
+	const userProfile = result.userProfile || {}
 	const favoriteSongs = result.favoriteSongs || []
 	const shareNickname = userProfile.shareNickname !== false ? true : false
 	localStorage.setItem("userProfile", JSON.stringify(userProfile))
@@ -136,9 +137,11 @@ export const dealtWithLogin = (result, userProfile={}) => {
 	const original = localStorage.getItem("oldUserId") || "";
 	const newOne = (result.username || result.mobile)
 	$dispatch(updateUserId(newOne))
-	const data = { original, newOne }
-	if(original !== newOne && original){
-		replaceSocketLink(data, "login success")
+	if(!result.autoLogin){
+		const data = { original, newOne }
+		if(original !== newOne && original){
+			replaceSocketLink(data, "login success")
+		}
 	}
 	if(window.getRoute() !== "/main/sign"){
 		window.goRoute(null, "/main/sign");

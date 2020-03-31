@@ -6,6 +6,7 @@ import NavBar from "./child/navbar";
 import { CONSTANT } from "../constants/enumeration"
 import { checkSongSavedFunc } from "../logic/common"
 import { specialBackFunc } from "../services/utils"
+import { updateShowMusicPlayingFromMusicControl } from "../ducks/fileServer"
 
 const MyFinishedMusics = ({ downloadedMusicList, downloadingMusicItems }) => {
 
@@ -14,6 +15,7 @@ const MyFinishedMusics = ({ downloadedMusicList, downloadingMusicItems }) => {
 	useEffect(() => {
 		document.addEventListener("deviceready", listenBackButton, false);
 		return () => {
+			$dispatch(updateShowMusicPlayingFromMusicControl(false))
 			document.removeEventListener("deviceready", listenBackButton, false);
 			document.removeEventListener("backbutton", handleMusicBackEventFunc, false)
 		}
@@ -37,7 +39,7 @@ const MyFinishedMusics = ({ downloadedMusicList, downloadingMusicItems }) => {
 			<div className="my-download-content">
 				<div className="downloading-file-container">
 					<div className="downloading-file-title">正在下载</div>
-					{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CONSTANT.musicOriginal.musicDownloading} /> }
+					{ window.isCordova && <MusicPlayer musicDataList={downloadingMusicItems} original={CONSTANT.musicOriginal.musicDownloading} noShowMusicPlaying={true} /> }
 				</div>
 				<div className="interval-line"></div>
 				<div className="downloaded-file-container">

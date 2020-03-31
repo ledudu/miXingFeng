@@ -13,16 +13,14 @@ import {
 	getFilenameWithoutExt,
 	saveMusicToLocal,
 	secondsToTime,
-	hideMusicController,
 	touchDirection,
 	removeTouchDirection,
 	checkToShowPlayController
 } from "../logic/common"
-import { updateCurrentSongTime, updateIsHeadPhoneView } from "../ducks/fileServer"
+import { updateCurrentSongTime, updateIsHeadPhoneView, updateShowMusicPlayingFromMusicControl } from "../ducks/fileServer"
 import { IsPC, alert, specialBackFunc } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
-import { updateSavedCurrentRoute } from "../ducks/common"
 
 const MusicPlaying = ({
 	currentPlayingSong,
@@ -33,12 +31,15 @@ const MusicPlaying = ({
 	musicPageType,
 	currentSongTime,
 	isHeadPhoneView,
-	savedCurrentRoute,
 	soundInstance,
 	soundInstanceId,
-	currentMusicItemInfo
+	currentMusicItemInfo,
+	fromMusicControl,
+	showMusicPlayingFromMusicControl
 }) => {
-	let ifBool = false
+	let ifBool = false, offsetValue=window.innerWidth/2, offsetFirstValue=0
+	const windowInnerWidth = window.innerWidth
+	const windowInnerHeight = window.innerHeight
 	const touchDirectionObj = {
 		debounceTimer: null,
 		firstTimeRun: false,
@@ -56,29 +57,39 @@ const MusicPlaying = ({
 	const progressInnerPointRef = useRef()
 
 	useEffect(() => {
+		if(fromMusicControl) musicPlayingPageAnimation()
 		document.addEventListener("deviceready", listenBackButton, false);
 		playRef.current && (playRef.current.style.paddingLeft = "5px")
 		pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
-		progressRef.current.addEventListener("touchstart", start);
-		progressRef.current.addEventListener("mousedown", start);
-		progressRef.current.addEventListener("touchmove",  move);
-		progressRef.current.addEventListener("mousemove",  move);
-		progressRef.current.addEventListener("click", move);
-		window.addEventListener("touchend", end);
-		window.addEventListener("mouseup", end);
+		progressRef.current.addEventListener("touchstart", startProgress, false);
+		progressRef.current.addEventListener("mousedown", startProgress, false);
+		progressRef.current.addEventListener("touchmove",  moveProgress, false);
+		progressRef.current.addEventListener("mousemove",  moveProgress, false);
+		progressRef.current.addEventListener("click", moveProgress, false);
+		if(fromMusicControl){
+			window.addEventListener("touchstart", startPage, false);
+			window.addEventListener("touchmove",  movePage, false);
+			window.addEventListener("touchend",  endPage, false);
+		}
+		window.addEventListener("touchend", endProgress);
+		window.addEventListener("mouseup", endProgress);
 		updateProgressLine(currentSongTime)
-		hideMusicController()
 		touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
 		return () => {
 			document.removeEventListener("deviceready", listenBackButton, false);
 			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
-			progressRef.current.removeEventListener("touchstart", start);
-			progressRef.current.removeEventListener("mousedown", start);
-			progressRef.current.removeEventListener("touchmove", move);
-			progressRef.current.removeEventListener("mousemove", move);
-			progressRef.current.removeEventListener("click", move);
-			window.removeEventListener("touchend", end);
-			window.removeEventListener("mouseup", end);
+			progressRef.current.removeEventListener("touchstart", startProgress);
+			progressRef.current.removeEventListener("mousedown", startProgress);
+			progressRef.current.removeEventListener("touchmove", moveProgress);
+			progressRef.current.removeEventListener("mousemove", moveProgress);
+			progressRef.current.removeEventListener("click", moveProgress);
+			if(fromMusicControl){
+				window.removeEventListener("touchstart", startPage, false);
+				window.removeEventListener("touchmove",  movePage, false);
+				window.removeEventListener("touchend",  endPage, false);
+			}
+			window.removeEventListener("touchend", endProgress);
+			window.removeEventListener("mouseup", endProgress);
 			removeTouchDirection(musicPlayingTopRef.current)
 		}
 	}, [])
@@ -90,8 +101,10 @@ const MusicPlaying = ({
 	const touchDirectionCallback = (direction) => {
 		logger.info('touchDirectionCallback direction, isHeadPhoneView', direction, isHeadPhoneView)
 		if(direction === 'left'){
+			logger.info("switch to head phone")
 			$dispatch(updateIsHeadPhoneView(true))
 		} else if(direction === 'right'){
+			logger.info("switch to amazing baby")
 			$dispatch(updateIsHeadPhoneView(false))
 		}
 	}
@@ -110,14 +123,14 @@ const MusicPlaying = ({
 		progressInnerPointRef.current.style.left = (progressWidth * percent + 3) + "px"
 	}
 
-	const start = (e) => {
+	const startProgress = (e) => {
 		e.stopPropagation();
 		ifBool = true;
 		logger.info("鼠标按下")
 		setShowSelectedAnimation(true)
 	}
 
-	const move = (e) => {
+	const moveProgress = (e) => {
 		e.stopPropagation();
 		if (ifBool) {
 			const progressRestWidth = progressRef.current.offsetWidth - 14
@@ -144,11 +157,53 @@ const MusicPlaying = ({
 		}
 	}
 
-	const end = (e) => {
+	const endProgress = (e) => {
 		e.stopPropagation();
 		logger.info("鼠标弹起")
 		ifBool = false;
 		setShowSelectedAnimation(false)
+	}
+
+	const startPage = (e) => {
+		e.stopPropagation();
+		offsetFirstValue = e.clientX || e.touches[0].pageX
+		logger.info("startPage offsetFirstValue", offsetFirstValue)
+	}
+
+	const movePage = (e) => {
+		e.stopPropagation();
+		const x = e.clientX || e.touches[0].pageX
+		offsetValue = (x - offsetFirstValue)
+		if((offsetValue > 0) && !$getState().fileServer.isHeadPhoneView){
+			musicPlayingContainerRef.current.style.left = offsetValue + "px"
+		}
+	}
+
+	const endPage = (e) => {
+		e.stopPropagation();
+		logger.info("endPage offsetValue", offsetValue)
+		if(offsetValue < 0) return
+		musicPlayingPageAnimation()
+	}
+
+	const musicPlayingPageAnimation = () => {
+		if(offsetValue > 0 && offsetValue <= (windowInnerWidth / 2)){
+			if(offsetValue < 15){
+				offsetValue = 0
+				musicPlayingContainerRef.current.style.left = 0
+			} else {
+				offsetValue -= 15
+				musicPlayingContainerRef.current.style.left = (offsetValue + "px")
+				window.requestAnimationFrame(musicPlayingPageAnimation)
+			}
+		} else if((offsetValue > (windowInnerWidth / 2)) && (offsetValue < windowInnerWidth)){
+			musicPlayingContainerRef.current.style.left = (offsetValue + "px")
+			offsetValue += 15
+			window.requestAnimationFrame(musicPlayingPageAnimation)
+		} else if(offsetValue >= windowInnerWidth){
+			offsetValue = 0
+			$dispatch(updateShowMusicPlayingFromMusicControl(false))
+		}
 	}
 
 	const backKeyDownToPrevious = () => {
@@ -157,10 +212,14 @@ const MusicPlaying = ({
 	}
 
 	const backToMainPage = () => {
-		if(savedCurrentRoute){
-			checkToShowPlayController()
-			history.push(savedCurrentRoute)
-			$dispatch(updateSavedCurrentRoute(""))
+		if(showMusicPlayingFromMusicControl){
+			if(offsetValue >= windowInnerWidth){
+				$dispatch(updateShowMusicPlayingFromMusicControl(false))
+			} else {
+				offsetValue += 25
+				musicPlayingContainerRef.current.style.left = (offsetValue + "px")
+				setTimeout(backToMainPage, 17)
+			}
 		} else {
 			history.push("/my_download_middle_page")
 		}
@@ -198,6 +257,22 @@ const MusicPlaying = ({
 	}
 
 	const gotoPlayingOrigin = () => {
+		// 只有收藏页面才有这个动画
+		if(showMusicPlayingFromMusicControl && window.getRoute() === "/saved_songs" && musicPageType == "savedSongs"){
+			musicPlayingContainerRef.current.style.top = (offsetValue + "px")
+			offsetValue += 25
+			if(offsetValue >= windowInnerHeight){
+				$dispatch(updateShowMusicPlayingFromMusicControl(false))
+			} else {
+				setTimeout(gotoPlayingOrigin, 10)
+			}
+		} else {
+			$dispatch(updateShowMusicPlayingFromMusicControl(false))
+			gotoPlayingOriginFunc()
+		}
+	}
+
+	const gotoPlayingOriginFunc = () => {
 		const urlHash =  window.getRoute()
 		checkToShowPlayController()
 		switch(musicPageType){
@@ -239,7 +314,11 @@ const MusicPlaying = ({
 	const songIsSaved = currentMusicItemInfo.saved || currentPlayingSongOriginal === "savedSongs"
 	const currentSongFilename = currentMusicItemInfo.filename ? getFilenameWithoutExt(currentMusicItemInfo.filename) : "当前没有播放歌曲"
 	return (
-		<div className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"}`} ref={musicPlayingContainerRef}>
+		<div
+			className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"} ${fromMusicControl ? 'from-music-control' : ""}`}
+			ref={musicPlayingContainerRef}
+			style={{left: fromMusicControl ? "calc(100vw / 2)" : "0px"}}
+		>
 			<NavBar
 				centerText={currentSongFilename}
 				backToPreviousPage={backToMainPage}
@@ -314,8 +393,8 @@ const mapStateToProps = state => {
 		musicPageType: state.fileServer.musicPageType,
 		currentSongTime: state.fileServer.currentSongTime,
 		isHeadPhoneView: state.fileServer.isHeadPhoneView,
-		savedCurrentRoute: state.common.savedCurrentRoute,
-		currentMusicItemInfo: state.fileServer.currentMusicItemInfo
+		currentMusicItemInfo: state.fileServer.currentMusicItemInfo,
+		showMusicPlayingFromMusicControl: state.fileServer.showMusicPlayingFromMusicControl
     };
 };
 

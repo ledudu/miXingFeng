@@ -416,20 +416,22 @@ const SearchResourceComponent = ({
 		noMoreKuWoMusicResults,
 		moreKuWoMusicSearch,
 	}) => {
-		console.log('lastSearchResult', lastSearchResult)
 		return (
 			<Fragment>
 				{
-					lastSearchResult[2]['lastQQMusicSearchResult'].length !==0 && <div className="online-music-container">
+					<div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">QQ音乐</div>
-						<MusicPlayer musicDataList={lastSearchResult[2]['lastQQMusicSearchResult']} original={CONSTANT.musicOriginal.qqMusic} pageType={origin} />
+						<MusicPlayer
+							musicDataList={lastSearchResult[2]['lastQQMusicSearchResult']}
+							original={CONSTANT.musicOriginal.qqMusic} pageType={origin}
+						/>
 						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.qqMusic : "qqMusicSearchAll")}>
-							{!noMoreQQMusicResults && <i className={`fa fa-search ${moreQQMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
+							{(!noMoreQQMusicResults && lastSearchResult[2]['lastQQMusicSearchResult'].length) ? <i className={`fa fa-search ${moreQQMusicSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 							{
 								(moreQQMusicSearch && !noMoreQQMusicResults)
 								?	<span className="searching-text">正在查询...</span>
-								:	noMoreQQMusicResults
+								:	(noMoreQQMusicResults || !lastSearchResult[2]['lastQQMusicSearchResult'].length)
 								?	null
 								:	<span className="more-results-text">更多结果</span>
 							}
@@ -437,16 +439,21 @@ const SearchResourceComponent = ({
 					</div>
 				}
 				{
-					lastSearchResult[3]['lastNetEaseCloudSearchResult'].length !==0 && <div className="online-music-container">
+					<div className="online-music-container">
 						<div className="interval-line first-line"></div>
 						<div className="online-music-header">网易云</div>
-						<MusicPlayer musicDataList={lastSearchResult[3]['lastNetEaseCloudSearchResult']} original={CONSTANT.musicOriginal.netEaseCloud} pageType={origin} />
+						<MusicPlayer
+							musicDataList={lastSearchResult[3]['lastNetEaseCloudSearchResult']}
+							original={CONSTANT.musicOriginal.netEaseCloud}
+							pageType={origin}
+							noShowMusicPlaying={true}
+						/>
 						<div className="online-music-more-btn" onClick={() => showMoreSearchResult(origin === "onlineMusic" ? CONSTANT.musicOriginal.netEaseCloud : "netEaseCloudSearchAll")}>
-							{!noMoreNetEaseCloudResults && <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i>}
+							{(!noMoreNetEaseCloudResults && lastSearchResult[3]['lastNetEaseCloudSearchResult'].length) ? <i className={`fa fa-search ${moreNetEaseCloudSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 							{
 								(moreNetEaseCloudSearch && !noMoreNetEaseCloudResults)
 								?	<span className="searching-text">正在查询...</span>
-								:	noMoreNetEaseCloudResults
+								:	(noMoreNetEaseCloudResults || !lastSearchResult[3]['lastNetEaseCloudSearchResult'].length)
 								?	null
 								:	<span className="more-results-text">更多结果</span>
 							}
@@ -454,16 +461,20 @@ const SearchResourceComponent = ({
 					</div>
 				}
 				{
-					lastSearchResult[4]['lastKuGouMusicSearchResult'].length !==0 && <div className="online-music-container">
+					<div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">酷狗音乐</div>
-						<MusicPlayer musicDataList={lastSearchResult[4]['lastKuGouMusicSearchResult']} original={CONSTANT.musicOriginal.kuGouMusic} pageType={origin} />
+						<MusicPlayer
+							musicDataList={lastSearchResult[4]['lastKuGouMusicSearchResult']}
+							original={CONSTANT.musicOriginal.kuGouMusic} pageType={origin}
+							noShowMusicPlaying={true}
+						/>
 						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuGouMusic : "kuGouMusicSearchAll")}>
-							{!noMoreKuGouMusicResults && <i className={`fa fa-search ${moreKuGouMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
+							{(!noMoreKuGouMusicResults && lastSearchResult[4]['lastKuGouMusicSearchResult'].length) ? <i className={`fa fa-search ${moreKuGouMusicSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 							{
 								(moreKuGouMusicSearch && !noMoreKuGouMusicResults)
 								?	<span className="searching-text">正在查询...</span>
-								:	noMoreKuGouMusicResults
+								:	(noMoreKuGouMusicResults || !lastSearchResult[4]['lastKuGouMusicSearchResult'].length)
 								?	null
 								:	<span className="more-results-text">更多结果</span>
 							}
@@ -471,16 +482,20 @@ const SearchResourceComponent = ({
 					</div>
 				}
 				{
-					lastSearchResult[5]['lastKuWoMusicSearchResult'].length !==0 && <div className="online-music-container">
+					<div className="online-music-container">
 						<div className="interval-line"></div>
 						<div className="online-music-header">酷我音乐</div>
-						<MusicPlayer musicDataList={lastSearchResult[5]['lastKuWoMusicSearchResult']} original={CONSTANT.musicOriginal.kuWoMusic} pageType={origin} />
+						<MusicPlayer
+							musicDataList={lastSearchResult[5]['lastKuWoMusicSearchResult']}
+							original={CONSTANT.musicOriginal.kuWoMusic} pageType={origin}
+							noShowMusicPlaying={true}
+						/>
 						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.kuWoMusic : "kuWoMusicSearchAll")}>
-							{!noMoreKuWoMusicResults && <i className={`fa fa-search ${moreKuWoMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
+							{(!noMoreKuWoMusicResults && lastSearchResult[5]['lastKuWoMusicSearchResult'].length) ? <i className={`fa fa-search ${moreKuWoMusicSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 							{
 								(moreKuWoMusicSearch && !noMoreKuWoMusicResults)
 								?	<span className="searching-text">正在查询...</span>
-								:	noMoreKuWoMusicResults
+								:	(noMoreKuWoMusicResults || !lastSearchResult[5]['lastKuWoMusicSearchResult'].length)
 								?	null
 								:	<span className="more-results-text">更多结果</span>
 							}
@@ -512,7 +527,7 @@ const SearchResourceComponent = ({
 				{
 					isSearching
 					? 	<div className="searching">正在查询...</div>
-					: 	lastSearchResult.length
+					: 	(lastSearchResult.length || !lastSearchString)
 					?	<div className="search-result-content">
 							{
 								type === "file"
@@ -521,29 +536,29 @@ const SearchResourceComponent = ({
 								?	<MusicPlayer musicDataList={lastSearchResult} original={CONSTANT.musicOriginal.musicSearch} pageType="onlySearchShareMusic" />
 								:	type === 'onlineMusic'
 								? 	onlineMusicComponent({
-									origin: "onlineMusic",
-									lastSearchResult,
-									noMoreNetEaseCloudResults,
-									moreNetEaseCloudSearch,
-									noMoreQQMusicResults,
-									moreQQMusicSearch,
-									noMoreKuGouMusicResults,
-									moreKuGouMusicSearch,
-									noMoreKuWoMusicResults,
-									moreKuWoMusicSearch,
-								})
+										origin: "onlineMusic",
+										lastSearchResult,
+										noMoreNetEaseCloudResults,
+										moreNetEaseCloudSearch,
+										noMoreQQMusicResults,
+										moreQQMusicSearch,
+										noMoreKuGouMusicResults,
+										moreKuGouMusicSearch,
+										noMoreKuWoMusicResults,
+										moreKuWoMusicSearch,
+									})
 								:	type === "searchAll"
 								?	<Fragment>
 										{
-											lastSearchResult[0]['lastSearchAllFileResult'].length !==0 && <div className="online-music-container">
+											<div className="online-music-container">
 												<div className="online-music-header">文件</div>
 												<FileManage fileDataList={lastSearchResult[0]['lastSearchAllFileResult']} original="fileSearch" type="searchAll" />
 												<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult("file")}>
-													{!noMoreSearchAllFileResults && <i className={`fa fa-search ${moreFileSearch && "searching-status"}`} aria-hidden="true"></i>}
+													{(!noMoreSearchAllFileResults && lastSearchResult[0]['lastSearchAllFileResult'].length) ? <i className={`fa fa-search ${moreFileSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 													{
 														(moreFileSearch && !noMoreSearchAllFileResults)
 														?	<span className="searching-text">正在查询...</span>
-														:	noMoreSearchAllFileResults
+														:	(noMoreSearchAllFileResults || !lastSearchResult[0]['lastSearchAllFileResult'].length)
 														?	null
 														:	<span className="more-results-text">更多结果</span>
 													}
@@ -551,19 +566,20 @@ const SearchResourceComponent = ({
 											</div>
 										}
 										{
-											lastSearchResult[1]['lastSearchAllMusicResult'].length !==0 && <div className="online-music-container">
+											<div className="online-music-container">
 												<div className="interval-line"></div>
 												<div className="online-music-header">音乐</div>
 												< MusicPlayer musicDataList = {lastSearchResult[1]['lastSearchAllMusicResult']}
 													original = {CONSTANT.musicOriginal.musicSearch}
 													pageType = "onlineMusicSearchALl"
+													noShowMusicPlaying={true}
 												/>
 												<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult("music")}>
-													{!noMoreSearchAllMusicResults && <i className={`fa fa-search ${moreMusicSearch && "searching-status"}`} aria-hidden="true"></i>}
+													{(!noMoreSearchAllMusicResults && lastSearchResult[1]['lastSearchAllMusicResult'].length) ? <i className={`fa fa-search ${moreMusicSearch && "searching-status"}`} aria-hidden="true"></i> : null}
 													{
 														(moreMusicSearch && !noMoreSearchAllMusicResults)
 														?	<span className="searching-text">正在查询...</span>
-														:	noMoreSearchAllMusicResults
+														:	(noMoreSearchAllMusicResults || !lastSearchResult[1]['lastSearchAllMusicResult'].length)
 														?	null
 														:	<span className="more-results-text">更多结果</span>
 													}

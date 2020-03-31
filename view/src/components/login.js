@@ -5,7 +5,7 @@ import InputComponent from "./child/inputComponent"
 import { loginApp } from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { autoLogin } from "../logic/common"
-import { updateRegisterFromLogin, updateUserId, updateToken, updatePassword, updateIsFromLoginPage } from "../ducks/login"
+import { updateRegisterFromLogin, updateUserId, updateToken, updatePassword, updateIsFromLoginPage, updateLogOutFlag } from "../ducks/login"
 import { backToPreviousPage, alertDialog, generateRandomUserId, replaceSocketLink } from "../services/utils";
 import { updateCarrierOperator, updateSetMobile } from "../ducks/myInfo"
 
@@ -30,15 +30,16 @@ class Login extends Component {
 		if (this.props.logOutFlag) {
 			//  为了加快注销速度，把更换websocket id的任务放在注销后跳往登录的逻辑里
 			const original = this.props.userId || ""
-			localStorage.setItem("oldUserId", original)
 			const newOne = generateRandomUserId()
 			$dispatch(updateUserId(newOne))
+			localStorage.setItem("oldUserId", newOne)
 			logger.info("Login replace userId original, newOne", original, newOne)
 			const data = {
 				original,
 				newOne
 			}
 			replaceSocketLink(data, 'logout case')
+			$dispatch(updateLogOutFlag(false));
 		}
     }
 

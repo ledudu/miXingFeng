@@ -1,9 +1,8 @@
 import React, { useRef } from 'react';
 import { connect } from "react-redux";
-import { useHistory } from "react-router-dom"
 import HearSvg from "./heartSvg"
+import { updateShowMusicPlayingFromMusicControl } from "../../ducks/fileServer"
 import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt } from "../../logic/common"
-import { updateSavedCurrentRoute } from "../../ducks/common"
 
 const MusicController = ({
 	currentPlayingSong,
@@ -16,7 +15,6 @@ const MusicController = ({
 	soundInstanceId,
 	currentMusicItemInfo,
 }) => {
-	const history = useHistory()
 	window.musicControllerRef = useRef()
 
 	const pause = (e) => {
@@ -34,8 +32,7 @@ const MusicController = ({
 	}
 
 	const gotoPlayingMusicPage = () => {
-		$dispatch(updateSavedCurrentRoute(window.getRoute()))
-		history.push("/music_playing")
+		$dispatch(updateShowMusicPlayingFromMusicControl(true))
 	}
 
 	let savedMusicFilenameOriginalArr = []

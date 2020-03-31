@@ -391,7 +391,8 @@ export const autoLogin = function(token){
 			.then((response) => {
 				let result = response.data.result;
 				if (result.token) {
-					dealtWithLogin(result, result.userProfile)
+					result.autoLogin = true
+					dealtWithLogin(result)
 					res()
 				} else if (result === 'token_expired') {
 					window.logger.warn("身份已过期,请重新登录");
@@ -1609,7 +1610,7 @@ export const saveMusicToLocal = (
 	const { token } = $getState().login
 	let isDownloading = false, musicDownloaded=false
 	if(payDownload) return alert("尊重版权,人人有责")
-	if(!token) return alert("请先登录")
+	if(!token) return window.goRoute(null, "/login")
 	filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
 	// 先判断音乐是否正在下载，再判断音乐是否已下载
 	if(window.isCordova){

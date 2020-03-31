@@ -610,7 +610,7 @@ class Sign extends Component {
 	}
 
 	getOnlinePersons = () => {
-		if(!this.props.token) return alert("请先登录")
+		if(!this.props.token) return window.goRoute(this, "/login")
 		window.goRoute(this, "/show_online_persons")
 	}
 
@@ -663,7 +663,7 @@ class Sign extends Component {
 										(!window.isCordova && showDownloadAppTip)
 										?	<div className="show-download-app-tips" onClick={this.downloadApp}>
 												<NoticeBar mode="closable" onClick={(e) => this.cancelShowTip(e)}>
-													下载app体验更佳
+													app打开体验更佳
 												</NoticeBar>
 											</div>
 										: null
@@ -774,7 +774,6 @@ const mapStateToProps = state => {
 		savedCurrentRoute: state.common.savedCurrentRoute,
 		isFromLoginPage: state.login.isFromLoginPage,
 		isSignedUp: state.sign.isSignedUp,
-		logOutFlag: state.login.logOutFlag,
 		alwaysShowAdsPage: state.common.alwaysShowAdsPage,
 		allowGetPosition: state.common.allowGetPosition,
 		adNumber: state.sign.adNumber,

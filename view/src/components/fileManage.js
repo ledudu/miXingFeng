@@ -113,7 +113,7 @@ const FileManage = ({
 										})
 								})
 							} else {
-								if(!token) return alert("请先登录")
+								if(!token) return window.goRoute(this, "/login")
 								const dataInfo = {
 									username: username || setMobile,
 									token,
@@ -191,7 +191,7 @@ const FileManage = ({
 	}
 
 	const saveFileToLocalFunc = async (filename, uploadUsername, fileSize, filePath, retry, filenameOrigin) => {
-		if(!token) return alert("请先登录")
+		if(!token) return window.goRoute(this, "/login")
 		if(!window.isCordova){
 			return saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false, {})
 		}

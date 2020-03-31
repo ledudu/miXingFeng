@@ -52,6 +52,7 @@ const CURRENT_MUSIC_ITEM_INFO = "fileServer/currentMusicItemInfo"
 const IS_HEAD_PHONE_VIEW = "fileServer/isHeadPhoneView"
 const DOWNLOADED_FILE_LIST = "fileServer/downloadedFileList"
 const DOWNLOADING_FILE_LIST = "fileServer/downloadingFileList"
+const SHOW_MUSIC_PLAYING_FROM_MUSIC_CONTROL  = "fileServer/showMusicPlayingFromMusicControl"
 
 let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], downloadingMusicItems=[]
 try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
@@ -127,7 +128,8 @@ const initialState = () => ({
 	currentMusicItemInfo: {},
 	isHeadPhoneView: true,
 	downloadedFileList: [],
-	downloadingFileList: []
+	downloadingFileList: [],
+	showMusicPlayingFromMusicControl: false
 });
 
 // Reducer
@@ -261,6 +263,8 @@ export default function reducer(state = initialState(), action = {}) {
 		case DOWNLOADING_FILE_LIST:
 			localStorage.setItem("downloadingFileList", JSON.stringify(action.data.slice(0, 50)))
 			return Object.assign({}, state, {downloadingFileList: action.data});
+		case SHOW_MUSIC_PLAYING_FROM_MUSIC_CONTROL:
+			return Object.assign({}, state, {showMusicPlayingFromMusicControl: action.data});
 		default:
 			return state;
 	}
@@ -529,5 +533,10 @@ export const updateDownloadedFileList = data => ({
 
 export const updateDownloadingFileList = data => ({
 	type: DOWNLOADING_FILE_LIST,
+	data
+})
+
+export const updateShowMusicPlayingFromMusicControl = data => ({
+	type: SHOW_MUSIC_PLAYING_FROM_MUSIC_CONTROL,
 	data
 })

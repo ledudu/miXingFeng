@@ -87,17 +87,6 @@
 	overflow-x: hidden;
 	width: 100%;
 	position: relative;
-	.music-picture{
-		width: 100%;
-		background-image: url(../imgs/ad0.png);
-		-webkit-filter: blur(38px);
-		filter: blur(38px);
-		height: 100%;
-		background-size: cover;
-		position: absolute;
-		top: 0;
-		z-index:1;
-	}
 	.music-list{
 		display: flex;
 		position: relative;
@@ -315,6 +304,11 @@
 			color: rgb(128,128,128)
 		}
 	}
+}
+
+.music-picture{
+	width: 100%;
+	background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
 }
 
 .saved-song-container{
@@ -874,6 +868,14 @@
 
 .music-playing-container.amazing-baby-view{
 	background-image: linear-gradient(to top, #fbc2eb 0%, #81AFED 100%);
+}
+
+.music-playing-container.music-playing-container{
+	width: 100%;
+	height: 100vh;
+    position: absolute;
+	z-index: 1000;
+	top: 0;
 }
 
 @keyframes opacityChange{

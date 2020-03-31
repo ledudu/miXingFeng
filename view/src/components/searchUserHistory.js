@@ -30,7 +30,7 @@ class SearchUserHistory extends Component {
     }
 
     searchRecord = (slice=30) => {
-		if(!this.props.token) return alert("请先登录")
+		if(!this.props.token) return window.goRoute(this, "/login")
 		const { searchString } = this.state
         return searchFunc(searchString, slice)
             .then(result => {
@@ -68,7 +68,7 @@ class SearchUserHistory extends Component {
         var e = evt;
         if (e.keyCode === 13) {
 			this.blur()
-			if(!this.props.token) return alert("请先登录")
+			if(!this.props.token) return window.goRoute(this, "/login")
 			this.setState({
 				clickShowMoreCount: 1
 			})

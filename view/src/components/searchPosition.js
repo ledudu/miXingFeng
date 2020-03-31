@@ -32,7 +32,7 @@ class SearchPosition extends Component {
 
     searchPosition = () => {
 		const { token, username, setMobile } = this.props
-		if(!token) return alert("请先登录")
+		if(!token) return window.goRoute(this, "/login")
 		const { searchString } = this.state
 		this.setState({
 			isSearching: true
@@ -63,7 +63,7 @@ class SearchPosition extends Component {
     keyDownEvent = (evt) => {
         var e = evt;
         if (e.keyCode === 13) {
-			if(!this.props.token) return alert("请先登录")
+			if(!this.props.token) return window.goRoute(this, "/login")
 			this.blur()
             return this.searchPosition()
         }
