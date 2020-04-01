@@ -20,9 +20,19 @@ class CheckEmailOrMobile extends React.Component {
 		super(props)
 		this.isEmail = props.type === "email"
 		this.isMobile = props.type === "mobile"
+		this.state = {
+			leftTime: 60
+		}
 	}
 
 	componentDidMount(){
+		const intervalTimer = setInterval(() => {
+			let { leftTime } = this.state
+			if(leftTime <= 0) return clearInterval(intervalTimer)
+			this.setState({
+				leftTime: --leftTime
+			})
+		}, 1000)
 		this[`inputValueRef1`].style.borderBottom = "1px solid red"
 		this.inputValueRef1.focus()
 	}
@@ -188,10 +198,11 @@ class CheckEmailOrMobile extends React.Component {
 	}
 
     render() {
+		const { leftTime } = this.state
 		const { setTempEmail, setTempMobile } = this.props;
         return (
             <div className="check-email-input-container">
-                <NavBar centerText="填写验证码" backToPreviousPage={this.backToMainPage} />
+                <NavBar centerText="填写验证码" backToPreviousPage={this.backToMainPage} rightText={leftTime || ""} />
 				<div className="check-email-input-content">
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef1 = ref} onKeyDown={(e) => this.switchNextInput(e, 1)} />
 					<input className="check-email-input" maxLength={1} ref={ref => this.inputValueRef2 = ref} onKeyDown={(e) => this.switchNextInput(e, 2)} />

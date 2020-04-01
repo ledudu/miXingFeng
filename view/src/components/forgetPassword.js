@@ -2,12 +2,12 @@ import React, { Component, createRef } from 'react';
 import { Button, Toast } from "antd-mobile";
 import NavBar from "./child/navbar"
 import InputComponent from "./child/inputComponent"
-import { networkErr, backToPreviousPage} from "../services/utils";
+import { networkErr, backToPreviousPage, alertDialog} from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail, updateSetTempMobile } from "../ducks/myInfo";
 import { updateHasForgetPassword, updateForgetPasswordToken, updateForgetPasswordTokenOrigin } from "../ducks/login"
-import { checkEmail, checkMobilePhone } from "../logic/common"
+import { checkEmail, checkMobilePhone, setTryMobileOrEmailTimes } from "../logic/common"
 
 export default class ForgetPassword extends Component {
 
@@ -57,6 +57,11 @@ export default class ForgetPassword extends Component {
 		let isEmail, isMobile
 		if(checkEmail(emailValue)) isEmail = true
 		if(checkMobilePhone(emailValue)) isMobile = true
+		let { tryMobileOrEmailTimes=0 } = $getState().common
+		if(tryMobileOrEmailTimes >= 3){
+			// 允许每两分钟属发送三次验证码
+			return alertDialog("您的操作太频繁，请稍后重试")
+		}
 		if(!isEmail && !isMobile){
 			return alert("手机号或邮箱格式不正确")
 		} else {
@@ -79,6 +84,7 @@ export default class ForgetPassword extends Component {
 						} else if(result.response === "no_such_mobile"){
 							return alert("手机号不存在")
 						} else if(result.response === "send_email_success"){
+							setTryMobileOrEmailTimes(tryMobileOrEmailTimes)
 							$dispatch(updateForgetPasswordTokenOrigin("email"))
 							alert("验证码已发送邮箱，请注意查收")
 							$dispatch(updateSetTempEmail(emailValue));
@@ -87,6 +93,7 @@ export default class ForgetPassword extends Component {
 							$dispatch(updateForgetPasswordToken(result.emailToken))
 							window.goRoute(this, "/check_email")
 						} else if(result.response === "send_mobile_success"){
+							setTryMobileOrEmailTimes(tryMobileOrEmailTimes)
 							$dispatch(updateForgetPasswordTokenOrigin("mobile"))
 							alert("验证码已发送，请注意查收")
 							$dispatch(updateSetTempMobile(emailValue));

@@ -59,6 +59,8 @@ class Login extends Component {
     keyDownEvent = (evt) => {
         var e = evt;
         if (e.keyCode === 13) {
+			this.loginUsernameRef.current.blur()
+			this.loginPasswordRef.current.blur()
             this.login();
         }
     }

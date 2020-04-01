@@ -8,7 +8,8 @@ import {
 	updateAllowGetPosition,
 	updateSharedNicknames,
 	updateHasDownloadedPackage,
-	updateAppUpdating
+	updateAppUpdating,
+	updateTryMobileOrEmailTimes
 } from "../../ducks/common"
 import {
 	networkErr,
@@ -1937,4 +1938,11 @@ export const optimizeLoadPerformance = (dataList, firstRender, showNumbers, setF
 	}
 	dataListCopy = removeDuplicateObjectList(dataListCopy, 'filenameOrigin')
 	return dataListCopy
+}
+
+export const setTryMobileOrEmailTimes = (tryMobileOrEmailTimes) => {
+	$dispatch(updateTryMobileOrEmailTimes(++tryMobileOrEmailTimes))
+	setTimeout(() => {
+		$dispatch(updateTryMobileOrEmailTimes(0))
+	}, 1000 * 60 * 2)
 }

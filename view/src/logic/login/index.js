@@ -9,10 +9,11 @@ import { updatePassword,
 	updateLogOutFlag,
 	updateForgetPasswordToken,
 	updateForgetPasswordTokenOrigin,
-	updateUserId
+	updateUserId,
+	updateRetryLoginTimes
 } from "../../ducks/login";
 import {
-	networkErr
+	networkErr, confirm
 } from "../../services/utils";
 import {
 	updateSetNickname,
@@ -42,12 +43,27 @@ export const loginApp = (username, password, self) => {
         alert("密码不能为空");
         return;
 	}
-	self.setState({
-		loginStatus: "登录中..."
-	})
 	loginFlag = true;
 	username = username.trim()
 	password = password.trim()
+	let { retryLoginTimes } = $getState().login
+	let continueToNext = true
+	if(retryLoginTimes >= 7){
+		continueToNext = false
+		loginFlag = false
+		if(retryLoginTimes === 7){
+			setTimeout(() => {
+				$dispatch(updateRetryLoginTimes(0))
+			}, 1000 * 60 * 5)
+		}
+		return confirm("提示", "密码输入的错误次数过多，建议找回密码或稍后再试", "去找回", () => {
+			return window.goRoute(self, "/forget_password")
+		})
+	}
+	if(!continueToNext) return
+	self.setState({
+		loginStatus: "登录中..."
+	})
 	const data = Object.assign({}, { username }, { pwd: password })
     Toast.loading('加载中...', CONSTANT.toastLoadingTime, () => {});
     axios.post(HTTP_URL.loginVerify ,(data))
@@ -56,20 +72,31 @@ export const loginApp = (username, password, self) => {
 				loginStatus: "登录"
 			})
             if (response.data.result.response === "error_username" || response.data.result.response === "error_password") {
-                Toast.hide();
-                alert("用户名或密码错误");
+				Toast.hide();
+				retryLoginTimes++
+				if(retryLoginTimes === 5){
+					alert("密码已输错5次，还有3次机会")
+				} else if(retryLoginTimes === 6){
+					alert("密码已输错6次，还有2次机会")
+				} else if(retryLoginTimes === 7){
+					alert("密码已输错7次，还有1次机会")
+				} else if(retryLoginTimes < 5){
+					alert("用户名或密码错误");
+				}
+				$dispatch(updateRetryLoginTimes(retryLoginTimes))
                 return;
             } else if (response.data.result.response === "empty_username") {
                 Toast.hide();
                 alert("用户名不能为空");
                 return;
             } else if(response.data.result.token){
+				$dispatch(updateRetryLoginTimes(0))
                 const result = response.data.result;
 				$dispatch(updateIsFromLoginPage(true));
 				dealtWithLogin(result)
 				Toast.hide();
             } else {
-				alert("")
+				alertDebug("unknown error")
 				logger.error("loginApp loginVerify response", response.data)
             }
 		})

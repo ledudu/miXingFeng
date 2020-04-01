@@ -24,6 +24,7 @@ const IS_FROM_SYSTEM_SETUP = "common/isFromSystemSetup"
 const AD_PIC_SRC = "common/adPicSrc"
 const LOADED_IN_WIFI = "common/loadedInWifi"
 const UPGRADE_PROGRESS_PERCENT = "common/upgradeProgressPercent"
+const TRY_MOBILE_OR_EMAIL_TIMES = "common/tryMobileOrEmailTimes"
 
 const appVersion = localStorage.getItem("appVersion") || ""
 
@@ -85,7 +86,8 @@ const initialState = () => ({
 	isFromSystemSetup: false,
 	adPicSrc: `./ads/ad0.png`,
 	loadedInWifi: "",
-	upgradeProgressPercent: ""
+	upgradeProgressPercent: "",
+	tryMobileOrEmailTimes: 0
 });
 
 // Reducer
@@ -212,6 +214,10 @@ export default function reducer(state = initialState(), action = {}) {
 			return Object.assign({}, state, {
 				upgradeProgressPercent: action.data
 			});
+		case TRY_MOBILE_OR_EMAIL_TIMES:
+			return Object.assign({}, state, {
+				tryMobileOrEmailTimes: action.data
+			});
 		default:
 			return state;
 	}
@@ -333,7 +339,12 @@ export const updateLoadedInWifi = data => ({
 	data
 })
 
-export const updateUpgradeProgressPercent= data => ({
+export const updateUpgradeProgressPercent = data => ({
 	type: UPGRADE_PROGRESS_PERCENT,
+	data
+})
+
+export const updateTryMobileOrEmailTimes = data => ({
+	type: TRY_MOBILE_OR_EMAIL_TIMES,
 	data
 })

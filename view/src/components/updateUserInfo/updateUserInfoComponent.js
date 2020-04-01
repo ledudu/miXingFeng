@@ -5,7 +5,7 @@ import { HTTP_URL } from "../../constants/httpRoute";
 import { networkErr, alertDialog, confirm } from "../../services/utils";
 import { updateToken } from "../../ducks/login";
 import { CONSTANT } from "../../constants/enumeration";
-import { checkEmail, checkMobilePhone } from "../../logic/common"
+import { checkEmail, checkMobilePhone, setTryMobileOrEmailTimes } from "../../logic/common"
 
 class UpdateUserInfoComponent extends React.Component {
 
@@ -30,7 +30,8 @@ class UpdateUserInfoComponent extends React.Component {
 
     saveUserInfo = () => {
         const {infoLength, infoErrorTip, updateUserInfoDispatch, pageTitle, name, backToMainPage, self, registerFromLogin} = this.props;
-        let value = this.state.inputValue
+		let value = this.state.inputValue
+		let { tryMobileOrEmailTimes=0 } = $getState().common
         if(value.length > infoLength) {
             return alert(infoErrorTip)
         } else if(!value){
@@ -40,12 +41,18 @@ class UpdateUserInfoComponent extends React.Component {
                 return alert(infoErrorTip)
             } else if(value === $getState().myInfo.setMobile){
 				return;
+			} else if(tryMobileOrEmailTimes >= 3){
+				// 允许每两分钟属发送三次验证码
+				return alertDialog("您的操作太频繁，请稍后重试")
 			}
         } else if (pageTitle === "填写邮箱"){
             if(checkEmail(value) === false){
                 return alert("邮箱格式不正确")
             } else if(value === $getState().myInfo.setEmail){
 				return;
+			} else if(tryMobileOrEmailTimes >= 3){
+				// 允许每两分钟属发送三次验证码
+				return alertDialog("您的操作太频繁，请稍后重试")
 			}
         } else if (pageTitle === "设置用户名"){
             if(!/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/.test(value)){
@@ -91,6 +98,7 @@ class UpdateUserInfoComponent extends React.Component {
 						Toast.hide();
 						alertDialog("此用户名已被注册，请更换后重试")
 					} else if(result.response === "send_email_success"){
+						setTryMobileOrEmailTimes(tryMobileOrEmailTimes)
 						Toast.hide();
 						alert("验证码已发送邮箱，请注意查收")
 						$dispatch(updateToken(result.token));
@@ -107,6 +115,7 @@ class UpdateUserInfoComponent extends React.Component {
 							window.goRoute(self, "/login")
 						})
 					} else if(result.response === "send_mobile_success"){
+						setTryMobileOrEmailTimes(tryMobileOrEmailTimes)
 						Toast.hide();
 						alert("手机验证码已发送，请注意查收")
             	        $dispatch(updateUserInfoDispatch(value));

@@ -8,7 +8,8 @@ const HAS_FORGET_PASSWORD = "login/hasForgetPassword"
 const REGISTER_FROM_LOGIN = "login/registerFromLogin"
 const FORGET_PASSWORD_TOKEN = "login/forgetPasswordToken"
 const FORGET_PASSWORD_TOKEN_ORIGIN = "login/forgetPasswordTokenOrigin"
-const USER_ID = "sign/userId"
+const USER_ID = "login/userId"
+const RETRY_LOGIN_TIMES = "login/retryLoginTimes"
 
 const username = localStorage.getItem("username") || ""
 const userId = localStorage.getItem("userId") || ""
@@ -25,6 +26,7 @@ const initialState = () => ({
 	forgetPasswordToken: "",
 	forgetPasswordTokenOrigin: "",
 	userId,
+	retryLoginTimes: 0
 });
 
 // Reducer
@@ -73,6 +75,10 @@ export default function reducer(state = initialState(), action = {}) {
 			localStorage.setItem("userId", (action.data || ""));
 			return Object.assign({}, state, {
 				userId: action.data
+			});
+		case RETRY_LOGIN_TIMES:
+			return Object.assign({}, state, {
+				retryLoginTimes: action.data
 			});
 		default:
 			return state;
@@ -127,5 +133,10 @@ export const updateForgetPasswordTokenOrigin = data => ({
 
 export const updateUserId = data => ({
 	type: USER_ID,
+	data
+})
+
+export const updateRetryLoginTimes = data => ({
+	type: RETRY_LOGIN_TIMES,
 	data
 })
