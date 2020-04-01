@@ -121,7 +121,9 @@ class Login extends Component {
 				if(response.code !== 6000 && response.code !== 6002){
 					logger.warn("一键登录失败 response", response)
 					logger.warn("一键登录失败 response.code", response.code)
-					return alertDialog("登录失败，请稍后重试")
+					// return alertDialog("登录失败，请稍后重试")
+					$dispatch(updateRegisterFromLogin(true))
+					window.goRoute(this, "/set_mobile")
 				} else if(response.code === 6000){
 					let mobileCarrierOperator = ""
 					if(response.operator === "CM"){

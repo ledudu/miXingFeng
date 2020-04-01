@@ -1,32 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import MusicPlayer from "./musicPlayer"
 import NavBar from "./child/navbar";
 import { CONSTANT } from "../constants/enumeration"
-import { stopMusic, } from "../logic/common"
+import { stopMusic } from "../logic/common"
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
-import { confirm, specialBackFunc } from "../services/utils"
+import { confirm } from "../services/utils"
 import { updateRecentMusicList, updateCurrentMusicItemInfo } from "../ducks/fileServer"
 
 const RecentMusicPlayed = ({ recentMusicList, musicPageType }) => {
+
 	const history = useHistory()
 
-	useEffect(() => {
-		document.addEventListener("deviceready", listenBackButton, false);
-		return () => {
-			document.removeEventListener("deviceready", listenBackButton, false);
-			document.removeEventListener("backbutton", handleMusicBackEventFunc, false)
-		}
-	}, [])
-
-	const listenBackButton = () => {
-		document.addEventListener("backbutton", handleMusicBackEventFunc, false)
-	}
-
-	const handleMusicBackEventFunc = (isNav) => {
+	const handleMusicBackEventFunc = () => {
 		if(!window.cancelMenuFirst){
-			if(isNav !== "nav") specialBackFunc()
 			history.push("/my_download_middle_page")
 		}
 	}
@@ -62,12 +50,17 @@ const RecentMusicPlayed = ({ recentMusicList, musicPageType }) => {
 		<div className="recent-play-container">
 			<NavBar
 				centerText="最近播放"
-				backToPreviousPage={handleMusicBackEventFunc.bind(null, "nav")}
+				backToPreviousPage={handleMusicBackEventFunc}
 				rightText="清空"
 				rightTextFunc={clearAllRecentRecords}
 			/>
 			<div className="recent-play-content">
-				<MusicPlayer musicDataList={recentMusicListCopy} original={CONSTANT.musicOriginal.musicRecent} pageType={CONSTANT.musicOriginal.musicRecent} />
+				<MusicPlayer
+					musicDataList={recentMusicListCopy}
+					original={CONSTANT.musicOriginal.musicRecent}
+					pageType={CONSTANT.musicOriginal.musicRecent}
+					myMusicPage={true}
+				/>
 			</div>
 		</div>
 	);

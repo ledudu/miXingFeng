@@ -148,7 +148,10 @@ export const dealtWithLogin = (result) => {
 	}
 }
 
-export const registerUsername = (that, usernameValue, pwdValue, pwdValueAgain) => {
+export const registerUsername = (that, usernameValue="", pwdValue="", pwdValueAgain="") => {
+	usernameValue = usernameValue.replace(/\s/g, "")
+	pwdValue = pwdValue.replace(/\s/g, "")
+	pwdValueAgain = pwdValueAgain.replace(/\s/g, "")
     if (!usernameValue) {
         alert("用户名不能为空");
         return;

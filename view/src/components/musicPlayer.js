@@ -17,7 +17,8 @@ import {
 import {
 	confirm,
 	networkErr,
-	onBackKeyDown
+	onBackKeyDown,
+	specialBackFunc
 } from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
@@ -65,7 +66,9 @@ const MusicPlayer = ({
 	lastSearchAllMusicResult,
 	recentMusicList,
 	showMusicPlayingFromMusicControl,
-	noShowMusicPlaying=false
+	noShowMusicPlaying=false,
+	myMusicPage=false,
+	searchMusicPage=false
 }) => {
 
 	const history = useHistory()
@@ -76,7 +79,32 @@ const MusicPlayer = ({
 		if(original !== CONSTANT.musicOriginal.musicDownloading){
 			if(soundInstance) getMusicCurrentPlayProcess(false)
 		}
-	})
+		document.addEventListener("deviceready", listenBackButton, false);
+		return () => {
+			document.removeEventListener("deviceready", listenBackButton, false);
+			document.removeEventListener("backbutton", handleMusicBackEventFunc, false)
+		}
+	}, [])
+
+	const listenBackButton = () => {
+		document.addEventListener("backbutton", handleMusicBackEventFunc, false);
+	}
+
+	const handleMusicBackEventFunc = () => {
+		// 统一管理音乐页面的物理返回键
+		if(!window.cancelMenuFirst && !$getState().fileServer.showMusicPlayingFromMusicControl){
+			if(myMusicPage){
+				specialBackFunc()
+				history.push("/my_download_middle_page")
+			} else if(searchMusicPage){
+				specialBackFunc()
+				history.push("/search_column")
+			}
+		} else if($getState().fileServer.showMusicPlayingFromMusicControl){
+			// 显示正在播放页的时候按物理返回键取消默认的后退事件,后退事件由正在播放页控制
+			specialBackFunc()
+		}
+	}
 
 	const listenBackFunc = () => {
 		window.cancelMenuFirst = true

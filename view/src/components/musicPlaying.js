@@ -74,7 +74,7 @@ const MusicPlaying = ({
 		window.addEventListener("touchend", endProgress);
 		window.addEventListener("mouseup", endProgress);
 		updateProgressLine(currentSongTime)
-		touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
+		// touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
 		return () => {
 			document.removeEventListener("deviceready", listenBackButton, false);
 			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
@@ -90,7 +90,7 @@ const MusicPlaying = ({
 			}
 			window.removeEventListener("touchend", endProgress);
 			window.removeEventListener("mouseup", endProgress);
-			removeTouchDirection(musicPlayingTopRef.current)
+			// removeTouchDirection(musicPlayingTopRef.current)
 		}
 	}, [])
 
@@ -174,7 +174,7 @@ const MusicPlaying = ({
 		e.stopPropagation();
 		const x = e.clientX || e.touches[0].pageX
 		offsetValue = (x - offsetFirstValue)
-		if((offsetValue > 0) && !$getState().fileServer.isHeadPhoneView){
+		if(offsetValue > 0){
 			musicPlayingContainerRef.current.style.left = offsetValue + "px"
 		}
 	}

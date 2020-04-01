@@ -71,26 +71,10 @@ const SearchResourceComponent = ({
 
 	useEffect(() => {
 		setMakeUpSearchString(lastSearchResult.length ? true : false)
-		document.addEventListener("deviceready", listenBackButton, false);
 		if(!lastSearchString && searchResourceInputRef.current){
 			searchResourceInputRef.current.focus()
 		}
-		return () => {
-			document.removeEventListener("deviceready", listenBackButton, false);
-			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
-		}
 	}, [])
-
-	const listenBackButton = () => {
-		document.addEventListener("backbutton", backKeyDownToPrevious, false)
-	}
-
-	const backKeyDownToPrevious = () => {
-		if(!window.cancelMenuFirst){
-			specialBackFunc()
-			history.push("/search_column")
-		}
-	}
 
     const backToMainPage = () => {
 		if(!window.cancelMenuFirst){
@@ -425,6 +409,7 @@ const SearchResourceComponent = ({
 						<MusicPlayer
 							musicDataList={lastSearchResult[2]['lastQQMusicSearchResult']}
 							original={CONSTANT.musicOriginal.qqMusic} pageType={origin}
+							searchMusicPage={true}
 						/>
 						<div className="online-music-more-btn last-one" onClick={() => showMoreSearchResult(origin === "onlineMusic" ?  CONSTANT.musicOriginal.qqMusic : "qqMusicSearchAll")}>
 							{(!noMoreQQMusicResults && lastSearchResult[2]['lastQQMusicSearchResult'].length) ? <i className={`fa fa-search ${moreQQMusicSearch && "searching-status"}`} aria-hidden="true"></i> : null}
@@ -533,7 +518,12 @@ const SearchResourceComponent = ({
 								type === "file"
 								?	<FileManage fileDataList={lastSearchResult} original="fileSearch" type="file" />
 								:	type === 'music'
-								?	<MusicPlayer musicDataList={lastSearchResult} original={CONSTANT.musicOriginal.musicSearch} pageType="onlySearchShareMusic" />
+								?	<MusicPlayer
+										musicDataList={lastSearchResult}
+										original={CONSTANT.musicOriginal.musicSearch}
+										pageType="onlySearchShareMusic"
+										searchMusicPage={true}
+									/>
 								:	type === 'onlineMusic'
 								? 	onlineMusicComponent({
 										origin: "onlineMusic",
