@@ -1315,7 +1315,11 @@ export const checkStatus = ({
 	}) => {
 	try {
 		if(payPlay) return alert("尊重版权,人人有责")
-		const { soundPlaying, currentPlayingSong, downloadingMusicItems } = $getState().fileServer;
+		const { token } = $getState().login
+		if(!token && pageType !== CONSTANT.musicOriginal.musicShare){
+			return window.goRoute(null, "/login")
+		}
+		const { soundPlaying, currentPlayingSong, downloadingMusicItems, soundInstance } = $getState().fileServer;
 		if(original === CONSTANT.musicOriginal.musicDownloading){
 			downloadingMusicItems.some((item) => {
 				if(item.filenameOrigin === filenameOrigin) {
@@ -1337,7 +1341,6 @@ export const checkStatus = ({
 			})
 			return
 		}
-		const { soundInstance } = $getState().fileServer
 		if(soundInstance) getMusicCurrentPlayProcess(false)
 		logger.info("music checkStatus currentPlayingSong, soundPlaying, filenameOrigin", currentPlayingSong, soundPlaying, filenameOrigin)
 		if(!soundPlaying){
