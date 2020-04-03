@@ -18,7 +18,8 @@ import {
 	confirm,
 	networkErr,
 	onBackKeyDown,
-	specialBackFunc
+	specialBackFunc,
+	shareLinkToWeChat
 } from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
@@ -112,10 +113,12 @@ const MusicPlayer = ({
 	}
 
 	const removeListenBackFunc = () => {
-		window.cancelMenuFirst = false
-		document.removeEventListener("backbutton", closeShowMenu);
-		document.removeEventListener("deviceready", listenBackFunc);
-		document.addEventListener("backbutton", onBackKeyDown);
+		if(window.cancelMenuFirst){
+			window.cancelMenuFirst = false
+			document.removeEventListener("backbutton", closeShowMenu);
+			document.removeEventListener("deviceready", listenBackFunc);
+			document.addEventListener("backbutton", onBackKeyDown);
+		}
 	}
 
 	const closeShowMenu = () => {
@@ -328,7 +331,7 @@ const MusicPlayer = ({
 						break;
 					case 7:
 						removeListenBackFunc()
-						if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
+						if(pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
 							return
 						}
 						if(!token) return window.goRoute(this, "/login")
@@ -401,6 +404,11 @@ const MusicPlayer = ({
 										logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
 									}
 								}
+							})
+						} else if(original === CONSTANT.musicOriginal.savedSongs){
+							return shareLinkToWeChat({
+								title: filename,
+								description: secondsToTime(duration)
 							})
 						}
 						break;

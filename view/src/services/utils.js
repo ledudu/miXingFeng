@@ -708,3 +708,85 @@ export const replaceSocketLink = (data, logInfo="logInfo") => {
 			logger.warn("replaceSocketLink err", logInfo, err)
 		})
 }
+
+export const checkWeChatInstallOrNot = () => {
+	return new Promise(res => {
+		Wechat.isInstalled(function (installed) {
+			res(true)
+		}, function (reason) {
+			alertDialog("未安装微信")
+			res(false)
+			logger.warn('Wechat.isInstalled', "Failed: " + reason);
+		});
+	})
+}
+
+export const shareLinkToWeChat = ({
+	title="这是分享的标题",
+	description="这是分享的描述",
+	thumb="www/assets/imgs/logo.png",
+	webpageUrl="https://www.zhoushoujian.com/mixingfeng",
+	scene=Wechat.Scene.SESSION  //Wechat.Scene.TIMELINE
+}) => {
+	return checkWeChatInstallOrNot()
+		.then(bool => {
+			if(bool){
+				return new Promise(res => {
+					Wechat.share({
+						message:{
+							title,
+							description,
+							thumb,
+							media: {
+								type: Wechat.Type.WEBPAGE,
+								webpageUrl
+							}
+						},
+						scene
+					}, function () {
+						alert("分享成功");
+						res("success")
+					}, function (reason) {
+						alert("分享失败");
+						res("fail")
+						logger.error("shareLinkToWeChat", "Failed: " + reason);
+					});
+				})
+			} else {
+				return bool
+			}
+		})
+}
+
+export const shareVideoToWeChat = ({
+	title="这是分享的标题",
+	description="这是分享的描述",
+	thumb="www/assets/imgs/logo.png",
+	videoUrl="https://www.zhoushoujian.com/mixingfeng"
+}) => {
+	return checkWeChatInstallOrNot()
+		.then(bool => {
+			if(bool){
+				return new Promise(res => {
+					Wechat.share({
+						message: {
+							title,
+							description,
+							thumb,
+							media: {
+								type: Wechat.Type.VIDEO,
+								videoUrl,
+							}
+						},
+						scene: Wechat.Scene.SESSION
+					}, function () {
+						alert("Success");
+					}, function (reason) {
+						alert("Failed: " + reason);
+					});
+				})
+			} else {
+				return bool
+			}
+		})
+}
