@@ -37,27 +37,30 @@ const MusicPlaying = ({
 	fromMusicControl,
 	showMusicPlayingFromMusicControl
 }) => {
-	let ifBool = false, offsetValue=window.innerWidth/2, offsetFirstValue=0
-	const windowInnerWidth = window.innerWidth
-	const windowInnerHeight = window.innerHeight
-	const touchDirectionObj = {
-		debounceTimer: null,
-		firstTimeRun: false,
-	}
-	const history = useHistory()
+	let ifBool = false
+		, offsetXValue=window.innerWidth/2
+		, offsetYValue=0
+		, offsetFirstXValue=0
+		, offsetFirstYValue=0
+		, movingX=false
+		, movingY=false
 	const [ showSelectedAnimation, setShowSelectedAnimation ] = useState(false)
-	const playRef = useRef()
-	const pauseRef = useRef()
-	const progressRef = useRef()
-	const musicPlayingTopRef = useRef()
-	const musicPlayingContainerRef = useRef()
-	const progressPlayedRef = useRef()
-	const progressUnplayedRef = useRef()
-	const progressOutPointRef = useRef()
-	const progressInnerPointRef = useRef()
+	const touchDirectionObj = { debounceTimer: null, firstTimeRun: false, }
+	,	windowInnerWidth = window.innerWidth
+	,	windowInnerHeight = window.innerHeight
+	,	history = useHistory()
+	,	playRef = useRef()
+	,	pauseRef = useRef()
+	,	progressRef = useRef()
+	,	musicPlayingTopRef = useRef()
+	,	musicPlayingContainerRef = useRef()
+	,	progressPlayedRef = useRef()
+	,	progressUnplayedRef = useRef()
+	,	progressOutPointRef = useRef()
+	,	progressInnerPointRef = useRef()
 
 	useEffect(() => {
-		if(fromMusicControl) musicPlayingPageAnimation()
+		if(fromMusicControl) musicPlayingPageXAnimation()
 		document.addEventListener("deviceready", listenBackButton, false);
 		playRef.current && (playRef.current.style.paddingLeft = "5px")
 		pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
@@ -166,42 +169,78 @@ const MusicPlaying = ({
 
 	const startPage = (e) => {
 		e.stopPropagation();
-		offsetFirstValue = e.clientX || e.touches[0].pageX
-		logger.info("startPage offsetFirstValue", offsetFirstValue)
+		offsetFirstXValue = e.clientX || e.touches[0].pageX
+		offsetFirstYValue = e.clientY || e.touches[0].pageY
+		logger.info("startPage offsetFirstXValue", offsetFirstXValue, 'offsetFirstYValue', offsetFirstYValue)
 	}
 
 	const movePage = (e) => {
 		e.stopPropagation();
 		const x = e.clientX || e.touches[0].pageX
-		offsetValue = (x - offsetFirstValue)
-		if(offsetValue > 0){
-			musicPlayingContainerRef.current.style.left = offsetValue + "px"
+		const y = e.clientY || e.touches[0].pageY
+		offsetXValue = (x - offsetFirstXValue)
+		offsetYValue = (y - offsetFirstYValue)
+		if(offsetXValue > 0 || offsetYValue > 0){
+			if((offsetXValue >= offsetYValue) && movingY !== true){
+				movingX = true
+				musicPlayingContainerRef.current.style.left = offsetXValue + "px"
+			} else if(offsetYValue > 0 && movingX !== true) {
+				movingY = true
+				musicPlayingContainerRef.current.style.top = offsetYValue + "px"
+			}
 		}
 	}
 
 	const endPage = (e) => {
 		e.stopPropagation();
-		logger.info("endPage offsetValue", offsetValue)
-		if(offsetValue < 0) return
-		musicPlayingPageAnimation()
+		logger.info("endPage offsetXValue", offsetXValue, 'offsetYValue', offsetYValue)
+		if(offsetXValue > 0 || offsetYValue > 0){
+			if(offsetXValue >= offsetYValue){
+				movingX = false
+				musicPlayingPageXAnimation()
+			} else {
+				movingY = false
+				musicPlayingPageYAnimation()
+			}
+		}
 	}
 
-	const musicPlayingPageAnimation = () => {
-		if(offsetValue > 0 && offsetValue <= (windowInnerWidth / 2)){
-			if(offsetValue < 15){
-				offsetValue = 0
+	const musicPlayingPageXAnimation = () => {
+		if(offsetXValue > 0 && offsetXValue <= (windowInnerWidth / 2)){
+			if(offsetXValue < 15){
+				offsetXValue = 0
 				musicPlayingContainerRef.current.style.left = 0
 			} else {
-				offsetValue -= 15
-				musicPlayingContainerRef.current.style.left = (offsetValue + "px")
-				window.requestAnimationFrame(musicPlayingPageAnimation)
+				offsetXValue -= 15
+				musicPlayingContainerRef.current.style.left = (offsetXValue + "px")
+				window.requestAnimationFrame(musicPlayingPageXAnimation)
 			}
-		} else if((offsetValue > (windowInnerWidth / 2)) && (offsetValue < windowInnerWidth)){
-			musicPlayingContainerRef.current.style.left = (offsetValue + "px")
-			offsetValue += 15
-			window.requestAnimationFrame(musicPlayingPageAnimation)
-		} else if(offsetValue >= windowInnerWidth){
-			offsetValue = 0
+		} else if((offsetXValue > (windowInnerWidth / 2)) && (offsetXValue < windowInnerWidth)){
+			musicPlayingContainerRef.current.style.left = (offsetXValue + "px")
+			offsetXValue += 15
+			window.requestAnimationFrame(musicPlayingPageXAnimation)
+		} else if(offsetXValue >= windowInnerWidth){
+			offsetXValue = 0
+			$dispatch(updateShowMusicPlayingFromMusicControl(false))
+		}
+	}
+
+	const musicPlayingPageYAnimation = () => {
+		if(offsetYValue > 0 && offsetYValue <= (windowInnerHeight / 3)){
+			if(offsetYValue < 25){
+				offsetYValue = 0
+				musicPlayingContainerRef.current.style.top = 0
+			} else {
+				offsetYValue -= 25
+				musicPlayingContainerRef.current.style.top = (offsetYValue + "px")
+				window.requestAnimationFrame(musicPlayingPageYAnimation)
+			}
+		} else if((offsetYValue > (windowInnerHeight / 3)) && (offsetYValue < windowInnerHeight)){
+			musicPlayingContainerRef.current.style.top = (offsetYValue + "px")
+			offsetYValue += 25
+			window.requestAnimationFrame(musicPlayingPageYAnimation)
+		} else if(offsetYValue >= windowInnerHeight){
+			offsetYValue = 0
 			$dispatch(updateShowMusicPlayingFromMusicControl(false))
 		}
 	}
@@ -213,11 +252,11 @@ const MusicPlaying = ({
 
 	const backToMainPage = () => {
 		if(showMusicPlayingFromMusicControl){
-			if(offsetValue >= windowInnerWidth){
+			if(offsetXValue >= windowInnerWidth){
 				$dispatch(updateShowMusicPlayingFromMusicControl(false))
 			} else {
-				offsetValue += 25
-				musicPlayingContainerRef.current.style.left = (offsetValue + "px")
+				offsetXValue += 25
+				musicPlayingContainerRef.current.style.left = (offsetXValue + "px")
 				setTimeout(backToMainPage, 17)
 			}
 		} else {
@@ -259,9 +298,9 @@ const MusicPlaying = ({
 	const gotoPlayingOrigin = () => {
 		// 只有收藏页面才有这个动画
 		if(showMusicPlayingFromMusicControl && window.getRoute() === "/saved_songs" && musicPageType == "savedSongs"){
-			musicPlayingContainerRef.current.style.top = (offsetValue + "px")
-			offsetValue += 25
-			if(offsetValue >= windowInnerHeight){
+			musicPlayingContainerRef.current.style.top = (offsetYValue + "px")
+			offsetYValue += 30
+			if(offsetYValue >= windowInnerHeight){
 				$dispatch(updateShowMusicPlayingFromMusicControl(false))
 			} else {
 				setTimeout(gotoPlayingOrigin, 10)

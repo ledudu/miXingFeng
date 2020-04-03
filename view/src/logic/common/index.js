@@ -52,7 +52,8 @@ import {
 	updateMusicMenuBadge,
 	updatePlayByRandom,
 	updateCurrentMusicItemInfo,
-	updateDownloadedFileList
+	updateDownloadedFileList,
+	updateShowMusicPlayingFromMusicControl
 } from "../../ducks/fileServer";
 import { updateOnlinePersons } from "../../ducks/sign";
 import { removeDataByIndexFromIndexDB, readAllDataFromIndexDB } from "../../services/indexDB"
@@ -1622,6 +1623,7 @@ export const saveMusicToLocal = (
 			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
 				isDownloading = true
 				confirm(`提示`, `${filename}正在下载`, "去查看", () => {
+					$dispatch(updateShowMusicPlayingFromMusicControl(false))
 					window.goRoute(null, "/my_finished_musics")
 				})
 				return true
