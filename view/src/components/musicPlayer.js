@@ -19,7 +19,6 @@ import {
 	networkErr,
 	onBackKeyDown,
 	specialBackFunc,
-	shareLinkToWeChat
 } from "../services/utils";
 import { updateToken } from "../ducks/login";
 import {
@@ -198,7 +197,7 @@ const MusicPlayer = ({
 						})
 						break;
 					case 1:
-						saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType)
+						saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType, false)
 						break;
 					case 2:
 						if(!pauseWhenOver || playByOrder || playByRandom){
@@ -331,7 +330,7 @@ const MusicPlayer = ({
 						break;
 					case 7:
 						removeListenBackFunc()
-						if(pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
+						if(pageType === CONSTANT.musicOriginal.savedSongs || pageType === "onlineMusic" || pageType === "onlineMusicSearchALl" || original === CONSTANT.musicOriginal.musicFinished){
 							return
 						}
 						if(!token) return window.goRoute(this, "/login")
@@ -404,11 +403,6 @@ const MusicPlayer = ({
 										logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
 									}
 								}
-							})
-						} else if(original === CONSTANT.musicOriginal.savedSongs){
-							return shareLinkToWeChat({
-								title: filename,
-								description: secondsToTime(duration)
 							})
 						}
 						break;

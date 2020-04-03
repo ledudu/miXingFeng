@@ -53,7 +53,7 @@ const MusicController = ({
 				<div className="singer-name">{currentMusicItemInfo.uploadUsername || "无"}</div>
 			</div>
 			<div className={`${songIsSaved ? 'save-song-svg' : "not-save"}`}
-				onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType)}>
+				onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, false)}>
 				<HearSvg />
 			</div>
 			<div className="fa fa-step-backward play-previous"

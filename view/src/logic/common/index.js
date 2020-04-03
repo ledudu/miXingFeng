@@ -792,86 +792,88 @@ export const checkOnlinePersons = () => {
 	}
 }
 
-export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e, pageType) => {
+export const saveSongFunc = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e, pageType, isFromThirdPart) => {
 	try {
-		if(e) e.stopPropagation();
-		if(currentFileIndex === -1 || currentFileIndex === null) return alert("请选择一首歌播放")
-		const { username, token } = $getState().login
-		const { setMobile } = $getState().myInfo
-		if (!token) return alert("请先登录")
-		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
-		const musicCollectionCopy = JSON.parse(JSON.stringify(musicCollection))
-		const musicDataListCopy = JSON.parse(JSON.stringify(musicDataList))
-		if (hasSaved !== -1) {
-			if(original === CONSTANT.musicOriginal.savedSongs){
-				musicDataListCopy.splice(hasSaved, 1)
-			}
-			musicCollectionCopy.splice(hasSaved, 1)
-		} else {
-			const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
-			willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
-			if(original === CONSTANT.musicOriginal.savedSongs){
-				musicDataListCopy.push(willSavedSong)
-			}
-			if(original === CONSTANT.musicOriginal.musicFinished){
-				willSavedSong.filePath = willSavedSong.fileUrl
-				delete willSavedSong.fileUrl
-			}
-			delete willSavedSong.getNewestPath
-			musicCollectionCopy.push(willSavedSong)
-		}
-		const dataObj = {
-			username: username || setMobile,
-			token,
-			musicCollection: musicCollectionCopy
-		}
-		return axios.post(HTTP_URL.saveSong, dataObj)
-			.then((result) => {
-				if (result.data.result.result === 'success') {
-					checkSongSavedFunc(musicDataList, original)
-					$dispatch(updateToken(result.data.result.token))
-					musicCollectionCopy.forEach(item => {
-						delete item.saved
-					})
-					$dispatch(updateMusicCollection(musicCollectionCopy))
-					const currentMusicInfo = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
-					if (hasSaved !== -1) {
-						delete  currentMusicInfo.saved
-						$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
-						musicDataListCopy.some(item => {
-							if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
-								delete item.saved
-								return true
-							}
-						})
-						$dispatch(updateCurrentPlayingMusicList(musicDataListCopy))
-						alert('取消收藏成功')
-						if(pageType === CONSTANT.musicOriginal.savedSongs){
-							const currentMusicFilenameOriginalArr = musicCollectionCopy.map(item => item.filenameOrigin)
-							playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, musicDataListCopy, null)
-						}
-						return false
-					} else {
-						currentMusicInfo.saved = true
-						$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
-						musicDataListCopy.some(item => {
-							if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
-								item.saved = true
-								return true
-							}
-						})
-						$dispatch(updateCurrentPlayingMusicList(musicDataListCopy))
-						alert('收藏成功')
-						return true
-					}
-				} else {
-					logger.error("HTTP_URL.saveSong result not success", result)
+		if(!isFromThirdPart){
+			if(e) e.stopPropagation();
+			if(currentFileIndex === -1 || currentFileIndex === null) return alert("请选择一首歌播放")
+			const { username, token } = $getState().login
+			const { setMobile } = $getState().myInfo
+			if (!token) return alert("请先登录")
+			const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
+			const musicCollectionCopy = JSON.parse(JSON.stringify(musicCollection))
+			const musicDataListCopy = JSON.parse(JSON.stringify(musicDataList))
+			if (hasSaved !== -1) {
+				if(original === CONSTANT.musicOriginal.savedSongs){
+					musicDataListCopy.splice(hasSaved, 1)
 				}
-			})
-			.catch(err => {
-				logger.error("HTTP_URL.saveSong err", err)
-				networkErr(err, `saveSong dataObj: ${dataObj}`);
-			})
+				musicCollectionCopy.splice(hasSaved, 1)
+			} else {
+				const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+				willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
+				if(original === CONSTANT.musicOriginal.savedSongs){
+					musicDataListCopy.push(willSavedSong)
+				}
+				if(original === CONSTANT.musicOriginal.musicFinished){
+					willSavedSong.filePath = willSavedSong.fileUrl
+					delete willSavedSong.fileUrl
+				}
+				delete willSavedSong.getNewestPath
+				musicCollectionCopy.push(willSavedSong)
+			}
+			const dataObj = {
+				username: username || setMobile,
+				token,
+				musicCollection: musicCollectionCopy
+			}
+			return axios.post(HTTP_URL.saveSong, dataObj)
+				.then((result) => {
+					if (result.data.result.result === 'success') {
+						checkSongSavedFunc(musicDataList, original)
+						$dispatch(updateToken(result.data.result.token))
+						musicCollectionCopy.forEach(item => {
+							delete item.saved
+						})
+						$dispatch(updateMusicCollection(musicCollectionCopy))
+						const currentMusicInfo = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+						if (hasSaved !== -1) {
+							delete  currentMusicInfo.saved
+							$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+							musicDataListCopy.some(item => {
+								if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+									delete item.saved
+									return true
+								}
+							})
+							$dispatch(updateCurrentPlayingMusicList(musicDataListCopy))
+							alert('取消收藏成功')
+							if(pageType === CONSTANT.musicOriginal.savedSongs){
+								const currentMusicFilenameOriginalArr = musicCollectionCopy.map(item => item.filenameOrigin)
+								playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, musicDataListCopy, null)
+							}
+							return false
+						} else {
+							currentMusicInfo.saved = true
+							$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+							musicDataListCopy.some(item => {
+								if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+									item.saved = true
+									return true
+								}
+							})
+							$dispatch(updateCurrentPlayingMusicList(musicDataListCopy))
+							alert('收藏成功')
+							return true
+						}
+					} else {
+						logger.error("HTTP_URL.saveSong result not success", result)
+					}
+				})
+				.catch(err => {
+					logger.error("HTTP_URL.saveSong err", err)
+					networkErr(err, `saveSong dataObj: ${dataObj}`);
+				})
+		}
 	} catch(err){
 		logger.error("saveSongFunc err", err)
 	}
@@ -1056,7 +1058,7 @@ export const playMusic = async ({
 			soundInstance.unload()
 		}
 		$dispatch(updateCurrentSongTime(0))
-		$dispatch(updateCurrentPlayingMusicList(musicDataList))
+		if(musicDataList && musicDataList.length) $dispatch(updateCurrentPlayingMusicList(musicDataList))
 		if(!checkLastMusicWhenLaunch) $dispatch(updateSoundPlaying(true))
 		$dispatch(updateCurrentPlayingSong(filenameOrigin))
 		$dispatch(updateCurrentPlayingSongDuration(duration))
@@ -1146,7 +1148,7 @@ export const playMusic = async ({
 		} else {
 			logger.error("playMusic onload error no currentMusicItem filenameOrigin, musicDataList.length", filenameOrigin, musicDataList.length)
 		}
-		$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
+		if(currentMusicItem.filePath) $dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(!checkLastMusicWhenLaunch){
 			await musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, original, isLocalDownloadedMusicPath)
 		} else {
@@ -1216,11 +1218,21 @@ async function musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOri
 			musicPlayingProgressFunc()
 			if(playByOrder){
 				setTimeout(() => {
-					autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original)
+					if(musicDataList.length) {
+						autoPlayNextOne("playByOrder", filenameOrigin, musicDataList, original)
+					} else {
+						pauseMusic()
+						$dispatch(updateCurrentSongTime(0))
+					}
 				}, 1500)
 			} else if(playByRandom){
 				setTimeout(() => {
-					autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original)
+					if(musicDataList.length) {
+						autoPlayNextOne("playByRandom", filenameOrigin, musicDataList, original)
+					} else {
+						pauseMusic()
+						$dispatch(updateCurrentSongTime(0))
+					}
 				}, 1500)
 			} else if(pauseWhenOver){
 				$dispatch(updateSoundPlaying(false))
@@ -1950,4 +1962,38 @@ export const setTryMobileOrEmailTimes = (tryMobileOrEmailTimes) => {
 	setTimeout(() => {
 		$dispatch(updateTryMobileOrEmailTimes(0))
 	}, 1000 * 60 * 2)
+}
+
+export const parseUrlParam = (param) => {
+	const tempObj = {}
+	if(param){
+		param.split("&").forEach(item => {
+			const tempArr = item.split("=")
+			tempObj[tempArr[0]] = tempArr[1]
+		})
+	}
+	return tempObj
+}
+
+export const dealWithThirdPartVisit = () => {
+	const thirdPart = window.location.href.split("?")[1]
+	if(thirdPart){
+		const getCurrentMusicItemInfo = parseUrlParam(thirdPart)
+		logger.info("getCurrentMusicItemInfo", getCurrentMusicItemInfo)
+		$dispatch(updateCurrentMusicItemInfo(getCurrentMusicItemInfo))
+		playMusic({
+			filePath: getCurrentMusicItemInfo.filePath,
+			filenameOrigin: getCurrentMusicItemInfo.filenameOrigin,
+			duration: getCurrentMusicItemInfo.duration,
+			original: getCurrentMusicItemInfo.original,
+			musicDataList: [],
+			pageType: getCurrentMusicItemInfo.original,
+			filename: getCurrentMusicItemInfo.filename,
+			musicId: getCurrentMusicItemInfo.id,
+			songOriginal: getCurrentMusicItemInfo.original
+		})
+		return true
+	} else {
+		return false
+	}
 }

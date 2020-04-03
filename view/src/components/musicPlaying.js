@@ -15,12 +15,22 @@ import {
 	secondsToTime,
 	touchDirection,
 	removeTouchDirection,
-	checkToShowPlayController
+	checkToShowPlayController,
+	dealWithThirdPartVisit
 } from "../logic/common"
 import { updateCurrentSongTime, updateIsHeadPhoneView, updateShowMusicPlayingFromMusicControl } from "../ducks/fileServer"
-import { IsPC, alert, specialBackFunc } from "../services/utils"
+import { IsPC, alert, specialBackFunc, shareLinkToWeChat } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
+
+let ifBool = false
+,	offsetXValue=window.innerWidth/2
+,	offsetYValue=0
+,	offsetFirstXValue=0
+,	offsetFirstYValue=0
+,	movingX=false
+,	movingY=false
+,	isFromThirdPart = false
 
 const MusicPlaying = ({
 	currentPlayingSong,
@@ -37,13 +47,6 @@ const MusicPlaying = ({
 	fromMusicControl,
 	showMusicPlayingFromMusicControl
 }) => {
-	let ifBool = false
-		, offsetXValue=window.innerWidth/2
-		, offsetYValue=0
-		, offsetFirstXValue=0
-		, offsetFirstYValue=0
-		, movingX=false
-		, movingY=false
 	const [ showSelectedAnimation, setShowSelectedAnimation ] = useState(false)
 	const touchDirectionObj = { debounceTimer: null, firstTimeRun: false, }
 	,	windowInnerWidth = window.innerWidth
@@ -61,6 +64,7 @@ const MusicPlaying = ({
 
 	useEffect(() => {
 		if(fromMusicControl) musicPlayingPageXAnimation()
+		isFromThirdPart = dealWithThirdPartVisit()
 		document.addEventListener("deviceready", listenBackButton, false);
 		playRef.current && (playRef.current.style.paddingLeft = "5px")
 		pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
@@ -251,32 +255,42 @@ const MusicPlaying = ({
 	}
 
 	const backToMainPage = () => {
-		if(showMusicPlayingFromMusicControl){
-			if(offsetXValue >= windowInnerWidth){
-				$dispatch(updateShowMusicPlayingFromMusicControl(false))
+		if(!isFromThirdPart){
+			if(showMusicPlayingFromMusicControl){
+				if(offsetXValue >= windowInnerWidth){
+					$dispatch(updateShowMusicPlayingFromMusicControl(false))
+				} else {
+					offsetXValue += 25
+					musicPlayingContainerRef.current.style.left = (offsetXValue + "px")
+					setTimeout(backToMainPage, 17)
+				}
 			} else {
-				offsetXValue += 25
-				musicPlayingContainerRef.current.style.left = (offsetXValue + "px")
-				setTimeout(backToMainPage, 17)
+				history.push("/my_download_middle_page")
 			}
 		} else {
-			history.push("/my_download_middle_page")
+
 		}
 	}
 
 	const playPreviousSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e) => {
-		playRef.current && (playRef.current.style.paddingLeft = "0px")
-		playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		if(!isFromThirdPart){
+			playRef.current && (playRef.current.style.paddingLeft = "0px")
+			playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		}
 	}
 
 	const playNextSongFunc = (currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e) => {
-		playRef.current && (playRef.current.style.paddingLeft = "0px")
-		playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		if(!isFromThirdPart){
+			playRef.current && (playRef.current.style.paddingLeft = "0px")
+			playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		}
 	}
 
 	const saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload) => {
-		if(!filename && !filenameOrigin) return alert('请选择一首歌播放')
-		saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
+		if(!isFromThirdPart){
+			if(!filename && !filenameOrigin) return alert('请选择一首歌播放')
+			saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
+		}
 	}
 
 	const pause = (e) => {
@@ -288,6 +302,7 @@ const MusicPlaying = ({
 	}
 
 	const resume = (e) => {
+		logger.info("isFromThirdPart2222", isFromThirdPart)
 		if(e) e.stopPropagation();
 		if(!soundInstance && !soundInstanceId && !currentPlayingSong) return alert('请选择一首歌播放')
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
@@ -296,18 +311,22 @@ const MusicPlaying = ({
 	}
 
 	const gotoPlayingOrigin = () => {
-		// 只有收藏页面才有这个动画
-		if(showMusicPlayingFromMusicControl && window.getRoute() === "/saved_songs" && musicPageType == "savedSongs"){
-			musicPlayingContainerRef.current.style.top = (offsetYValue + "px")
-			offsetYValue += 30
-			if(offsetYValue >= windowInnerHeight){
-				$dispatch(updateShowMusicPlayingFromMusicControl(false))
+		if(!isFromThirdPart){
+			// 只有收藏页面才有这个动画
+			if(showMusicPlayingFromMusicControl && window.getRoute() === "/saved_songs" && musicPageType == "savedSongs"){
+				musicPlayingContainerRef.current.style.top = (offsetYValue + "px")
+				offsetYValue += 30
+				if(offsetYValue >= windowInnerHeight){
+					$dispatch(updateShowMusicPlayingFromMusicControl(false))
+				} else {
+					setTimeout(gotoPlayingOrigin, 10)
+				}
 			} else {
-				setTimeout(gotoPlayingOrigin, 10)
+				$dispatch(updateShowMusicPlayingFromMusicControl(false))
+				gotoPlayingOriginFunc()
 			}
 		} else {
-			$dispatch(updateShowMusicPlayingFromMusicControl(false))
-			gotoPlayingOriginFunc()
+
 		}
 	}
 
@@ -339,6 +358,38 @@ const MusicPlaying = ({
 			default:
 				alert("当前没有播放的歌曲")
 				break
+		}
+	}
+
+	const shareToWeChat = (place) => {
+		if(currentMusicItemInfo && currentMusicItemInfo.filePath){
+			if(currentMusicItemInfo.filePath.includes("cdvfile://localhost/sdcard/miXingFeng/music/")){
+				return alertDialog("不能分享已下载的音乐，请上传后分享")
+			} else {
+				let scene = Wechat.Scene.SESSION
+				if(place === "weChat"){
+					scene = Wechat.Scene.SESSION
+				} else if(place === "timeLine"){
+					scene = Wechat.Scene.TIMELINE
+				}
+				const currentMusicItemInfoCopy = JSON.parse(JSON.stringify(currentMusicItemInfo))
+				currentMusicItemInfoCopy.isFromThirdPart = "weChat"
+				let webpageUrl = "https://www.zhoushoujian.com/mixingfeng/#/music_playing"
+				const arr = []
+				for (let key in currentMusicItemInfoCopy) {
+					arr.push(`${key}=${params[key]}`)
+				}
+				webpageUrl = `${webpageUrl}?${arr.join('&')}`
+				return shareLinkToWeChat({
+					title: `${currentMusicItemInfoCopy.filename} (${secondsToTime(currentMusicItemInfoCopy.duration)})`,
+					description: "觅星峰，一的集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
+					thumb: "http://zhoushoujian.com/mixingfeng/logo.png",
+					webpageUrl,
+					scene
+				})
+			}
+		} else {
+			alert("请选择一首歌播放")
 		}
 	}
 
@@ -378,10 +429,20 @@ const MusicPlaying = ({
 								<span className={`line line5 ${soundPlaying ? 'line-animation' : 'line-height'}`}></span>
 							</div>
 					}
+					{
+						!isFromThirdPart
+						?	<i className="fa fa-share share" aria-hidden="true" onClick={shareToWeChat.bind(this, "weChat")} ></i>
+						:	null
+					}
 					<div className="circle">
 						<div className={`dot ${!isHeadPhoneView ? 'dot-fill' : ''}`} onClick={touchDirectionCallback.bind(this, "right")}></div>
 						<div className={`dot ${isHeadPhoneView ? 'dot-fill' : ''}`} onClick={touchDirectionCallback.bind(this, "left")}></div>
 					</div>
+					{
+						!isFromThirdPart
+						?	<i className="fa fa-share-alt share" aria-hidden="true" onClick={shareToWeChat.bind(this, "timeLine")} ></i>
+						:	null
+					}
 				</div>
 				<div className="play-progress">
 					<div className="current-time">{secondsToTime(currentSongTime)}</div>
@@ -395,7 +456,7 @@ const MusicPlaying = ({
 				</div>
 				<div className="bottom-controller">
 					<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}
-						onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, this)}>
+						onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, isFromThirdPart)}>
 						<HearSvg />
 					</div>
 					<div className="fa fa-step-backward play-previous"
@@ -412,6 +473,7 @@ const MusicPlaying = ({
 						onClick={(e) => playNextSongFunc(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)}>
 					</div>
 					<i className="fa fa-download download-song"
+						aria-hidden="true"
 						onClick={() => saveMusicToLocalFunc(currentPlayingMusicList, currentMusicItemInfo.filename, currentMusicItemInfo.uploadUsername, currentMusicItemInfo.fileSize, currentMusicItemInfo.filePath, currentMusicItemInfo.filenameOrigin, currentMusicItemInfo.duration, currentMusicItemInfo.original, currentMusicItemInfo.id, Number(currentMusicItemInfo.payDownload))
 					}></i>
 				</div>
