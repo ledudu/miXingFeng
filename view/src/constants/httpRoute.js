@@ -7,7 +7,7 @@ export const HTTP_URL = {
 	"goSign": `${hostname}/go_sign`,
 	"retrieveOthers": `${hostname}/retrieve_others`,
 	"appRelease": `${hostname}/apk/app_release.apk`,
-	"checkUpdate": `${hostname}/check_update`,
+	"checkUpdate": `${hostname}/check_update?appVersion={appVersion}&notCheckOutOfDateVersion={notCheckOutOfDateVersion}`,
 	"tokenLogin": `${hostname}/token_login`,
 	"searchRecord": `${hostname}/search_user_profile\?username={username}&slice={slice}`,
 	"checkLog": hostname + "/check_log",

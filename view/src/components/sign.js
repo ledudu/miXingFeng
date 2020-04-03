@@ -111,7 +111,17 @@ class Sign extends Component {
 	async componentDidMount() {
 		try {
 			const { skipTime } = this.state
-			const { directShowSignPage, alwaysShowAdsPage, token, isFromLoginPage, isSignedUp, justOpenApp, fromResume, isFromSystemSetup, needRetryRequestWhenLaunch } = this.props;
+			const {
+				directShowSignPage,
+				alwaysShowAdsPage,
+				token,
+				isFromLoginPage,
+				isSignedUp,
+				justOpenApp,
+				fromResume,
+				isFromSystemSetup,
+				needRetryRequestWhenLaunch
+			} = this.props;
 			checkOnlinePersons()
 			if(isFromSystemSetup) return
 			if(alwaysShowAdsPage){
@@ -188,7 +198,6 @@ class Sign extends Component {
 								} else if(item1.status === "downloading"){
 									downloadingFileArr.push(item1)
 								}
-
 							})
 							array.forEach((item) => {
 								item.filePath = window.serverHost + item.filePath
@@ -402,14 +411,23 @@ class Sign extends Component {
         }
     }
 
-	checkUpdateSign = async () => {
+	checkUpdateSign = async (outOfDate) => {
 		const self = this;
 		const date = Date.now();
 		const content = await getAndReadFile("last_close_update.txt", true)
-		return axios.get(HTTP_URL.checkUpdate)
+		return axios.get(HTTP_URL.checkUpdate.format({appVersion: this.props.appVersion || false, notCheckOutOfDateVersion: (outOfDate===true ? "yes" : "no")}))
 			.then(async response => {
 				if(!response.data) return
 				const result = response.data;
+				if(result.result && result.result.outOfDate){
+					return confirm(`提示`, "当前app版本过低，必须升级才能继续使用", "立即更新", function(){
+						const date = Date.now() - (1000 * 3600 * 24 * 3)
+						self.writeFileFunc(date)
+						self.forceUpgrade = true
+						self.tooOldVersion = true
+						return self.checkUpdateSign(true)
+					}, exitApp)
+				}
 				const remoteAppVersion = result.version,
 					appSize = result.appSize,
 					MD5 = result.MD5,
@@ -418,7 +436,7 @@ class Sign extends Component {
 					alertNotice = result.alertNotice,
 					confirmNotice = result.confirmNotice,
 					{ appVersion } = this.props;
-				this.forceUpgrade = result.forceUpgrade,
+				if(!this.forceUpgrade) this.forceUpgrade = result.forceUpgrade,
 				window.logger.info(`remote appVersion, ${remoteAppVersion}`);
 				window.logger.info(`local appVersion, ${appVersion}`);
 				if(alertNotice && alertNotice.enable){
@@ -436,7 +454,7 @@ class Sign extends Component {
 					content && logger.info("(date - content.closeUpdateDate) / (1000 * 3600 * 24))", (date - content.closeUpdateDate) / (1000 * 36 * 24))
 					window.$dispatch(updateSetSystemSetupDot(true));
 					if((this.forceUpgrade || !content || ((date - content.closeUpdateDate) / (1000 * 3600 * 24)) >  2) && window.getRoute() === "/main/sign"){
-						if(this.forceUpgrade){
+						if(this.forceUpgrade && !this.tooOldVersion){
 							// 告诉用户为什么这次要强制升级
 							alertDialog("提示", forceUpgradeText, "知道了", () => {
 								confirm(`发现新版本`, <UpdateBody list={newAppVersionContent} remoteAppVersion={remoteAppVersion} appSize={appSize}/>, "立即下载", function(){
@@ -454,11 +472,7 @@ class Sign extends Component {
 							})
 						}
 						const date = Date.now()
-						let data = Object.assign({}, {"closeUpdateDate": date});
-        				data = JSON.stringify(data);
-        				let b = new window.Base64();
-        				data = b.encode(data);
-						writeFile(data, 'last_close_update.txt', false);
+						this.writeFileFunc(date)
 					}
 				} else {
 					window.logger.info("已是最新版本")
@@ -467,6 +481,14 @@ class Sign extends Component {
 			.catch(err => {
 				logger.error("checkUpdateSign err", err)
 			})
+	}
+
+	writeFileFunc = (date) => {
+		let data = Object.assign({}, {"closeUpdateDate": date});
+		data = JSON.stringify(data);
+		let b = new window.Base64();
+		data = b.encode(data);
+		writeFile(data, 'last_close_update.txt', false);
 	}
 
     signIn = () => {
