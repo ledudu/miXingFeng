@@ -1097,6 +1097,8 @@ export const playMusic = async ({
 				}
 			})
 		}
+		checkSongSavedFunc([currentMusicItem], "usedForControllerAndPlatingPage")
+		$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(currentMusicItem.filename && !checkLastMusicWhenLaunch && window.location.href.split("?").length === 1){
 			// 记住正在播放的音乐,便于下次启动app显示上次播放的音乐
 			const currentMusicItem2 = JSON.parse(JSON.stringify(currentMusicItem))

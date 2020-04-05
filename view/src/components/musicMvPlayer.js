@@ -148,7 +148,7 @@ const MusicMvPlayer = ({ location, userId }) => {
 		videoUrl = `${videoUrl}?${arr.join('&')}`
 		return shareVideoToWeChat({
 			title: "MV: " + filename,
-			description: "觅星峰，一的集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
+			description: "我分享了一个MV,快来看看吧",
 			thumb: `${CONSTANT.appStaticDirectory}logo.png`,
 			videoUrl
 		})
