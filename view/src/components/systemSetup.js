@@ -6,6 +6,7 @@ import { logoutApp } from "../logic/common";
 import { exitApp, backToPreviousPage, saveFileToLocal } from "../services/utils"
 import { updateDirectShowSignPage } from "../ducks/sign";
 import { updateHideNavBar, updateSavedCurrentRoute, updateIsFromSystemSetup } from "../ducks/common"
+import { CONSTANT } from "../constants/enumeration"
 
 class SystemSetup extends React.Component {
 
@@ -37,14 +38,16 @@ class SystemSetup extends React.Component {
 	}
 
 	downloadApp = () => {
-		saveFileToLocal("browser begin to download app", 'http://192.144.213.72:2000/Images/app-release.apk')
+		saveFileToLocal({
+			filenameOrigin: "fromSysDownload",
+			fileUrl: CONSTANT.appDownloadUrl,
+			folder: CONSTANT.downloadAppFromPage
+		})
 	}
 
     quitApp = () => {
         exitApp()
     }
-
-
 
 	gotoAdsPage = () => {
 		$dispatch(updateIsFromSystemSetup(true))

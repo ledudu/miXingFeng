@@ -2,7 +2,7 @@ import React, { Component } from "react"
 import { connect } from "react-redux";
 import NavBar from "./child/navbar";
 import { HTTP_URL } from "../constants/httpRoute";
-import { networkErr, alertDialog } from "../services/utils";
+import { networkErr } from "../services/utils";
 
 class LoginRecord extends Component {
 	constructor(props){

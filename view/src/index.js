@@ -51,6 +51,7 @@ window.$getState = store.getState;
 window.$subscribe = store.subscribe;
 window._ = _;
 window.axios = axios;
+window.alertOld = window.alert
 window.alert = (text) => {
 	if(window.isCordova){
 		window.plugins.toast.showShortCenter(text)

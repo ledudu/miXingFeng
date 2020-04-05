@@ -4,11 +4,11 @@ import { connect } from "react-redux"
 import { ActionSheet } from 'antd-mobile'
 import MINE from "mime-types"
 import { calcSize } from "../logic/common"
-import { networkErr, confirm, saveFileToLocal, updateDownloadingStatus, checkFileWritePriority, requestFileWritePriority, onBackKeyDown } from "../services/utils"
+import { networkErr, confirm, onBackKeyDown, shareLinkToWeChat } from "../services/utils"
 import { HTTP_URL } from "../constants/httpRoute"
 import { CONSTANT } from "../constants/enumeration"
 import { updateToken } from "../ducks/login"
-import { openDownloadedFile, removeFileFromDownload, optimizeLoadPerformance, removePrefixFromFileOrigin } from "../logic/common"
+import { openDownloadedFile, removeFileFromDownload, optimizeLoadPerformance, removePrefixFromFileOrigin, saveFileToLocalFunc } from "../logic/common"
 import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
@@ -18,7 +18,6 @@ if (isIPhone) {
 		onTouchStart: e => e.preventDefault(),
 	};
 }
-let currentTime = new Date().getTime()
 
 const FileManage = ({
 		username,
@@ -74,12 +73,16 @@ const FileManage = ({
 					}
 				})
 			}
+			const buttons = [firstItem, '分享', '删除', '取消'];
 			if(original === "fileDownloading" || original === "fileFinished"){
+				buttons.splice(1, 1)
 				date = ""
-			} else {
+			} else if(original === "fileShare") {
 				date = ` ${date}`
 			}
-			const buttons = [firstItem, '删除', '取消'];
+			if(!window.isCordova && original === "fileShare"){
+				buttons.splice(1, 1)
+			}
 			const showActionSheetWithOptionsConfig = {
 				options: buttons,
 				cancelButtonIndex: buttons.length - 1,
@@ -99,7 +102,7 @@ const FileManage = ({
 							if(isFileFinished){
 								openFileFunc(filename, filenameOrigin)
 							} else {
-								saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, false, filenameOrigin)
+								saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, false, filenameOrigin, history, openFileFunc)
 							}
 							break;
 						case 1:
@@ -112,40 +115,20 @@ const FileManage = ({
 											networkErr(error, `fileManage removeFileFromDownload filename ${filename}`);
 										})
 								})
-							} else {
-								if(!token) return window.goRoute(this, "/login")
-								const dataInfo = {
-									username: username || setMobile,
-									token,
-									filename,
-									type: "default-file"
-								}
-								confirm(`提示`, `确定从服务器删除${filename}吗`, "确定", () => {
-									if(!startToDeleteOnline){
-										startToDeleteOnline = true
-										return axios.delete(HTTP_URL.delFile, {data: dataInfo})
-											.then(response => {
-												startToDeleteOnline = false
-												if (response.data.result.result === 'file_deleted') {
-													alert("文件已删除!");
-													$dispatch(updateToken(response.data.result.token))
-													return updateSearchList(original, filenameOrigin)
-												} else if (response.data.result.result === 'success'){
-													alert("删除成功!");
-													$dispatch(updateToken(response.data.result.token))
-													return updateSearchList(original, filenameOrigin)
-												} else {
-													alert("删除失败!");
-												}
-											})
-											.catch(error => {
-												startToDeleteOnline = false
-												logger.error("删除文件过程中发生了错误", error.stack||error.toString());
-												networkErr(error, `delFile dataInfo: ${JSON.stringify(dataInfo)}`);
-											})
-									}
+							} else if(window.isCordova) {
+								const webpageUrl =`${CONSTANT.appStaticDirectory}#/show_file_info?filename=${filename}&fileSize=${calcSize(fileSize)}&filePath=${filePath}`
+								shareLinkToWeChat({
+									title: filename,
+									description: "我分享了一个文件,快来看看吧",
+									thumb: `${CONSTANT.appStaticDirectory}logo.png`,
+									webpageUrl
 								})
+							} else {
+								removeFileFromServer(filename, filenameOrigin)
 							}
+							break;
+						case 2:
+							removeFileFromServer(filename, filenameOrigin)
 							break;
 						default:
 							logger.warn("buttonIndex default")
@@ -157,6 +140,41 @@ const FileManage = ({
 		} catch(err){
 			logger.error("fileManage showMenu err", err)
 		}
+	}
+
+	const removeFileFromServer = (filename, filenameOrigin) => {
+		if(!token) return window.goRoute(this, "/login")
+		const dataInfo = {
+			username: username || setMobile,
+			token,
+			filename,
+			type: "default-file"
+		}
+		confirm(`提示`, `确定从服务器删除${filename}吗`, "确定", () => {
+			if(!startToDeleteOnline){
+				startToDeleteOnline = true
+				return axios.delete(HTTP_URL.delFile, {data: dataInfo})
+					.then(response => {
+						startToDeleteOnline = false
+						if (response.data.result.result === 'file_deleted') {
+							alert("文件已删除!");
+							$dispatch(updateToken(response.data.result.token))
+							return updateSearchList(original, filenameOrigin)
+						} else if (response.data.result.result === 'success'){
+							alert("删除成功!");
+							$dispatch(updateToken(response.data.result.token))
+							return updateSearchList(original, filenameOrigin)
+						} else {
+							alert("删除失败!");
+						}
+					})
+					.catch(error => {
+						startToDeleteOnline = false
+						logger.error("删除文件过程中发生了错误", error.stack||error.toString());
+						networkErr(error, `delFile dataInfo: ${JSON.stringify(dataInfo)}`);
+					})
+			}
+		})
 	}
 
 	const updateSearchList = (original, filenameOrigin) => {
@@ -190,59 +208,6 @@ const FileManage = ({
 		openDownloadedFile(filename, fileMine, removePrefixFromFileOrigin(filenameOrigin))
 	}
 
-	const saveFileToLocalFunc = async (filename, uploadUsername, fileSize, filePath, retry, filenameOrigin) => {
-		if(!token) return window.goRoute(this, "/login")
-		if(!window.isCordova){
-			return saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false, {})
-		}
-		if((new Date().getTime() - currentTime) < 300){
-			// not allow to click frequently
-			currentTime = new Date().getTime();
-			return;
-		}
-		let isDownload = false
-		const filenameOriginOld = filenameOrigin
-		filenameOrigin = removePrefixFromFileOrigin(filenameOrigin)
-		if(!retry && window.isCordova){
-			downloadingFileList.some((item) => {
-				if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin){
-					isDownload = true
-					confirm(`提示`, `${filename}正在下载`, "去查看", () => {
-						history.push("/my_finished_files")
-					})
-					return true
-				} else {
-					return false
-				}
-			})
-		}
-		downloadedFileList.some((item) => {
-			if(removePrefixFromFileOrigin(item.filenameOrigin) === filenameOrigin && (!item.status || item.status === "downloaded")){
-				isDownload = true
-				openFileFunc(filename, filenameOriginOld)
-				return true
-			} else {
-				return false
-			}
-		})
-		if(!isDownload){
-			return checkFileWritePriority()
-				.then(bool => {
-					if(bool){
-						if(retry){
-							alert(`重新下载${filename}`)
-						} else {
-							alert(`开始下载${filename}`)
-						}
-						updateDownloadingStatus(filename, '准备中', uploadUsername, fileSize, true, filePath, filenameOrigin, false, {})
-						saveFileToLocal(filenameOrigin, filePath, "download", filename, uploadUsername, true, fileSize, false, {})
-					} else {
-						return alertDialog("请授予文件读写权限，否则不能下载文件", "", "知道了", requestFileWritePriority)
-					}
-				})
-		}
-	}
-
 	const removeDownloadItem = (filename, filenameOrigin) => {
         confirm('提示', `确定要移除下载${filename}吗`, "确定", () => {
 			logger.info("removePrefixFromFileOrigin(filenameOrigin)", removePrefixFromFileOrigin(filenameOrigin))
@@ -261,14 +226,14 @@ const FileManage = ({
 			openFileFunc(filename, filenameOrigin)
 		} else if(original === "fileShare" || original === "fileSearch"){
 			//只要在这个条件里不要再往下写强依赖逻辑，这里的await可以不加
-			await saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, false, filenameOrigin)
+			await saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, false, filenameOrigin, history, openFileFunc)
 		} else if(original === "fileDownloading"){
 			downloadingFileList.some((item) => {
 				if(item.filenameOrigin === filenameOrigin) {
 					filenameOrigin = filenameOrigin.replace(/^downloading_/, "")
 					logger.info("downloadOrOpenFile filenameOrigin", filenameOrigin)
 					if(item.progress === "失败" || item.progress === "已取消"){
-						saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, true, filenameOrigin)
+						saveFileToLocalFunc(filename, uploadUsername, fileSize, filePath, true, filenameOrigin, history, openFileFunc)
 					} else {
 						window.eventEmit.$emit(`FileTransfer-${filenameOrigin}`, 'abort')
 					}

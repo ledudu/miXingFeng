@@ -4,18 +4,9 @@ import { updateToken } from "../ducks/login";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute"
 import { updateDownloadingFileList, updateFileList, updateDownloadedMusicList, updateDownloadingMusicItems, updateDownloadedFileList } from "../ducks/fileServer"
-import { calcSize, checkFilePath, reconnectSocket } from "../logic/common";
+import { calcSize, checkFilePath, reconnectSocket, logActivity } from "../logic/common";
 import { addDataFromIndexDB, removeDataByIndexFromIndexDB } from "./indexDB"
 import { addMusicDataFromIndexDB, removeMusicDataByIndexFromIndexDB } from "./indexDBMusic"
-
-export const alert = (text) => {
-	if(window.isCordova){
-		window.plugins.toast.showShortCenter(text)
-	} else {
-		Toast.info(text, 2, null, false);
-	}
-	logger.info("window.plugins.toast.showShortCenter alert text", text)
-}
 
 export const alertDialog = (title, text, button="确定", cb) => {
 	Modal.alert(title, text, [
@@ -277,7 +268,17 @@ export const stopPropagation = (e) => {
 	}
 }
 
-export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, uploadUsername, needSaveToDownloadBox = false, fileSize, fromMusic, options={}) => {
+export const saveFileToLocal = async({
+	filenameOrigin,
+	fileUrl,
+	folder,
+	filename,
+	uploadUsername,
+	needSaveToDownloadBox = false,
+	fileSize,
+	fromMusic,
+	options={}
+}) => {
 	if(!filenameOrigin) return
 	if(fromMusic){
 		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin)
@@ -285,6 +286,7 @@ export const saveFileToLocal = async(filenameOrigin, fileUrl, folder, filename, 
 	}
 	logger.info("saveFileToLocal fileUrl, filenameOrigin", fileUrl, filenameOrigin)
 	if(!window.isCordova) {
+		if(folder === CONSTANT.downloadAppFromPage) logActivity({msg: filenameOrigin})
 		window.open(fileUrl)
 		return;
 	}
@@ -725,7 +727,7 @@ export const shareLinkToWeChat = ({
 	title="这是分享的标题",
 	description="这是分享的描述",
 	thumb="www/assets/imgs/logo.png",
-	webpageUrl="https://www.zhoushoujian.com/mixingfeng",
+	webpageUrl=CONSTANT.appStaticDirectory,
 	scene=Wechat.Scene.SESSION  //Wechat.Scene.TIMELINE
 }) => {
 	return checkWeChatInstallOrNot()
@@ -744,10 +746,13 @@ export const shareLinkToWeChat = ({
 						},
 						scene
 					}, function () {
-						alert("分享成功");
+						logActivity({
+							msg: "shareLinkToWeChat",
+							LinkTitle: title,
+							scene
+						})
 						res("success")
 					}, function (reason) {
-						alert("分享失败");
 						res("fail")
 						logger.error("shareLinkToWeChat", "Failed: " + reason);
 					});
@@ -762,7 +767,7 @@ export const shareVideoToWeChat = ({
 	title="这是分享的标题",
 	description="这是分享的描述",
 	thumb="www/assets/imgs/logo.png",
-	videoUrl="https://www.zhoushoujian.com/mixingfeng"
+	videoUrl=CONSTANT.appStaticDirectory
 }) => {
 	return checkWeChatInstallOrNot()
 		.then(bool => {
@@ -780,13 +785,22 @@ export const shareVideoToWeChat = ({
 						},
 						scene: Wechat.Scene.SESSION
 					}, function () {
-						alert("Success");
+						logActivity({
+							msg: "shareVideoToWeChat",
+							videoTitle: title
+						})
+						res("success")
 					}, function (reason) {
-						alert("Failed: " + reason);
+						res("fail")
+						logger.error("shareVideoToWeChat Failed: " + reason);
 					});
 				})
 			} else {
 				return bool
 			}
 		})
+}
+
+export const comeFromWeChat = () => {
+	return navigator.userAgent.toLowerCase().includes("micromessenger")
 }

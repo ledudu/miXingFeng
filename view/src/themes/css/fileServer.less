@@ -628,12 +628,52 @@
 
 .music-mv-player-container{
 	.music-mv-player-content{
+		flex-direction: column;
 		background-color: #000;
 		height: calc(100vh - 50px);
 		max-height: calc(100vh - 50px);
 		display: flex;
 		align-items: flex-start;
 		box-sizing: border-box;
+		.mv-menu{
+			margin-top: 50px;
+    		display: flex;
+    		width: 100%;
+    		justify-content: space-around;
+    		font-size: 24px;
+			color: #fff;
+			i {
+				cursor: pointer;
+			}
+		}
+		.weChat-tips{
+			color: #fff;
+			position: absolute;
+			bottom: 80px;
+			display: flex;
+			justify-content: center;
+			flex-direction: column;
+			align-items: center;
+			width: 100%;
+			font-size: 18px;
+			.open, .download{
+				margin-bottom: 30px;
+				width: 150px;
+				height: 50px;
+				border-radius: 50px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+			}
+			.open{
+				border: 1px solid #fff;
+				opacity: 0.6;
+			}
+			.download{
+				background-color: #2B2B2B;
+			}
+		}
 	}
 }
 
@@ -771,6 +811,20 @@
 			}
 			.fa-share-alt{
 				right: 60px;
+			}
+			.download-button{
+				position: absolute;
+    			bottom: 50px;
+    			font-size: 20px;
+    			width: 150px;
+    			height: 50px;
+    			border-radius: 50px;
+    			display: flex;
+    			align-items: center;
+    			justify-content: center;
+    			cursor: pointer;
+    			color: #fff;
+    			background-color: #fa709a;
 			}
 		}
 		.play-progress{

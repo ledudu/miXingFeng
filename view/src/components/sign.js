@@ -644,7 +644,11 @@ class Sign extends Component {
 	downloadApp = () => {
 		if(this.cancelTips) return
 		$dispatch(updateShowDownloadAppTip(false))
-		saveFileToLocal("browser begin to download app", 'http://192.144.213.72:2000/Images/app-release.apk')
+		saveFileToLocal({
+			filenameOrigin: "signPageAds",
+			fileUrl: CONSTANT.appDownloadUrl,
+			folder: CONSTANT.downloadAppFromPage
+		})
 	}
 
 	cancelShowTip = (e) => {

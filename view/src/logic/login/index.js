@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Toast } from "antd-mobile";
 import { HTTP_URL } from "../../constants/httpRoute";
-import { alert, alertDialog, replaceSocketLink } from "../../services/utils";
+import { replaceSocketLink } from "../../services/utils";
 import { updatePassword,
 	updateUsername,
 	updateToken,

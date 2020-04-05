@@ -6,7 +6,7 @@ const itemColumns = [
 		displayName: "旅游相册",
 		routeName: "/browser_link",
 		name: '旅游相册',
-		src: "https://www.zhoushoujian.com"
+		src: "http://www.zhoushoujian.com"
 	},
 	{
 		displayName: "守俭的博客",

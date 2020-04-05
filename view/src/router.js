@@ -177,6 +177,10 @@ const SetUsername = MyLoadable({
 	loader: () => import("./components/updateUserInfo/setUsername")
 })
 
+const ShowFileInfo = MyLoadable({
+	loader: () => import("./components/showFileInfo")
+})
+
 class Routers extends Component {
 
     componentDidMount(){
@@ -185,8 +189,8 @@ class Routers extends Component {
 		// 初始化websocket
 		initWebsocket()
 		// 首次启动不是主页自动返回主页
-		const url = window.location.href;
-		if(url.split("#/")[1]) window.location.href = url.split("#/")[0];
+		const hash = window.getRoute()
+		if(hash !== "/" && !hash.includes("isFromThirdPart") && !hash.includes("show_file_info?filename=")) window.location.href = window.location.href.split("#/")[0];
 		// 检查是否每次都显示广告
 		if(localStorage.getItem("alwaysShowAdsPage") === "no"){
 			$dispatch(updateAlwaysShowAdsPage(false))
@@ -284,6 +288,7 @@ class Routers extends Component {
 							<Route path="/music_mv_player" component={MusicMvPlayer} />
 							<Route path="/music_playing" component={MusicPlaying} />
 							<Route path="/set_username" component={SetUsername} />
+							<Route path="/show_file_info" component={ShowFileInfo} />
                     	    <Route path="/" exact component={Entry} />
     					</Switch>
 					</div>

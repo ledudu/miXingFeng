@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { alert } from "../../services/utils";
 import { HTTP_URL } from "../../constants/httpRoute";
 import { retrieveOthers, logActivity } from "../common";
 import { updateToken } from "../../ducks/login";

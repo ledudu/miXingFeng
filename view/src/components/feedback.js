@@ -3,7 +3,7 @@ import { Button, Toast, ImagePicker, List, Switch } from "antd-mobile";
 import { createForm } from 'rc-form';
 import NavBar from "./child/navbar";
 import { HTTP_URL } from "../constants/httpRoute";
-import { alert, networkErr } from "../services/utils";
+import { networkErr } from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 
 

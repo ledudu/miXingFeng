@@ -2,7 +2,7 @@ import React, { createRef } from 'react';
 import { Button, Toast, InputItem } from "antd-mobile";
 import InputComponent from "../child/inputComponent"
 import { HTTP_URL } from "../../constants/httpRoute";
-import { networkErr, alertDialog, confirm } from "../../services/utils";
+import { networkErr, confirm } from "../../services/utils";
 import { updateToken } from "../../ducks/login";
 import { CONSTANT } from "../../constants/enumeration";
 import { checkEmail, checkMobilePhone, setTryMobileOrEmailTimes } from "../../logic/common"

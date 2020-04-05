@@ -2,7 +2,7 @@ import React, { Component, createRef } from 'react';
 import { Button, Toast } from "antd-mobile";
 import NavBar from "./child/navbar"
 import InputComponent from "./child/inputComponent"
-import { networkErr, backToPreviousPage, alertDialog} from "../services/utils";
+import { networkErr, backToPreviousPage } from "../services/utils";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
 import { updateSetTempEmail, updateSetTempMobile } from "../ducks/myInfo";

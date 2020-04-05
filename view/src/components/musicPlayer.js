@@ -197,7 +197,16 @@ const MusicPlayer = ({
 						})
 						break;
 					case 1:
-						saveSongFunc(savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, null, pageType, false)
+						saveSongFunc({
+							savedMusicFilenameOriginalArr,
+							filenameOrigin,
+							musicCollection,
+							musicDataList,
+							currentFileIndex,
+							original,
+							e: null,
+							pageType
+						})
 						break;
 					case 2:
 						if(!pauseWhenOver || playByOrder || playByRandom){
@@ -325,7 +334,7 @@ const MusicPlayer = ({
 							//  为了唯一的辨别每一个音乐，觅星峰服务器上的音乐md5由客户端随机生成，是不可靠的
 							//  所以在保存觅星峰服务器上的音乐时，保存的文件名特意为以上格式，
 							//  如果将要下载的音乐信息和已下载的音乐名称相同，则认为这个音乐已经下载了
-							saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
+							saveMusicToLocal({musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload})
 						}
 						break;
 					case 7:

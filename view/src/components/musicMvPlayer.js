@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Fragment } from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import { Player, BigPlayButton, ControlBar } from 'video-react';
@@ -6,9 +6,15 @@ import 'video-react/dist/video-react.css'
 import { CONSTANT } from "../constants/enumeration"
 import { HTTP_URL } from "../constants/httpRoute"
 import Loading from "./child/loading"
-import { hideMusicController, pauseMusic } from "../logic/common"
+import { hideMusicController, pauseMusic, dealWithThirdPartVisit, saveFileToLocalFunc } from "../logic/common"
 import NavBar from "./child/navbar"
-import { networkErr, saveFileToLocal, updateDownloadingStatus } from "../services/utils"
+import { networkErr, shareVideoToWeChat, saveFileToLocal, comeFromWeChat } from "../services/utils"
+import "../themes/css/fileServer.less"
+
+let filename = "MV"
+, 	isFromThirdPart = false
+, 	mvId=""
+, 	original=""
 
 const MusicMvPlayer = ({ location, userId }) => {
 	const [getMvLink, setGetMvLink] = useState(false)
@@ -16,16 +22,34 @@ const MusicMvPlayer = ({ location, userId }) => {
 	const playerRef = useRef()
 	const history = useHistory()
 
+	if(location && location.query && location.query){
+		filename = location.query.filename
+		mvId = location.query.mvId
+		original = location.query.original
+	}
+
 	useEffect(() => {
-		if(!location || !location.query) {
-			alertDebug("no location.query")
-			history.push("/main/myInfo")
+		isFromThirdPart = !!location.search
+		if(isFromThirdPart){
+			const queryParams = dealWithThirdPartVisit()
+			if(queryParams.mvId){
+				mvId = queryParams.mvId
+				filename = queryParams.filename
+				original = queryParams.original
+				userId = "weChatUser" + Math.random().toString(36).slice(-5)
+			} else {
+				return alertDialog("视频播放失败, 请稍候再试")
+			}
+		} else {
+			if(!location || !location.query) {
+				alertDebug("no location.query")
+				history.push("/main/myInfo")
+			}
+			document.addEventListener("deviceready", listenBackButton, false);
+			hideMusicController()
+			pauseMusic()
 		}
-		document.addEventListener("deviceready", listenBackButton, false);
-		hideMusicController()
-		pauseMusic()
-		const { mvId, original } = location.query;
-		let getMvLinkUrl = ""
+		let getMvLinkUrl = HTTP_URL.getQQMvLink
 		if(original === CONSTANT.musicOriginal.netEaseCloud){
 			getMvLinkUrl = HTTP_URL.getNetEaseCloudMvLink
 		} else if(original === CONSTANT.musicOriginal.qqMusic){
@@ -37,10 +61,10 @@ const MusicMvPlayer = ({ location, userId }) => {
 				if(result.response){
 					setGetMvLink(true)
 					setMvLink(result.response)
-					playerRef && playerRef.current.subscribeToStateChange(listenVideoState)
+					playerRef.current && playerRef.current.subscribeToStateChange(listenVideoState)
 				} else {
 					alertDialog("没有视频链接")
-					backToMainPage("nav")
+					if(!isFromThirdPart) backToMainPage("nav")
 				}
 			})
 			.catch(err => {
@@ -48,8 +72,8 @@ const MusicMvPlayer = ({ location, userId }) => {
 			})
 		return () => {
 			portrait()
-        	document.removeEventListener("deviceready", listenBackButton);
-        	document.removeEventListener("backbutton", backToMainPage);
+			document.removeEventListener("deviceready", listenBackButton);
+			document.removeEventListener("backbutton", backToMainPage);
 		}
 	}, [])
 
@@ -59,11 +83,15 @@ const MusicMvPlayer = ({ location, userId }) => {
     }
 
 	const backToMainPage = (origin) => {
-		if(origin === "nav") window.history.back()
-		setTimeout(() => {
-			document.querySelector("#root .container .main-content").style.height = "calc(100vh - 66px)"
-			window.musicControllerRef && window.musicControllerRef.current.style && (window.musicControllerRef.current.style.display = "flex")
-		}, 100)
+		if(!isFromThirdPart){
+			if(origin === "nav") window.history.back()
+			setTimeout(() => {
+				document.querySelector("#root .container .main-content").style.height = "calc(100vh - 66px)"
+				window.musicControllerRef && window.musicControllerRef.current.style && (window.musicControllerRef.current.style.display = "flex")
+			}, 100)
+		} else {
+			alert("请手动关闭页面")
+		}
 	}
 
 	const landscape = () => {
@@ -84,10 +112,6 @@ const MusicMvPlayer = ({ location, userId }) => {
 
 	const listenVideoState = (state, prevState) => {
 		if(state.isFullscreen !== prevState.isFullscreen){
-			let filename = "MV"
-			if(location && location.query && location.query.filename){
-				filename = location.query.filename
-			}
 			logger.info("listenVideoState state.isFullscreen, filename", state.isFullscreen, filename)
 			logger.info("listenVideoState prevState.isFullscreen, filename", prevState.isFullscreen, filename)
 			if(state.isFullscreen){
@@ -99,31 +123,78 @@ const MusicMvPlayer = ({ location, userId }) => {
 	}
 
 	const downloadMv = () => {
-		const { original, filename } = location.query;
-		const uploadUsername = original === CONSTANT.musicOriginal.netEaseCloud ? "网易云" : original === CONSTANT.musicOriginal.qqMusic ? "qq音乐" : "未知"
-		const filenameOrigin = filename + ".mp4"
-		alert(`开始下载${filename}`)
-		updateDownloadingStatus(filenameOrigin, '准备中', uploadUsername, "未知", true, mvLink, filenameOrigin, false, {})
-		saveFileToLocal(filenameOrigin, mvLink, "download", filenameOrigin, uploadUsername, true, "未知", false)
+		if(!isFromThirdPart){
+			const { original, filename } = location.query;
+			const uploadUsername = original === CONSTANT.musicOriginal.netEaseCloud ? "网易云" : original === CONSTANT.musicOriginal.qqMusic ? "qq音乐" : "未知"
+			const filenameOrigin = filename + ".mp4"
+			saveFileToLocalFunc(filename, uploadUsername, "未知", mvLink, false, filenameOrigin, history, null)
+		} else {
+			downloadApp()
+		}
 	}
 
-	let filename = "MV"
-	if(location && location.query && location.query.filename){
-		filename = location.query.filename
+	const shareToWeChat = () => {
+		const mvInfo = {
+			filename,
+			mvId,
+			original,
+			isFromThirdPart: "weChat"
+		}
+		let videoUrl = `${CONSTANT.appStaticDirectory}#/music_mv_Player`
+		const arr = []
+		for (let key in mvInfo) {
+			arr.push(`${key}=${mvInfo[key]}`)
+		}
+		videoUrl = `${videoUrl}?${arr.join('&')}`
+		return shareVideoToWeChat({
+			title: "MV: " + filename,
+			description: "觅星峰，一的集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
+			thumb: `${CONSTANT.appStaticDirectory}logo.png`,
+			videoUrl
+		})
 	}
+
+	const downloadApp = () => {
+		if(comeFromWeChat()){
+			// setShowDownloadHeaderTip(true)
+			window.alertOld("链接打不开?请点击右上角...,选择在浏览器打开")
+		} else {
+			saveFileToLocal({
+				filenameOrigin: "shareMVFromThirdPart",
+				fileUrl: CONSTANT.appDownloadUrl,
+				folder: CONSTANT.downloadAppFromPage
+			})
+		}
+	}
+
     return (
 		<div className="music-mv-player-container">
-			<NavBar centerText={filename} backToPreviousPage={backToMainPage.bind(this, 'nav')}
-				rightText="下载" rightTextFunc={downloadMv}
+			<NavBar
+				centerText={filename}
+				backToPreviousPage={backToMainPage.bind(this, 'nav')}
 			/>
 			<div className="music-mv-player-content">
 				{
 					getMvLink
-					? 	<Player ref={playerRef} autoPlay>
-							<ControlBar autoHide={true} />
-							<source src={mvLink} />
-							<BigPlayButton position="center" />
-						</Player>
+					? 	<Fragment>
+							<Player ref={playerRef} autoPlay>
+								<ControlBar autoHide={true} />
+								<source src={mvLink} />
+								<BigPlayButton position="center" />
+							</Player>
+							{
+								isFromThirdPart
+								?	<div className="weChat-tips">
+										<div className="open" onClick={downloadApp} >打开</div>
+										<div className="download" onClick={downloadApp} >下载</div>
+									</div>
+								:	<div className="mv-menu">
+										{ window.isCordova ? <i className="fa fa-share share" aria-hidden="true" onClick={shareToWeChat} ></i> : null }
+										<i className="fa fa-download download-song" aria-hidden="true" onClick={downloadMv}></i>
+									</div>
+							}
+
+						</Fragment>
 					:	<Loading />
 				}
 			</div>

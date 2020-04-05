@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Fragment } from 'react';
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom"
 import NavBar from "./child/navbar";
@@ -16,21 +16,14 @@ import {
 	touchDirection,
 	removeTouchDirection,
 	checkToShowPlayController,
-	dealWithThirdPartVisit
+	dealWithThirdPartVisit,
+	playMusic,
 } from "../logic/common"
-import { updateCurrentSongTime, updateIsHeadPhoneView, updateShowMusicPlayingFromMusicControl } from "../ducks/fileServer"
-import { IsPC, alert, specialBackFunc, shareLinkToWeChat } from "../services/utils"
+import { updateCurrentSongTime, updateIsHeadPhoneView, updateShowMusicPlayingFromMusicControl, updateCurrentMusicItemInfo } from "../ducks/fileServer"
+import { IsPC, specialBackFunc, shareLinkToWeChat, comeFromWeChat, saveFileToLocal } from "../services/utils"
 import AmazingBaby from "./child/amazingBaby"
 import { CONSTANT } from '../constants/enumeration';
-
-let ifBool = false
-,	offsetXValue=window.innerWidth/2
-,	offsetYValue=0
-,	offsetFirstXValue=0
-,	offsetFirstYValue=0
-,	movingX=false
-,	movingY=false
-,	isFromThirdPart = false
+import "../themes/css/fileServer.less"
 
 const MusicPlaying = ({
 	currentPlayingSong,
@@ -47,8 +40,10 @@ const MusicPlaying = ({
 	fromMusicControl,
 	showMusicPlayingFromMusicControl
 }) => {
-	const [ showSelectedAnimation, setShowSelectedAnimation ] = useState(false)
 	const touchDirectionObj = { debounceTimer: null, firstTimeRun: false, }
+	,	[ showSelectedAnimation, setShowSelectedAnimation ] = useState(false)
+	,	[showDownloadHeaderTip, setShowDownloadHeaderTip] = useState(false)
+	,	[isFromThirdPart, setIsFromThirdPart] = useState(false)
 	,	windowInnerWidth = window.innerWidth
 	,	windowInnerHeight = window.innerHeight
 	,	history = useHistory()
@@ -61,10 +56,44 @@ const MusicPlaying = ({
 	,	progressUnplayedRef = useRef()
 	,	progressOutPointRef = useRef()
 	,	progressInnerPointRef = useRef()
+	,	getCurrentMusicItemInfo = dealWithThirdPartVisit()
+	let ifBool = false
+	,	offsetXValue=window.innerWidth/2
+	,	offsetYValue=0
+	,	offsetFirstXValue=0
+	,	offsetFirstYValue=0
+	,	movingX=false
+	,	movingY=false
+	,	savedMusicFilenameOriginalArr = []
+	,	currentMusicFilenameOriginalArr = []
+	,	currentFileIndex = null
 
 	useEffect(() => {
+		setIsFromThirdPart(window.location.href.split("?").length > 1)
+		if(window.location.href.split("?").length > 1){
+			$dispatch(updateCurrentMusicItemInfo(getCurrentMusicItemInfo))
+			const obj = {
+				filePath: getCurrentMusicItemInfo.filePath || "",
+				filenameOrigin: getCurrentMusicItemInfo.filenameOrigin,
+				duration: getCurrentMusicItemInfo.duration,
+				original: getCurrentMusicItemInfo.original,
+				musicDataList: [],
+				pageType: getCurrentMusicItemInfo.original,
+				filename: getCurrentMusicItemInfo.filename,
+				musicId: getCurrentMusicItemInfo.id,
+				songOriginal: getCurrentMusicItemInfo.original
+			}
+			if(!comeFromWeChat()){
+				obj.checkLastMusicWhenLaunch = true
+			}
+			touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
+			playMusic(obj).then(() => {
+				if(comeFromWeChat()){
+					pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
+				}
+			})
+		}
 		if(fromMusicControl) musicPlayingPageXAnimation()
-		isFromThirdPart = dealWithThirdPartVisit()
 		document.addEventListener("deviceready", listenBackButton, false);
 		playRef.current && (playRef.current.style.paddingLeft = "5px")
 		pauseRef.current && (pauseRef.current.style.paddingLeft = "0px")
@@ -81,7 +110,6 @@ const MusicPlaying = ({
 		window.addEventListener("touchend", endProgress);
 		window.addEventListener("mouseup", endProgress);
 		updateProgressLine(currentSongTime)
-		// touchDirection(musicPlayingTopRef.current, ['swipeLeft', 'swipeRight'], touchDirectionCallback, touchDirectionObj)
 		return () => {
 			document.removeEventListener("deviceready", listenBackButton, false);
 			document.removeEventListener("backbutton", backKeyDownToPrevious, false)
@@ -97,7 +125,7 @@ const MusicPlaying = ({
 			}
 			window.removeEventListener("touchend", endProgress);
 			window.removeEventListener("mouseup", endProgress);
-			// removeTouchDirection(musicPlayingTopRef.current)
+			removeTouchDirection(musicPlayingTopRef.current)
 		}
 	}, [])
 
@@ -139,13 +167,15 @@ const MusicPlaying = ({
 
 	const moveProgress = (e) => {
 		e.stopPropagation();
+		const duration = currentMusicItemInfo.duration || getCurrentMusicItemInfo.duration
+		const { soundInstance, soundInstanceId } = $getState().fileServer
 		if (ifBool) {
 			const progressRestWidth = progressRef.current.offsetWidth - 14
 			const x = e.clientX || e.touches[0].pageX
 			let minDivLeft = ((x - 55) > progressRestWidth) ? progressRestWidth : (x - 55)
 			minDivLeft = ((x - 55) < 0) ? 0 : minDivLeft
 			const percent = (minDivLeft / progressRestWidth).toFixed(2)
-			const seekTime = currentMusicItemInfo.duration * percent
+			const seekTime = duration * percent
 			logger.info("move music progress move percent, seekTime", percent, seekTime)
 			$dispatch(updateCurrentSongTime(seekTime))
 			if(soundInstance && soundInstanceId) {
@@ -154,7 +184,7 @@ const MusicPlaying = ({
 		} else {
 			if(e.clientX && !IsPC()){
 				const percent = ((e.clientX - 55) / (progressRef.current.offsetWidth - 14)).toFixed(2)
-				const seekTime = currentMusicItemInfo.duration * percent
+				const seekTime = duration * percent
 				logger.info("move music progress click percent, seekTime", percent, seekTime)
 				$dispatch(updateCurrentSongTime(seekTime))
 				if(soundInstance && soundInstanceId) {
@@ -268,7 +298,7 @@ const MusicPlaying = ({
 				history.push("/my_download_middle_page")
 			}
 		} else {
-
+			alert("请手动关闭页面")
 		}
 	}
 
@@ -276,6 +306,8 @@ const MusicPlaying = ({
 		if(!isFromThirdPart){
 			playRef.current && (playRef.current.style.paddingLeft = "0px")
 			playPreviousSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		} else {
+			downloadApp()
 		}
 	}
 
@@ -283,13 +315,17 @@ const MusicPlaying = ({
 		if(!isFromThirdPart){
 			playRef.current && (playRef.current.style.paddingLeft = "0px")
 			playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, currentPlayingSongOriginal, currentPlayingMusicList, e)
+		} else {
+			downloadApp()
 		}
 	}
 
 	const saveMusicToLocalFunc = (musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload) => {
 		if(!isFromThirdPart){
 			if(!filename && !filenameOrigin) return alert('请选择一首歌播放')
-			saveMusicToLocal(musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload)
+			saveMusicToLocal({ musicDataList, filename, uploadUsername, fileSize, musicSrc, filenameOrigin, duration, songOriginal, musicId, payDownload })
+		} else {
+			downloadApp()
 		}
 	}
 
@@ -302,7 +338,7 @@ const MusicPlaying = ({
 	}
 
 	const resume = (e) => {
-		logger.info("isFromThirdPart2222", isFromThirdPart)
+		logger.info("isFromThirdPart", isFromThirdPart)
 		if(e) e.stopPropagation();
 		if(!soundInstance && !soundInstanceId && !currentPlayingSong) return alert('请选择一首歌播放')
 		logger.info("MusicController resume currentPlayingSong", currentPlayingSong)
@@ -326,7 +362,7 @@ const MusicPlaying = ({
 				gotoPlayingOriginFunc()
 			}
 		} else {
-
+			downloadApp()
 		}
 	}
 
@@ -356,7 +392,7 @@ const MusicPlaying = ({
 				if(urlHash !== "/onlineMusicSearchALl") history.push("/search_all")
 				break
 			default:
-				alert("当前没有播放的歌曲")
+				alert("请选择一首歌播放")
 				break
 		}
 	}
@@ -373,17 +409,19 @@ const MusicPlaying = ({
 					scene = Wechat.Scene.TIMELINE
 				}
 				const currentMusicItemInfoCopy = JSON.parse(JSON.stringify(currentMusicItemInfo))
+				if(!currentMusicItemInfo.filePath.includes("api.zhoushoujian.com")) delete currentMusicItemInfoCopy.filePath
 				currentMusicItemInfoCopy.isFromThirdPart = "weChat"
-				let webpageUrl = "https://www.zhoushoujian.com/mixingfeng/#/music_playing"
+				let webpageUrl = `${CONSTANT.appStaticDirectory}#/music_playing`
 				const arr = []
 				for (let key in currentMusicItemInfoCopy) {
-					arr.push(`${key}=${params[key]}`)
+					arr.push(`${key}=${currentMusicItemInfoCopy[key]}`)
 				}
 				webpageUrl = `${webpageUrl}?${arr.join('&')}`
+				logger.info("webpageUrl: "+ webpageUrl)
 				return shareLinkToWeChat({
-					title: `${currentMusicItemInfoCopy.filename} (${secondsToTime(currentMusicItemInfoCopy.duration)})`,
+					title: `音乐: ${currentMusicItemInfoCopy.filename} (${secondsToTime(currentMusicItemInfoCopy.duration)})`,
 					description: "觅星峰，一的集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
-					thumb: "http://zhoushoujian.com/mixingfeng/logo.png",
+					thumb: `${CONSTANT.appStaticDirectory}logo.png`,
 					webpageUrl,
 					scene
 				})
@@ -393,9 +431,35 @@ const MusicPlaying = ({
 		}
 	}
 
-	let savedMusicFilenameOriginalArr = []
-	let currentMusicFilenameOriginalArr = []
-	let currentFileIndex = null
+	const downloadApp = () => {
+		if(comeFromWeChat()){
+			setShowDownloadHeaderTip(true)
+		} else {
+			saveFileToLocal({
+				filenameOrigin: "shareMusicFromThirdPart",
+				fileUrl: CONSTANT.appDownloadUrl,
+				folder:CONSTANT.downloadAppFromPage
+			})
+		}
+	}
+
+	const saveSong = (savedMusicFilenameOriginalArr, filenameOrigin, musicCollection, musicDataList, currentFileIndex, original, e, pageType) => {
+		if(!isFromThirdPart){
+			saveSongFunc({
+				savedMusicFilenameOriginalArr,
+				filenameOrigin,
+				musicCollection,
+				musicDataList,
+				currentFileIndex,
+				original,
+				e,
+				pageType
+			})
+		} else {
+			downloadApp()
+		}
+	}
+
 	if(currentPlayingSong){
 		savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 		currentMusicFilenameOriginalArr = currentPlayingMusicList.map(item => item.filenameOrigin)
@@ -430,7 +494,12 @@ const MusicPlaying = ({
 							</div>
 					}
 					{
-						!isFromThirdPart
+						isFromThirdPart
+						?	<div className="download-button" onClick={downloadApp}>下载</div>
+						:	null
+					}
+					{
+						(!isFromThirdPart && window.isCordova)
 						?	<i className="fa fa-share share" aria-hidden="true" onClick={shareToWeChat.bind(this, "weChat")} ></i>
 						:	null
 					}
@@ -439,7 +508,7 @@ const MusicPlaying = ({
 						<div className={`dot ${isHeadPhoneView ? 'dot-fill' : ''}`} onClick={touchDirectionCallback.bind(this, "left")}></div>
 					</div>
 					{
-						!isFromThirdPart
+						(!isFromThirdPart && window.isCordova)
 						?	<i className="fa fa-share-alt share" aria-hidden="true" onClick={shareToWeChat.bind(this, "timeLine")} ></i>
 						:	null
 					}
@@ -456,7 +525,7 @@ const MusicPlaying = ({
 				</div>
 				<div className="bottom-controller">
 					<div className={`save-svg ${songIsSaved ? 'save-song-svg' : ""}`}
-						onClick={(e) => saveSongFunc(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType, isFromThirdPart)}>
+						onClick={(e) => saveSong(savedMusicFilenameOriginalArr, currentPlayingSong, musicCollection, currentPlayingMusicList, currentFileIndex, currentPlayingSongOriginal, e, musicPageType)}>
 						<HearSvg />
 					</div>
 					<div className="fa fa-step-backward play-previous"
@@ -477,6 +546,18 @@ const MusicPlaying = ({
 						onClick={() => saveMusicToLocalFunc(currentPlayingMusicList, currentMusicItemInfo.filename, currentMusicItemInfo.uploadUsername, currentMusicItemInfo.fileSize, currentMusicItemInfo.filePath, currentMusicItemInfo.filenameOrigin, currentMusicItemInfo.duration, currentMusicItemInfo.original, currentMusicItemInfo.id, Number(currentMusicItemInfo.payDownload))
 					}></i>
 				</div>
+				{
+					showDownloadHeaderTip
+					?	<Fragment>
+							<div className="open-with-browser">
+								<div className="text1">链接打不开?</div>
+								<div className="text2">请点击右上角 <strong>. . .</strong></div>
+								<div className="text2">选择在"浏览器"打开</div>
+							</div>
+							<div className="overlay" onClick={() => setShowDownloadHeaderTip(false)}></div>
+						</Fragment>
+					:	null
+				}
 			</div>
 		</div>
 	);

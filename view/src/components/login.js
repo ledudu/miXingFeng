@@ -6,7 +6,7 @@ import { loginApp } from "../logic/login";
 import { HTTP_URL } from "../constants/httpRoute";
 import { autoLogin } from "../logic/common"
 import { updateRegisterFromLogin, updateUserId, updateToken, updatePassword, updateIsFromLoginPage, updateLogOutFlag } from "../ducks/login"
-import { backToPreviousPage, alertDialog, generateRandomUserId, replaceSocketLink } from "../services/utils";
+import { backToPreviousPage, generateRandomUserId, replaceSocketLink } from "../services/utils";
 import { updateCarrierOperator, updateSetMobile } from "../ducks/myInfo"
 
 class Login extends Component {

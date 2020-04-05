@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from "react-redux";
 import { Toast } from 'antd-mobile';
 import MyInfoMiddlePageComponent from "./child/myInfoMiddlePageComponent";
-import { networkErr, alert } from "../services/utils";
+import { networkErr } from "../services/utils";
 import UpdateBody from "./child/updateBody";
 import { updateSetSystemSetupDot } from "../ducks/myInfo";
 import { CONSTANT } from "../constants/enumeration";
 import { HTTP_URL } from "../constants/httpRoute";
-import { confirm, alertDialog } from "../services/utils";
+import { confirm } from "../services/utils";
 import { updateHasDownloadedPackage, updateAppUpdating, updateAppSize, updateUpgradeProgressPercent } from "../ducks/common"
 import { previewNew, checkDownloadedOrNot, checkAppMD5 } from "../logic/common";
 
