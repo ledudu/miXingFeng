@@ -855,6 +855,7 @@ export const saveSongFunc = ({
 					})
 					$dispatch(updateMusicCollection(musicCollectionCopy))
 					const currentMusicInfo = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+					currentMusicInfo.filename = removeTagFromFilename(currentMusicInfo.filename)
 					const { currentPlayingSong } = $getState().fileServer
 					if (hasSaved !== -1) {
 						delete  currentMusicInfo.saved
@@ -1112,6 +1113,7 @@ export const playMusic = async ({
 					currentMusicItem.filePath = filePath
 				}
 			}
+			if(currentMusicItem.filename) currentMusicItem.filename = removeTagFromFilename(currentMusicItem.filename)
 		} else {
 			// 已下载的音乐的链接在本地，这里只需把音乐记录保存下即可
 			musicDataList.some((item) => {

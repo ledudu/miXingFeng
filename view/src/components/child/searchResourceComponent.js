@@ -195,6 +195,7 @@ const SearchResourceComponent = ({
 	const pressEnter = (e) => {
 		if(e.keyCode === 13){
 			logger.info("lastSearchString", lastSearchString)
+			searchResourceInputRef.current.blur()
 			getAutoSuggest(lastSearchString)
 		}
 	}
