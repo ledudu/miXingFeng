@@ -662,7 +662,8 @@ export const checkFileMD5Func = (filename, uploadUsername, md5, group, type) => 
 		})
 }
 
-export const removeDuplicateObjectList = (list=[{}], field="filenameOrigin") => {
+// 移除后进来的项
+export const removeDuplicateObjectList = (list=[{}], field="filenameOrigin", options={}) => {
 	if(!list.length) return list;
 	const tempObj = {}
 	let willRemoveIndex = null
@@ -675,12 +676,21 @@ export const removeDuplicateObjectList = (list=[{}], field="filenameOrigin") => 
 		}
 	}
 	if(willRemoveIndex !== null){
-		logger.error("removeDuplicateObjectList same file field", field, "list[willRemoveIndex]", list[willRemoveIndex])
+		if(!options.noWarn) logger.error("removeDuplicateObjectList same file field", field, "list[willRemoveIndex]", list[willRemoveIndex])
 		list.splice(willRemoveIndex, 1)
-		return removeDuplicateObjectList(list, field)
+		return removeDuplicateObjectList(list, field, options)
 	} else {
 		return list
 	}
+}
+
+// 移除先进来的项且对filenameOrigin去除前缀
+export const removeDuplicateObjectList2 = (dataSource) => {
+	const tempObj = {}
+	dataSource.forEach(item => {
+		tempObj[removePrefixFromFileOrigin(item.filenameOrigin)] = item
+	})
+	return tempObj
 }
 
 export const calcFileMD5 = (file) => {
@@ -761,7 +771,7 @@ export const checkSongSavedFunc = (musicDataList, original) => {
 			delete item.saved
 		})
 		musicCollection.forEach(item1 => {
-			musicDataList.some(item2 => {  //  在当前页将收藏的歌曲加上标记
+			musicDataList.some(item2 => {  //  在当前页将收藏的音乐加上标记
 				if(removePrefixFromFileOrigin(item1.filenameOrigin) === removePrefixFromFileOrigin(item2.filenameOrigin)){
 					item2.saved = true;
 					return true
@@ -819,6 +829,7 @@ export const saveSongFunc = ({
 		} else {
 			const willSavedSong = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
 			willSavedSong.filenameOrigin = `saved_${willSavedSong.filenameOrigin}`
+			willSavedSong.filename = removeTagFromFilename(willSavedSong.filename)
 			if(original === CONSTANT.musicOriginal.savedSongs){
 				musicDataListCopy.push(willSavedSong)
 			}
@@ -844,9 +855,12 @@ export const saveSongFunc = ({
 					})
 					$dispatch(updateMusicCollection(musicCollectionCopy))
 					const currentMusicInfo = JSON.parse(JSON.stringify(musicDataList[currentFileIndex]))
+					const { currentPlayingSong } = $getState().fileServer
 					if (hasSaved !== -1) {
 						delete  currentMusicInfo.saved
-						$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+						if(removePrefixFromFileOrigin(currentPlayingSong) === removePrefixFromFileOrigin(currentMusicInfo.filenameOrigin)){
+							$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+						}
 						musicDataListCopy.some(item => {
 							if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
 								delete item.saved
@@ -862,7 +876,9 @@ export const saveSongFunc = ({
 						return false
 					} else {
 						currentMusicInfo.saved = true
-						$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+						if(removePrefixFromFileOrigin(currentPlayingSong) === removePrefixFromFileOrigin(currentMusicInfo.filenameOrigin)){
+							$dispatch(updateCurrentMusicItemInfo(currentMusicInfo))
+						}
 						musicDataListCopy.some(item => {
 							if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
 								item.saved = true
@@ -1075,18 +1091,26 @@ export const playMusic = async ({
 		if(!isLocalDownloadedMusicPath){
 			// 检查是否需要获取或重新获取音乐链接
 			let needGetNewestPath = true
-			musicDataList.some((item) => {
-				if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
-					currentMusicItem = JSON.parse(JSON.stringify(item));
-					if(item.getNewestPath){
-						needGetNewestPath = false
+			if(!checkLastMusicWhenLaunch){
+				musicDataList.some((item) => {
+					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
+						currentMusicItem = JSON.parse(JSON.stringify(item));
+						if(item.getNewestPath){
+							needGetNewestPath = false
+						}
+						return true
 					}
-					return true
-				}
-			})
+				})
+			}
 			if(needGetNewestPath || songOriginal === CONSTANT.musicOriginal.netEaseCloud){
-				filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin)
-				if(!filePath) return
+				filePath = await checkFilePath(filePath, songOriginal, musicId, musicDataList, filenameOrigin, checkLastMusicWhenLaunch)
+				if(!filePath) {
+					if(!checkLastMusicWhenLaunch) checkSongSavedFunc([currentMusicItem], "usedForControllerAndPlatingPage")
+					if(currentMusicItem.filename) $dispatch(updateCurrentMusicItemInfo(currentMusicItem))
+					return
+				} else {
+					currentMusicItem.filePath = filePath
+				}
 			}
 		} else {
 			// 已下载的音乐的链接在本地，这里只需把音乐记录保存下即可
@@ -1097,8 +1121,8 @@ export const playMusic = async ({
 				}
 			})
 		}
-		checkSongSavedFunc([currentMusicItem], "usedForControllerAndPlatingPage")
-		$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
+		if(!checkLastMusicWhenLaunch) checkSongSavedFunc([currentMusicItem], "usedForControllerAndPlatingPage")
+		if(currentMusicItem.filename) $dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(currentMusicItem.filename && !checkLastMusicWhenLaunch && window.location.href.split("?").length === 1){
 			// 记住正在播放的音乐,便于下次启动app显示上次播放的音乐
 			const currentMusicItem2 = JSON.parse(JSON.stringify(currentMusicItem))
@@ -1157,7 +1181,6 @@ export const playMusic = async ({
 			}
 			$dispatch(updateRecentMusicList(recentMusicListCopy))
 		}
-		if(currentMusicItem.filePath) $dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(!checkLastMusicWhenLaunch){
 			await musicHowlPlay(filePath, pauseWhenOver, musicDataList, filenameOrigin, original, isLocalDownloadedMusicPath, checkLastMusicWhenLaunch)
 		} else {
@@ -1184,7 +1207,7 @@ function platSongNumberFunc(){
 }
 async function musicHowlPlay(filePath, pauseWhenOver, musicDataList=[], filenameOrigin, original, isLocalDownloadedMusicPath, checkLastMusicWhenLaunch=false){
 	if(!isLocalDownloadedMusicPath){
-		// 屏蔽快速切换歌曲的情况,如果连续点击两首，不屏蔽，超过两首屏蔽
+		// 屏蔽快速切换音乐的情况,如果连续点击两首，不屏蔽，超过两首屏蔽
 		// 清除屏蔽计数
 		platSongNumberFunc()
 		if(window.platSongNumber >= 2){
@@ -1218,8 +1241,8 @@ async function musicHowlPlay(filePath, pauseWhenOver, musicDataList=[], filename
 					return true
 				}
 			})
-			if(!checkLastMusicWhenLaunch){ //只有刚启动app获取上一次播放歌曲的时候才没有self
-				alertDialog("歌曲播放异常,请尝试其他歌曲")
+			if(!checkLastMusicWhenLaunch){ //只有刚启动app获取上一次播放音乐的时候才没有self
+				alertDialog("音乐播放异常,请尝试其他音乐")
 			}
 		},
 		onend: function() {
@@ -1277,7 +1300,7 @@ export const autoPlayNextOne = (type, filenameOrigin, musicDataList, original) =
 		const nextSongInfo = musicDataList[currentFileIndex]
 		playAnotherSong(nextSongInfo, original, musicDataList, type, null)
 	} catch(err){
-		alert("歌曲文件异常, 暂停播放");
+		alertDialog("音乐文件异常, 暂停播放");
 		logger.error("autoPlayNextOne play onEnd err", err)
 	}
 }
@@ -1473,7 +1496,7 @@ export const checkExternalFileExistOrNot = (filename) => {
 	})
 }
 
-export const checkFilePath = async (filePath, songOriginal, musicId, musicDataList, filenameOrigin) => {
+export const checkFilePath = async (filePath, songOriginal, musicId, musicDataList, filenameOrigin, checkLastMusicWhenLaunch=false) => {
 	let getFilePath = ""
 	switch(songOriginal){
 		case CONSTANT.musicOriginal.netEaseCloud:
@@ -1514,7 +1537,7 @@ export const checkFilePath = async (filePath, songOriginal, musicId, musicDataLi
 			return filePath
 		} else {
 			logger.warn("get no filePath songOriginal, musicId, response", songOriginal, musicId, response)
-			alertDialog("歌曲链接获取异常,请尝试其他歌曲")
+			if(!checkLastMusicWhenLaunch) alertDialog("获取音乐链接超时,请尝试其他音乐")
 			return false
 		}
 	} else {
@@ -1604,10 +1627,11 @@ export const checkMusicPlayWays = () => {
 
 export const checkLastMusicPlayInfo = () => {
 	try {
-		const lastPlaySongInfo = JSON.parse(localStorage.getItem('lastPlaySongInfo'))
+		const lastPlaySongInfo = (localStorage.getItem('lastPlaySongInfo') && JSON.parse(localStorage.getItem('lastPlaySongInfo')))
 		const lastPlaySongPageType = localStorage.getItem('lastPlaySongPageType')
-		const lastPlaySongMusicDataList = JSON.parse(localStorage.getItem('lastPlaySongMusicDataList'))
+		const lastPlaySongMusicDataList = (localStorage.getItem('lastPlaySongMusicDataList') && JSON.parse(localStorage.getItem('lastPlaySongMusicDataList')))
 		if(lastPlaySongInfo && lastPlaySongPageType && lastPlaySongMusicDataList){
+			$dispatch(updateCurrentMusicItemInfo(lastPlaySongInfo))
 			playMusic({
 				filePath: lastPlaySongInfo.filePath,
 				filenameOrigin: lastPlaySongInfo.filenameOrigin,
@@ -2100,4 +2124,9 @@ export const saveFileToLocalFunc = async (filename, uploadUsername, fileSize, fi
 				}
 			})
 	}
+}
+
+export const removeTagFromFilename = (filename) => {
+	if(!filename) return ""
+	return filename.replace(/\<span class="hight\-light\-keyword"\>/g, "").replace(/\<\/span\>/g, "")
 }

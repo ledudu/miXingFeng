@@ -29,7 +29,7 @@ const RecentMusicPlayed = ({ recentMusicList, musicPageType }) => {
 					})
 			})
 			if(musicPageType === CONSTANT.musicOriginal.musicRecent){
-				// 假如正在播放的歌曲在最近播放页,停止播放
+				// 假如正在播放的音乐在最近播放页,停止播放
 				stopMusic()
 				$dispatch(updateCurrentMusicItemInfo({}))
 				localStorage.removeItem('lastPlaySongInfo')

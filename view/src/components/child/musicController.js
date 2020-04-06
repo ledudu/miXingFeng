@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { connect } from "react-redux";
 import HearSvg from "./heartSvg"
 import { updateShowMusicPlayingFromMusicControl } from "../../ducks/fileServer"
-import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt } from "../../logic/common"
+import { saveSongFunc, removePrefixFromFileOrigin, playPreviousSong, playNextSong, pauseMusic, resumeMusic, getFilenameWithoutExt, removeTagFromFilename } from "../../logic/common"
 
 const MusicController = ({
 	currentPlayingSong,
@@ -44,10 +44,10 @@ const MusicController = ({
 		currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
 	}
 	const songIsSaved = currentMusicItemInfo.saved || currentPlayingSongOriginal === "savedSongs"
-	const currentSongFilename = currentMusicItemInfo.filename ? getFilenameWithoutExt(currentMusicItemInfo.filename) : "当前没有播放歌曲"
+	const currentSongFilename = currentMusicItemInfo.filename ? removeTagFromFilename(getFilenameWithoutExt(currentMusicItemInfo.filename)) : "当前没有播放音乐"
 	return (
 		<div className="window-music-controller"  ref={window.musicControllerRef} onClick={gotoPlayingMusicPage} >
-			<div className="song-pic" >{currentMusicItemInfo.filename && currentMusicItemInfo.filename.slice(0, 1).toUpperCase() || ""}</div>
+			<div className="song-pic" >{currentSongFilename !== "当前没有播放音乐" ? currentSongFilename.slice(0, 1).toUpperCase() : ""}</div>
 			<div className="song-info">
 				<div className="song-name">{currentSongFilename}</div>
 				<div className="singer-name">{currentMusicItemInfo.uploadUsername || "无"}</div>

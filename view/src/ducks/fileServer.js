@@ -14,7 +14,6 @@ const FILE_SUBMIT_STATUS = "fileServer/fileSubmitStatus"
 const FILE_UPLOAD_PROGRESS = "fileServer/fileUploadProgress"
 const MUSIC_SUBMIT_STATUS = "fileServer/musicSubmitStatus"
 const MUSIC_UPLOAD_PROGRESS = "fileServer/musicUploadProgress"
-const DOWNLOADING_MUSIC_ITEMS = "fileServer/downloadingMusicItems"
 const CURRENT_PLAYING_MUSIC_LIST = "fileServer/currentPlayingMusicList"
 const PLAY_BY_RANDOM = "fileServer/playByRandom"
 const LAST_NET_EASE_CLOUD_SEARCH_RESULT = "fileServer/lastNetEaseCloudSearchResult"
@@ -43,6 +42,7 @@ const NO_MORE_SEARCH_ALL_NET_EASE_CLOUD_RESULTS = "fileServer/noMoreSearchAllNet
 const NO_MORE_SEARCH_ALL_QQ_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllQQMusicResults"
 const NO_MORE_SEARCH_ALL_KU_GOU_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllKuGouMusicResults"
 const NO_MORE_SEARCH_ALL_KU_WO_MUSIC_SEARCH_RESULTS = "fileServer/noMoreSearchAllKuWoMusicResults"
+const DOWNLOADING_MUSIC_ITEMS = "fileServer/downloadingMusicItems"
 const DOWNLOADED_MUSIC_LIST = "fileServer/downloadedMusicList"
 const CURRENT_PLAYING_SONG_ORIGINAL = "fileServer/currentPlayingSongOriginal"
 const CURRENT_PLAYING_SONG_DURATION = "fileServer/currentPlayingSongDuration"
@@ -58,8 +58,7 @@ let musicCollection= [], fileList=[], musicList=[], downloadedMusicList=[], down
 try {musicCollection = localStorage.getItem("favoriteSongs") ? JSON.parse(localStorage.getItem("favoriteSongs")) : []} catch(err){ musicCollection = []}
 try {fileList = localStorage.getItem("fileList") ? JSON.parse(localStorage.getItem("fileList")) : []} catch(err){fileList=[]}
 try {musicList = localStorage.getItem("musicList") ? JSON.parse(localStorage.getItem("musicList")) : []} catch(err){musicList=[]}
-try {downloadedMusicList = localStorage.getItem("downloadedMusicList") ? JSON.parse(localStorage.getItem("downloadedMusicList")) : []} catch(err){downloadedMusicList=[]}
-try {downloadingMusicItems = localStorage.getItem("downloadingMusicItems") ? JSON.parse(localStorage.getItem("downloadingMusicItems")) : []} catch(err){downloadingMusicItems=[]}
+
 // initialSate
 const initialState = () => ({
 	fileList,
@@ -91,7 +90,6 @@ const initialState = () => ({
 	fileUploadProgress: "",
 	musicSubmitStatus: "上传",
 	musicUploadProgress: "",
-	downloadingMusicItems,
 	currentPlayingMusicList: [],
 	playByRandom: false,
 	lastNetEaseCloudSearchResult: [],
@@ -120,7 +118,8 @@ const initialState = () => ({
 	noMoreSearchAllQQMusicResults: false,
 	noMoreSearchAllKuGouMusicResults: false,
 	noMoreSearchAllKuWoMusicResults: false,
-	downloadedMusicList,
+	downloadingMusicItems: [],
+	downloadedMusicList: [],
 	currentPlayingSongOriginal: "",
 	currentPlayingSongDuration: "",
 	musicPageType: "",
@@ -168,7 +167,7 @@ export default function reducer(state = initialState(), action = {}) {
 			}
 			return Object.assign({}, state, {playByOrder: action.data});
 		case MUSIC_COLLECTION:
-			localStorage.setItem("favoriteSongs", JSON.stringify(action.data.slice(0, 50)))
+			localStorage.setItem("favoriteSongs", JSON.stringify(action.data))
 			return Object.assign({}, state, {musicCollection: action.data});
 		case FILE_SUBMIT_STATUS:
 			return Object.assign({}, state, {fileSubmitStatus: action.data});

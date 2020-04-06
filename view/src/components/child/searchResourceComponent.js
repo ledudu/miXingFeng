@@ -34,9 +34,11 @@ import {
 	updateNoMoreSearchAllKuGouMusicResults,
 	updateNoMoreSearchAllKuWoMusicResults,
 } from "../../ducks/fileServer"
-import { networkErr, specialBackFunc } from "../../services/utils"
+import { networkErr } from "../../services/utils"
 import { CONSTANT } from "../../constants/enumeration"
-import { removePrefixFromFileOrigin, logActivity } from "../../logic/common"
+import { removePrefixFromFileOrigin, logActivity, removeDuplicateObjectList2 } from "../../logic/common"
+
+let currentQueryString =""
 
 const SearchResourceComponent = ({
 	lastSearchResult,
@@ -57,6 +59,8 @@ const SearchResourceComponent = ({
 	noMoreSearchAllQQMusicResults,
 	noMoreSearchAllKuGouMusicResults,
 	noMoreSearchAllKuWoMusicResults,
+	downloadedMusicList,
+	downloadedFileList
 }) => {
 	const [ isSearching, setIsSearching ] = useState(false)
 	const [ makeUpSearchString, setMakeUpSearchString ] = useState(false) //用来表示只有真的搜不到结果时才显示没有结果
@@ -77,9 +81,7 @@ const SearchResourceComponent = ({
 	}, [])
 
     const backToMainPage = () => {
-		if(!window.cancelMenuFirst){
-			history.push("/search_column")
-		}
+		history.push("/search_column")
 	}
 
 	const generateOnlineMusicFilenameOrigin = (songInfo ) => {
@@ -108,6 +110,12 @@ const SearchResourceComponent = ({
 				checkSongSaveOrNot(item)
 			})
 		}
+		result.forEach(item => {
+			let filename = item.filename
+			filename = filename.split(currentQueryString)
+			filename = filename.join(`<span class="hight-light-keyword">${currentQueryString}</span>`)
+			item.filename = filename
+		})
 		switch(type){
 			case "file":
 				$dispatch(updateLastFileSearchResult(result))
@@ -165,6 +173,7 @@ const SearchResourceComponent = ({
 	}
 
 	const dispatchSearchString = (type, query) => {
+		currentQueryString = query
 		switch(type){
 			case "file":
 				$dispatch(updateLastFileSearchString(query))
@@ -242,20 +251,23 @@ const SearchResourceComponent = ({
 	}
 
 	const dealWithLocalSearch = (query, type, slice) => {
-		let result = []
+		// 暂不支持不区分大小写搜索
+		let result = [], dataSource=[]
 		if(type === "file" || type === "fileSearchAll"){
-			fileDatalist.forEach(item => {
-				if(item.filename.toLowerCase().indexOf(query.toLowerCase()) === 0){
-					result.push(item)
-				}
-			})
+			const fileList = [...downloadedFileList, ...fileDatalist]
+			dataSource = JSON.parse(JSON.stringify(fileList))
+
 		} else if(type === "music" || type === "musicSearchAll"){
-			musicDatalist.forEach(item => {
-				if(item.filename.toLowerCase().indexOf(query.toLowerCase()) === 0){
-					result.push(item)
-				}
-			})
+			const musicList = [...downloadedMusicList, ...musicDatalist]
+			dataSource = JSON.parse(JSON.stringify(musicList))
 		}
+		dataSource = Object.values(removeDuplicateObjectList2(dataSource))
+		dataSource.forEach(item => {
+			let filename = item.filename
+			if(filename.includes(query)){
+				result.push(item)
+			}
+		})
 		if(slice){
 			if(result.length <= slice){
 				if(type === "fileSearchAll"){
@@ -616,6 +628,8 @@ const mapStateToProps = state => {
 		noMoreSearchAllKuGouMusicResults: state.fileServer.noMoreSearchAllKuGouMusicResults,
 		noMoreSearchAllKuWoMusicResults: state.fileServer.noMoreSearchAllKuWoMusicResults,
 		musicCollection: state.fileServer.musicCollection,
+		downloadedMusicList: state.fileServer.downloadedMusicList,
+		downloadedFileList: state.fileServer.downloadedFileList,
 	};
 };
 

@@ -33,7 +33,8 @@ import {
 	getFilenameWithoutExt,
 	saveMusicToLocal,
 	secondsToTime,
-	checkSongSavedFunc
+	checkSongSavedFunc,
+	removeTagFromFilename
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
@@ -125,9 +126,10 @@ const MusicPlayer = ({
 		if(musicMenuExisted) musicMenuExisted.click();
 	}
 
-	const showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date) => {
+	const showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date, status) => {
 		document.removeEventListener("backbutton", onBackKeyDown, false);
 		document.addEventListener("deviceready", listenBackFunc);
+		filename = removeTagFromFilename(filename)
 		const musicMenuBadgeCopy = JSON.parse(JSON.stringify(musicMenuBadge))
 		const savedMusicFilenameOriginalArr = musicCollection.map(item => removePrefixFromFileOrigin(item.filenameOrigin))
 		const hasSaved = savedMusicFilenameOriginalArr.indexOf(removePrefixFromFileOrigin(filenameOrigin));
@@ -310,21 +312,7 @@ const MusicPlayer = ({
 						break;
 					case 6:
 						if(original === CONSTANT.musicOriginal.musicFinished){
-							confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
-								return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
-									.then(() => {
-										if(filenameOrigin === currentPlayingSong){
-											localStorage.removeItem('lastPlaySongInfo')
-											localStorage.removeItem('lastPlaySongPageType')
-											localStorage.removeItem('lastPlaySongMusicDataList')
-											playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null)
-										}
-									})
-									.catch(error => {
-										logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
-										networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
-									})
-							})
+							removeLocalMusic(filename, filenameOrigin, currentPlayingSong, currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList)
 						} else {
 							const musicSrc = filePath
 							//  下载觅星峰服务器上的音乐，保存的文件名为filenameOrigin,
@@ -349,7 +337,7 @@ const MusicPlayer = ({
 							filename,
 							type: "default-music"
 						}
-						if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
+						if((original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch) && status !== "downloaded"){
 							let startToDelete = false
 							confirm('提示', `确定要从服务器删除${filename}吗`, "确定", () => {
 								if(!startToDelete){
@@ -413,15 +401,35 @@ const MusicPlayer = ({
 									}
 								}
 							})
+						} else if(status === "downloaded"){
+							removeLocalMusic(filename, filenameOrigin, currentPlayingSong, currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList)
 						}
-						break;
+						return
 					default:
-						removeListenBackFunc()
 						break;
 				}
 				removeListenBackFunc()
 			}
 		);
+	}
+
+	const removeLocalMusic = (filename, filenameOrigin, currentPlayingSong, currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList) => {
+		confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
+			return removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "music")
+				.then(() => {
+					updateSearchList(original, filenameOrigin)
+					if(filenameOrigin === currentPlayingSong){
+						localStorage.removeItem('lastPlaySongInfo')
+						localStorage.removeItem('lastPlaySongPageType')
+						localStorage.removeItem('lastPlaySongMusicDataList')
+						playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null)
+					}
+				})
+				.catch(error => {
+					logger.error("删除音乐过程中发生了错误 isFileFinished", error.stack||error.toString());
+					networkErr(error, `musicPlayer removeFileFromDownload filenameOrigin: ${filenameOrigin}`);
+				})
+		})
 	}
 
 	const updateSearchList = (original, filenameOrigin) => {
@@ -456,7 +464,7 @@ const MusicPlayer = ({
 
 	const showSongMv = (e, mvId, original, filename) => {
 		e.stopPropagation();
-		history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename, lastLocation: window.getRoute() }})
+		history.push({ pathname: '/music_mv_Player', query: { mvId, original, filename: removeTagFromFilename(filename), lastLocation: window.getRoute() }})
 	}
 
 	const playingComponent = (filePath, currentSongTime, duration) => {
@@ -477,7 +485,11 @@ const MusicPlayer = ({
 
 	const dealWithMusicUploadTime = (date) => {
 		if(!date) return ""
-		if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch){
+		if(original === CONSTANT.musicOriginal.musicDownloading) return
+		if(typeof(date) === "number") {
+			date = new Date(date).format("yyyy-MM-dd")
+		}
+		if(original === CONSTANT.musicOriginal.musicShare || original === CONSTANT.musicOriginal.musicSearch || original === CONSTANT.musicOriginal.musicFinished){
 			return " " + date.split(" ")[0]
 		} else {
 			return ""
@@ -510,7 +522,7 @@ const MusicPlayer = ({
 							<div className="num">{index + 1}</div>
 							<div className="music-info">
 								<div className={`info ${(item.saved && pageType !== CONSTANT.musicOriginal.savedSongs) ? 'song-saved' : ""}`}>
-									<div className="filename">{getFilenameWithoutExt(item.filename)}</div>
+									<div className="filename" dangerouslySetInnerHTML={{ __html: getFilenameWithoutExt(item.filename)}}></div>
 									{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
 									{item.saved && pageType !== CONSTANT.musicOriginal.savedSongs && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 									{
@@ -555,7 +567,7 @@ const MusicPlayer = ({
 						</div>
 						{
 							original !== CONSTANT.musicOriginal.musicDownloading
-							?	<div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date)}>
+							?	<div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date, item.status)}>
 									<div className="dot"></div>
 									<div className="dot"></div>
 									<div className="dot"></div>

@@ -18,6 +18,7 @@ import {
 	checkToShowPlayController,
 	dealWithThirdPartVisit,
 	playMusic,
+	removeTagFromFilename
 } from "../logic/common"
 import { updateCurrentSongTime, updateIsHeadPhoneView, updateShowMusicPlayingFromMusicControl, updateCurrentMusicItemInfo } from "../ducks/fileServer"
 import { IsPC, specialBackFunc, shareLinkToWeChat, comeFromWeChat, saveFileToLocal } from "../services/utils"
@@ -466,7 +467,7 @@ const MusicPlaying = ({
 		currentFileIndex = currentMusicFilenameOriginalArr.indexOf(currentPlayingSong)
 	}
 	const songIsSaved = currentMusicItemInfo.saved || currentPlayingSongOriginal === "savedSongs"
-	const currentSongFilename = currentMusicItemInfo.filename ? getFilenameWithoutExt(currentMusicItemInfo.filename) : "当前没有播放歌曲"
+	const currentSongFilename = currentMusicItemInfo.filename ? removeTagFromFilename(getFilenameWithoutExt(currentMusicItemInfo.filename)) : "当前没有播放音乐"
 	return (
 		<div
 			className={`music-playing-container ${isHeadPhoneView ? "head-phone-view" : "amazing-baby-view"} ${fromMusicControl ? 'from-music-control' : ""}`}

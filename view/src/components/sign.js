@@ -171,47 +171,51 @@ class Sign extends Component {
 			document.addEventListener("deviceready", this.listenBackKeyDown);
 			// if no network when launch app, username will be empty string
 			if(token && !isFromLoginPage && !needRetryRequestWhenLaunch){
-				if(isSignedUp){
-					signed();
-				}
+				if(isSignedUp) signed();
 			} else {  //  从别的页面切到这个页面不会进入这个else的逻辑
 				if(justOpenApp || needRetryRequestWhenLaunch){
-					if(new Date().getHours() < 6){
-						setTimeout(() => alert("夜深了,请注意休息"), (skipTime-1) * 1000);
-					}
+					if(new Date().getHours() < 6) setTimeout(() => alert("夜深了,请注意休息"), (skipTime-1) * 1000);
 					$dispatch(updateJustOpenApp(false))
-					// get file list
+
+					// 加载正在下载和已下载的文件
+					let downloadedFileArr = [], downloadingFileArr = []
+					const indexDBDataFile = await readAllDataFromIndexDB()
+					indexDBDataFile.forEach((item1) => {
+						if(!item1.status || item1.status === "downloaded"){
+							downloadedFileArr.push(item1)
+						} else if(item1.status === "downloading"){
+							downloadingFileArr.push(item1)
+						}
+					})
+					downloadedFileArr = _.orderBy(downloadedFileArr, ['date'], ['asc'])
+					downloadingFileArr = _.orderBy(downloadingFileArr, ['date'], ['asc'])
+					$dispatch(updateDownloadedFileList(downloadedFileArr))
+					$dispatch(updateDownloadingFileList(downloadingFileArr))
+
+					// 获取共享文件
 					axios.get(HTTP_URL.getList.format({fileType: 'file'}))
 						.then(async function(response) {
 							const array = response.data.result.response || [];
-							let downloadedFileArr = [], downloadingFileArr = []
-							const indexDBData = await readAllDataFromIndexDB()
-							indexDBData.forEach((item1) => {
+							indexDBDataFile.forEach((item1) => {
 								if(!item1.status || item1.status === "downloaded"){
-									downloadedFileArr.push(item1)
-									//  处理已下载文件的逻辑,这里只给了一个已下载的标识，在进入文件已下载的页面时读取indexDB显示已下载的文件
+									//  处理已下载文件的逻辑,这里在共享文件列表给出一个已下载的标识
 									array.forEach((item2) => {
 										if(removePrefixFromFileOrigin(item1.filenameOrigin) === removePrefixFromFileOrigin(item2.filenameOrigin)){
 											item2.downloaded = true
 										}
 									})
-								} else if(item1.status === "downloading"){
-									downloadingFileArr.push(item1)
 								}
 							})
 							array.forEach((item) => {
 								item.filePath = window.serverHost + item.filePath
 							})
 							$dispatch(updateFileList(array));
-							downloadedFileArr = _.orderBy(downloadedFileArr, ['date'], ['asc'])
-							downloadingFileArr = _.orderBy(downloadingFileArr, ['date'], ['asc'])
-							$dispatch(updateDownloadedFileList(downloadedFileArr))
-							$dispatch(updateDownloadingFileList(downloadingFileArr))
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType file`);
 						})
 
+					//获取共享音乐
 					axios.get(HTTP_URL.getList.format({fileType: 'music'}))
 						.then(async function(response) {
 							const array = response.data.result.response;
@@ -220,26 +224,28 @@ class Sign extends Component {
 							})
 							if (!array.length) return;
 							$dispatch(updateMusicList(array));
-							let downloadedMusicArr = [], downloadingMusicArr = []
-							const indexDBData = await readAllMusicDataFromIndexDB()
-							indexDBData.forEach(item => {
-								if(!item.status || item.status === "downloaded"){
-									downloadedMusicArr.push(item)
-								} else if(item.status === "downloading"){
-									downloadingMusicArr.push(item)
-								}
-							})
-							downloadedMusicArr = _.orderBy(downloadedMusicArr, ['date'], ['asc'])
-							downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
-							$dispatch(updateDownloadedMusicList(downloadedMusicArr))
-							$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
 							$dispatch(updateNeedRetryRequestWhenLaunch(false))
 						})
 						.catch(err => {
 							return networkErr(err, `sign getList fileType music`);
 						})
 
-					//加载最近播放列表
+					// 加载正在下载和已下载的音乐
+					let downloadedMusicArr = [], downloadingMusicArr = []
+					const indexDBDataMusic = await readAllMusicDataFromIndexDB()
+					indexDBDataMusic.forEach(item => {
+						if(!item.status || item.status === "downloaded"){
+							downloadedMusicArr.push(item)
+						} else if(item.status === "downloading"){
+							downloadingMusicArr.push(item)
+						}
+					})
+					downloadedMusicArr = _.orderBy(downloadedMusicArr, ['date'], ['asc'])
+					downloadingMusicArr = _.orderBy(downloadingMusicArr, ['date'], ['asc'])
+					$dispatch(updateDownloadedMusicList(downloadedMusicArr))
+					$dispatch(updateDownloadingMusicItems(downloadingMusicArr))
+
+					// 加载最近播放列表
 					readAllRecentMusicDataFromIndexDB()
 						.then((result) => {
 							result.forEach(item => delete item.getNewestPath)
@@ -247,6 +253,7 @@ class Sign extends Component {
 							$dispatch(updateRecentMusicList(result))
 						})
 
+					// 处理自动登录
 					const token = window.localStorage.getItem('tk');
 					if (token) {
 						$dispatch(updateToken(token));
@@ -255,6 +262,7 @@ class Sign extends Component {
 						retrieveLastLoginTime();  //get last sign time
 					}
 				}
+
 				logger.info("sign isFromLoginPage", isFromLoginPage)
 				if(isFromLoginPage){
 					retrieveOthers();

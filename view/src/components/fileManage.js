@@ -8,7 +8,7 @@ import { networkErr, confirm, onBackKeyDown, shareLinkToWeChat } from "../servic
 import { HTTP_URL } from "../constants/httpRoute"
 import { CONSTANT } from "../constants/enumeration"
 import { updateToken } from "../ducks/login"
-import { openDownloadedFile, removeFileFromDownload, optimizeLoadPerformance, removePrefixFromFileOrigin, saveFileToLocalFunc } from "../logic/common"
+import { openDownloadedFile, removeFileFromDownload, optimizeLoadPerformance, removePrefixFromFileOrigin, saveFileToLocalFunc, removeTagFromFilename } from "../logic/common"
 import { updateLastFileSearchResult, updateLastSearchAllFileResult } from "../ducks/fileServer"
 
 const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
@@ -41,6 +41,7 @@ const FileManage = ({
 	}
 
 	const removeListenBackFunc = () => {
+		window.cancelMenuFirst = false
 		document.removeEventListener("backbutton", closeShowMenu);
 		document.removeEventListener("deviceready", listenBackFunc);
 		document.addEventListener("backbutton", onBackKeyDown, false);
@@ -53,11 +54,11 @@ const FileManage = ({
 		if(musicMenuExisted) musicMenuExisted.click();
 	}
 
-	const showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin, date) => {
+	const showMenu = async(filename, fileSize, filePath, uploadUsername, filenameOrigin, date, status) => {
 		try {
 			document.removeEventListener("backbutton", onBackKeyDown, false);
 			document.addEventListener("deviceready", listenBackFunc);
-
+			filename = removeTagFromFilename(filename)
 			let firstItem = "下载";
 			let isFileFinished = (original === "fileFinished")
 			if(isFileFinished){
@@ -74,13 +75,13 @@ const FileManage = ({
 				})
 			}
 			const buttons = [firstItem, '分享', '删除', '取消'];
-			if(original === "fileDownloading" || original === "fileFinished"){
+			if(original === "fileDownloading" || original === "fileFinished" || status === "downloaded"){
 				buttons.splice(1, 1)
 				date = ""
 			} else if(original === "fileShare") {
 				date = ` ${date}`
 			}
-			if(!window.isCordova && original === "fileShare"){
+			if(!window.isCordova && (original === "fileShare" || original === "fileSearch")){
 				buttons.splice(1, 1)
 			}
 			const showActionSheetWithOptionsConfig = {
@@ -107,9 +108,12 @@ const FileManage = ({
 							break;
 						case 1:
 							// 只有在已下载页面的删除才能删除已下载的文件，其他的页面删除都是删除服务器上的文件
-							if(original === "fileFinished"){
+							if(original === "fileFinished" || status === "downloaded"){
 								confirm(`提示`, `确定从本地删除${filename}吗`, "确定", () => {
 									removeFileFromDownload(removePrefixFromFileOrigin(filenameOrigin), "file")
+										.then(() => {
+											updateSearchList(original, filenameOrigin)
+										})
 										.catch(error => {
 											logger.error("删除文件过程中发生了错误 isFileFinished", error.stack||error.toString());
 											networkErr(error, `fileManage removeFileFromDownload filename ${filename}`);
@@ -128,7 +132,9 @@ const FileManage = ({
 							}
 							break;
 						case 2:
-							removeFileFromServer(filename, filenameOrigin)
+							if(window.isCordova && (original === "fileShare" || original === "fileSearch") && status !== "downloaded"){
+								removeFileFromServer(filename, filenameOrigin)
+							}
 							break;
 						default:
 							logger.warn("buttonIndex default")
@@ -186,16 +192,18 @@ const FileManage = ({
 					return true
 				}
 			})
-			lastFileSearchResult.splice(lastFileSearchResultIndex, 1)
+			const lastFileSearchResultCopy = JSON.parse(JSON.stringify(lastFileSearchResult))
+			lastFileSearchResultCopy.splice(lastFileSearchResultIndex, 1)
 			lastSearchAllFileResult.some((item, index) => {
 				if(item.filenameOrigin === filenameOrigin){
 					lastSearchAllFileResultIndex = index
 					return true
 				}
 			})
+			const lastSearchAllFileResultCopy = JSON.parse(JSON.stringify(lastSearchAllFileResult))
 			lastSearchAllFileResult.splice(lastSearchAllFileResultIndex, 1)
-			$dispatch(updateLastFileSearchResult(lastFileSearchResult))
-			$dispatch(updateLastSearchAllFileResult(lastSearchAllFileResult))
+			$dispatch(updateLastFileSearchResult(lastFileSearchResultCopy))
+			$dispatch(updateLastSearchAllFileResult(lastSearchAllFileResultCopy))
 		}
 	}
 
@@ -217,7 +225,10 @@ const FileManage = ({
 
 	const dealWithFileUploadTime = (date) => {
 		if(!date) return ""
-		if(original === "fileDownloading" || original === "fileFinished") return ""
+		if(original === "fileDownloading") return ""
+		if(typeof(date) === "number") {
+			date = new Date(date).format("yyyy-MM-dd")
+		}
 		return " " + date.split(" ")[0]
 	}
 
@@ -255,18 +266,20 @@ const FileManage = ({
 							<div className="num">{index + 1}</div>
 							<div className="file-info">
 								<div className={`info ${original === "fileFinished" ? "center" : ""} ${item.downloaded ? "downloaded" : ""}`}>
-									<div className="filename">{item.filename}</div>
+									<div className="filename" dangerouslySetInnerHTML={{ __html: item.filename }} ></div>
 									{item.downloaded && <div className="downloaded-text">已下载</div>}
 								</div>
 								{
-									original !== "fileFinished" && <div className="upload-info">
+									<div className="upload-info">
 										<div className="upload-user">
-											{`${item.uploadUsername}${dealWithFileUploadTime(item.date)}`}
+											{`${original !== "fileFinished" ? item.uploadUsername : ""}${dealWithFileUploadTime(item.date)}`}
 										</div>
 										{
 											(original === "fileShare" || original === "fileSearch")
 											?	<div className="file-size">{calcSize(item.fileSize)}</div>
-											:	<div className="file-size">{item.progress}</div>
+											:	original === "fileDownloading"
+											?	<div className="file-size">{item.progress}</div>
+											:	null
 										}
 									</div>
 								}
@@ -274,7 +287,7 @@ const FileManage = ({
 						</div>
 						{
 							original !== "fileDownloading"
-							?   <div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filePath, item.uploadUsername, item.filenameOrigin, item.date)}>
+							?   <div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filePath, item.uploadUsername, item.filenameOrigin, item.date, item.status)}>
 									<div className="dot"></div>
 									<div className="dot"></div>
 									<div className="dot"></div>
