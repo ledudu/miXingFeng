@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="utf-8">
-    <link rel="shortcut icon" href="./favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=no, shrink-to-fit=no,">
 	<meta name="theme-color" content="#000000">
 	<meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -61,24 +60,9 @@
 		window.BrowserFileReader = window.FileReader
 		window.BrowserFile = window.File
 		window.isCordova = window._cordovaNative;
-		if (window.isCordova) {
-			const scriptCordova = document.createElement("script");
-			scriptCordova.src = "./cordova.js";
-			document.body.appendChild(scriptCordova);
-		};
 	</script>
 	<script src="./utils.js"></script>
-    <div id="root" class="loading-text animate-flicker">觅星峰</div>
+	<div id="root" class="loading-text animate-flicker">觅星峰</div>
 </body>
-<script src="./base64.js"></script>
-<script src="./fastclick.js"></script>
-<script src="./wordcloud2.js"></script>
-<script>
-    if ('addEventListener' in document) {
-        document.addEventListener('DOMContentLoaded', function () {
-            FastClick.attach(document.body);
-        }, false);
-    }
-</script>
-<script src='./api.map.baidu.js'></script>
+
 </html>
