@@ -34,7 +34,8 @@ import {
 	saveMusicToLocal,
 	secondsToTime,
 	checkSongSavedFunc,
-	removeTagFromFilename
+	removeTagFromFilename,
+	dealPlayAfterRemove
 } from "../logic/common";
 import { CONSTANT } from '../constants/enumeration';
 import { removeRecentMusicDataByIndexFromIndexDB } from "../services/indexDBRecentMusic"
@@ -360,10 +361,7 @@ const MusicPlayer = ({
 										})
 										.then(() => {
 											if(filenameOrigin === currentPlayingSong){
-												localStorage.removeItem('lastPlaySongInfo')
-												localStorage.removeItem('lastPlaySongPageType')
-												localStorage.removeItem('lastPlaySongMusicDataList')
-												playNextSong(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList, null)
+												dealPlayAfterRemove(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList)
 											}
 										})
 										.catch(err => {
@@ -391,11 +389,8 @@ const MusicPlayer = ({
 										$dispatch(updateRecentMusicList(recentMusicListCopy))
 										removeRecentMusicDataByIndexFromIndexDB(filenameOrigin)
 										if(filenameOrigin === currentPlayingSong){
-											localStorage.removeItem('lastPlaySongInfo')
-											localStorage.removeItem('lastPlaySongPageType')
-											localStorage.removeItem('lastPlaySongMusicDataList')
-											const currentMusicFilenameOriginalArr = recentMusicList.map(item => item.filenameOrigin)
-											playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, recentMusicList, null)
+											const recentMusicListCopy = JSON.parse(JSON.stringify(recentMusicList))
+											dealPlayAfterRemove(currentFileIndex, currentMusicFilenameOriginalArr, original, recentMusicListCopy)
 										}
 									} else {
 										logger.error("确定要删除播放记录吗 filenameOrigin, recentMusicList", filenameOrigin, recentMusicList)
@@ -420,10 +415,7 @@ const MusicPlayer = ({
 				.then(() => {
 					updateSearchList(original, filenameOrigin)
 					if(filenameOrigin === currentPlayingSong){
-						localStorage.removeItem('lastPlaySongInfo')
-						localStorage.removeItem('lastPlaySongPageType')
-						localStorage.removeItem('lastPlaySongMusicDataList')
-						playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArr, original, musicDataList, null)
+						dealPlayAfterRemove(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList)
 					}
 				})
 				.catch(error => {
@@ -528,7 +520,7 @@ const MusicPlayer = ({
 									{Number(item.payPlay) ? <i className="fa fa-lock copyright-song-flag" aria-hidden="true"></i> : ""}
 									{item.saved && pageType !== CONSTANT.musicOriginal.savedSongs && <i className="fa fa-heart saved-song-flag" aria-hidden="true"></i>}
 									{
-										(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished || original === CONSTANT.musicOriginal.musicRecent) && (
+										(original === CONSTANT.musicOriginal.savedSongs || original === CONSTANT.musicOriginal.musicFinished || original === CONSTANT.musicOriginal.musicRecent || original === CONSTANT.musicOriginal.musicDownloading) && (
 											item.original === CONSTANT.musicOriginal.netEaseCloud
 											?	<div className="net-ease-source-flag">网易云</div>
 											:	item.original === CONSTANT.musicOriginal.qqMusic

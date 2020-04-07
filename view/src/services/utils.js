@@ -281,8 +281,8 @@ export const saveFileToLocal = async({
 }) => {
 	if(!filenameOrigin) return
 	if(fromMusic){
-		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin)
-		if(!fileUrl) return
+		fileUrl = await checkFilePath(fileUrl, options.original, options.musicId, options.musicDataList, filenameOrigin, false)
+		if(!fileUrl) return alert("音乐链接获取失败")
 	}
 	logger.info("saveFileToLocal fileUrl, filenameOrigin", fileUrl, filenameOrigin)
 	if(!window.isCordova) {

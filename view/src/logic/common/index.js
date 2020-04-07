@@ -872,7 +872,7 @@ export const saveSongFunc = ({
 						alert('取消收藏成功')
 						if(pageType === CONSTANT.musicOriginal.savedSongs){
 							const currentMusicFilenameOriginalArr = musicCollectionCopy.map(item => item.filenameOrigin)
-							playNextSong(currentFileIndex-1, currentMusicFilenameOriginalArr, original, musicDataListCopy, null)
+							dealPlayAfterRemove(currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataListCopy)
 						}
 						return false
 					} else {
@@ -1021,6 +1021,10 @@ export const stopMusic = () => {
 	$dispatch(updateCurrentPlayingSongOriginal(""))
 	$dispatch(updateCurrentPlayingSongDuration(""))
 	$dispatch(updateCurrentPlayingMusicList([]))
+	$dispatch(updateCurrentMusicItemInfo({}))
+	localStorage.removeItem('lastPlaySongInfo')
+	localStorage.removeItem('lastPlaySongPageType')
+	localStorage.removeItem('lastPlaySongMusicDataList')
 	if(window.circleControlRef){
 		window.circleControlRef.style.strokeDashoffset = CONSTANT.strokeDashoffset
 		window.circleControlRef.style.strokeWidth = "8px"
@@ -2140,4 +2144,20 @@ export const saveFileToLocalFunc = async (filename, uploadUsername, fileSize, fi
 export const removeTagFromFilename = (filename) => {
 	if(!filename) return ""
 	return filename.replace(/\<span class="hight\-light\-keyword"\>/g, "").replace(/\<\/span\>/g, "")
+}
+
+export const dealPlayAfterRemove = (currentFileIndex, currentMusicFilenameOriginalArr, original, musicDataList) => {
+	localStorage.removeItem('lastPlaySongInfo')
+	localStorage.removeItem('lastPlaySongPageType')
+	localStorage.removeItem('lastPlaySongMusicDataList')
+	const { soundPlaying } = $getState().fileServer
+	const currentMusicFilenameOriginalArrCopy = JSON.parse(JSON.stringify(currentMusicFilenameOriginalArr))
+	const musicDataListCopy = JSON.parse(JSON.stringify(musicDataList))
+	currentMusicFilenameOriginalArrCopy.splice(currentFileIndex, 1)
+	musicDataListCopy.splice(currentFileIndex, 1)
+	if(!currentMusicFilenameOriginalArrCopy.length || !soundPlaying) {
+		stopMusic()
+	} else if(soundPlaying) {
+		playNextSong(currentFileIndex - 1, currentMusicFilenameOriginalArrCopy, original, musicDataListCopy, null)
+	}
 }
