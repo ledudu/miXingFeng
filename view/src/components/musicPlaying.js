@@ -82,7 +82,8 @@ const MusicPlaying = ({
 				pageType: getCurrentMusicItemInfo.original,
 				filename: getCurrentMusicItemInfo.filename,
 				musicId: getCurrentMusicItemInfo.id,
-				songOriginal: getCurrentMusicItemInfo.original
+				songOriginal: getCurrentMusicItemInfo.original,
+				songInfo: getCurrentMusicItemInfo
 			}
 			if(!comeFromWeChat()){
 				obj.checkLastMusicWhenLaunch = true

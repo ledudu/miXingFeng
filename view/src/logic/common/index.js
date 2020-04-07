@@ -1037,16 +1037,21 @@ export const playMusic = async ({
 	filename,
 	musicId,
 	songOriginal,
-	checkLastMusicWhenLaunch=false
+	checkLastMusicWhenLaunch=false,
+	songInfo={}
 }) => {
 	try {
+		if(songInfo.filename) {
+			songInfo.filename = removeTagFromFilename(songInfo.filename)
+			$dispatch(updateCurrentMusicItemInfo(songInfo))
+		}
 		const notFirstTimePlayMusic = localStorage.getItem("notFirstTimePlayMusic")
 		if(!notFirstTimePlayMusic && !checkLastMusicWhenLaunch && window.isCordova && !window.isDevModel){
 			localStorage.setItem("notFirstTimePlayMusic", true)
 			alertDialog("音乐置于后台播放时，为了应用不被系统省电杀掉，状态栏会出现消息提示", "", "我知道了")
 		}
-		const { pauseWhenOver, recentMusicList, currentMusicItemInfo } = $getState().fileServer;
-		let currentMusicItem=currentMusicItemInfo, isLocalDownloadedMusicPath = filePath ? filePath.includes("cdvfile://localhost/sdcard/miXingFeng/music/") : false
+		const { pauseWhenOver, recentMusicList } = $getState().fileServer;
+		let currentMusicItem=songInfo, isLocalDownloadedMusicPath = filePath ? filePath.includes("cdvfile://localhost/sdcard/miXingFeng/music/") : false
 		if(isLocalDownloadedMusicPath){
 			// 检查已下载的音乐是否被删除
 			const fileExist = await checkFileExistOrNot(removePrefixFromFileOrigin(filenameOrigin), "music")
@@ -1095,7 +1100,10 @@ export const playMusic = async ({
 			if(!checkLastMusicWhenLaunch){
 				musicDataList.some((item) => {
 					if(removePrefixFromFileOrigin(item.filenameOrigin) === removePrefixFromFileOrigin(filenameOrigin)){
-						currentMusicItem = JSON.parse(JSON.stringify(item));
+						if(!currentMusicItem.filename){
+							currentMusicItem = JSON.parse(JSON.stringify(item));
+							$dispatch(updateCurrentMusicItemInfo(currentMusicItem))
+						}
 						if(item.getNewestPath){
 							needGetNewestPath = false
 						}
@@ -1113,7 +1121,6 @@ export const playMusic = async ({
 					currentMusicItem.filePath = filePath
 				}
 			}
-			if(currentMusicItem.filename) currentMusicItem.filename = removeTagFromFilename(currentMusicItem.filename)
 		} else {
 			// 已下载的音乐的链接在本地，这里只需把音乐记录保存下即可
 			musicDataList.some((item) => {
@@ -1124,7 +1131,6 @@ export const playMusic = async ({
 			})
 		}
 		if(!checkLastMusicWhenLaunch) checkSongSavedFunc([currentMusicItem], "usedForControllerAndPlatingPage")
-		if(currentMusicItem.filename) $dispatch(updateCurrentMusicItemInfo(currentMusicItem))
 		if(currentMusicItem.filename && !checkLastMusicWhenLaunch && window.location.href.split("?").length === 1){
 			// 记住正在播放的音乐,便于下次启动app显示上次播放的音乐
 			const currentMusicItem2 = JSON.parse(JSON.stringify(currentMusicItem))
@@ -1331,7 +1337,8 @@ function playAnotherSong(anotherSongInfo, original, musicDataList, type, others)
 			pageType: $getState().fileServer.musicPageType,
 			filename: anotherSongInfo.filename,
 			musicId: anotherSongInfo.id,
-			songOriginal: anotherSongInfo.original
+			songOriginal: anotherSongInfo.original,
+			songInfo: anotherSongInfo
 		})
 	}
 }
@@ -1359,7 +1366,8 @@ export const checkStatus = ({
 		musicDataList,
 		pageType,
 		payPlay,
-		musicId
+		musicId,
+		songInfo
 	}) => {
 	try {
 		if(payPlay) return alert("尊重版权,人人有责")
@@ -1404,20 +1412,20 @@ export const checkStatus = ({
 		if(!soundPlaying){
 			if(!currentPlayingSong){
 				// first play case
-				playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal })
+				playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, songInfo })
 			} else {
 				// pause case
 				if(filenameOrigin === currentPlayingSong){
 					resumeMusic()
 				} else {
 					// stop current song and switch to another song case and then initial play current time
-					playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal })
+					playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, songInfo })
 				}
 			}
 		} else {
 			if(filenameOrigin !== currentPlayingSong){
 				// stop current song and switch to another song case and initial play current time
-				playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal })
+				playMusic({ filePath, filenameOrigin, duration, original, musicDataList, pageType, filename, musicId, songOriginal, songInfo })
 			} else {
 				// pause current song
 				pauseMusic()
@@ -1644,7 +1652,8 @@ export const checkLastMusicPlayInfo = () => {
 				filename: lastPlaySongInfo.filename,
 				musicId: lastPlaySongInfo.id,
 				songOriginal: lastPlaySongInfo.original,
-				checkLastMusicWhenLaunch: true
+				checkLastMusicWhenLaunch: true,
+				songInfo: lastPlaySongInfo
 			})
 		}
 	} catch(err){

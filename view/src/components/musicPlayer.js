@@ -126,7 +126,7 @@ const MusicPlayer = ({
 		if(musicMenuExisted) musicMenuExisted.click();
 	}
 
-	const showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date, status) => {
+	const showMenu = (filename, fileSize, filenameOrigin, uploadUsername, duration, songOriginal, payPlay, payDownload, musicId, date, status, songInfo) => {
 		document.removeEventListener("backbutton", onBackKeyDown, false);
 		document.addEventListener("deviceready", listenBackFunc);
 		filename = removeTagFromFilename(filename)
@@ -195,7 +195,8 @@ const MusicPlayer = ({
 							musicDataList,
 							pageType,
 							payPlay,
-							musicId
+							musicId,
+							songInfo
 						})
 						break;
 					case 1:
@@ -517,7 +518,8 @@ const MusicPlayer = ({
 								musicDataList,
 								pageType,
 								payPlay: Number(item.payPlay),
-								musicId:item.id
+								musicId:item.id,
+								songInfo: item
 							})} >
 							<div className="num">{index + 1}</div>
 							<div className="music-info">
@@ -567,7 +569,7 @@ const MusicPlayer = ({
 						</div>
 						{
 							original !== CONSTANT.musicOriginal.musicDownloading
-							?	<div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date, item.status)}>
+							?	<div className="menu" onClick={showMenu.bind(this, item.filename, item.fileSize, item.filenameOrigin, item.uploadUsername, item.duration, item.original, Number(item.payPlay), Number(item.payDownload), item.id, item.date, item.status, item)}>
 									<div className="dot"></div>
 									<div className="dot"></div>
 									<div className="dot"></div>
