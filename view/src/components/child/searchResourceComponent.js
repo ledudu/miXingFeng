@@ -313,9 +313,7 @@ const SearchResourceComponent = ({
 				})
 			})
 			.catch((err) => {
-				setState({
-					isSearching: false
-				})
+				setIsSearching(false)
 				return networkErr(err, `fetchOnlineSongs ${query}`);
 			})
 	}
