@@ -422,7 +422,7 @@ const MusicPlaying = ({
 				logger.info("webpageUrl: "+ webpageUrl)
 				return shareLinkToWeChat({
 					title: `音乐: ${currentMusicItemInfoCopy.filename} (${secondsToTime(currentMusicItemInfoCopy.duration)})`,
-					description: "觅星峰，一的集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
+					description: "觅星峰，一款集qq音乐，网易云音乐，酷狗音乐和酷我音乐为一身的音乐播放器",
 					thumb: `${CONSTANT.appStaticDirectory}logo.png`,
 					webpageUrl,
 					scene

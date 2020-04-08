@@ -33,10 +33,11 @@
 			-o-animation: flickerAnimation 2s infinite;
 			animation: flickerAnimation 2s infinite;
 		}
-		.loading-text{
+
+		.loading-text {
 			width: 100%;
-			height:100vh;
-			display:flex;
+			height: 100vh;
+			display: flex;
 			justify-content: center;
 			align-items: center;
 			font-weight: 800;
@@ -47,13 +48,20 @@
 			margin-top: -50px;
 		}
 	</style>
-	<script src="./config.js"></script>
+	<script>
+		window.config = {
+			debug: false,
+			dev: false,
+			domainUrl: "https://api.zhoushoujian.com",
+			socketUrl: "api.zhoushoujian.com"
+		}
+	</script>
 	<title>欢迎使用觅星峰</title>
 </head>
 
 <body>
-    <noscript>
-        You need to enable JavaScript to run this app.
+	<noscript>
+		You need to enable JavaScript to run this app.
 	</noscript>
 	<script>
 		// cordova-plugin-file 会覆盖下面的两个全局变量，通过浏览器的方式获取md5需要用到这两个全局变量
@@ -61,7 +69,39 @@
 		window.BrowserFile = window.File
 		window.isCordova = window._cordovaNative;
 	</script>
-	<script src="./utils.js"></script>
+	<script>
+
+		String.prototype.format = function () {
+			var str = this.toString();
+			if (!arguments.length)
+				return str;
+			var args = typeof arguments[0];
+			args = (("string" == args || "number" == args) ? arguments : arguments[0]);
+			for (var arg in args) {
+				var replace = args[arg] || '';
+				str = str.replace(RegExp("\\{" + arg + "\\}", "gi"), replace);
+			}
+			return str;
+		};
+
+		Date.prototype.format = function (fmt) {
+			var o = {
+				"M+": this.getMonth() + 1, //月份
+				"d+": this.getDate(), //日
+				"h+": this.getHours(), //小时
+				"m+": this.getMinutes(), //分
+				"s+": this.getSeconds(), //秒
+				"q+": Math.floor((this.getMonth() + 3) / 3), //季度
+				"S": this.getMilliseconds() //毫秒
+			};
+			if (/(y+)/.test(fmt))
+				fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+			for (var k in o)
+				if (new RegExp("(" + k + ")").test(fmt))
+					fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+			return fmt;
+		}
+	</script>
 	<div id="root" class="loading-text animate-flicker">觅星峰</div>
 </body>
 

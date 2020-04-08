@@ -8,8 +8,8 @@ const HappyPack = require('happypack');
 const os = require('os');
 const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length });
 const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin');
-const dev = process.NODE_ENV !== "production" ? true : false
-
+const dev = process.env.NODE_ENV !== "production" ? true : false
+console.log('dev', dev)
 module.exports = {
 	entry: ['./src/index.js', "./src/themes/css/index.less"],
 	output: {
